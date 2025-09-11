@@ -1,0 +1,230 @@
+openapi: 3.1.0
+info:
+  title: Download Router
+  description: Download Router
+  version: 1.0.0
+servers:
+  - url: 'https://download.api.pbxg33k.eu/'
+tags:
+  - name: Download
+    description: Operations related to file downloads
+  - name: Health
+    description: Health check operations
+paths:
+  /download:
+    post:
+      tags:
+        - Download
+      summary: Initiate a file download
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DownloadRequestDTO'
+      responses:
+        '202':
+          description: Download initiated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                    description: The unique identifier for the initiated download.
+        '400':
+          description: Bad Request - Invalid input data
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /download/{id}/status:
+      get:
+        tags:
+          - Download
+        summary: Get the status of a download
+        parameters:
+          - name: id
+            in: path
+            required: true
+            schema:
+              type: string
+              format: uuid
+            description: The unique identifier of the download.
+        responses:
+          '200':
+            description: Download status retrieved successfully
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/DownloadStatusDTO'
+          '404':
+            description: Not Found - Download with the specified ID does not exist
+          default:
+            description: Unexpected error
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ErrorResponse'
+  /ping:
+    get:
+      tags:
+        - Health
+      summary: Ping endpoint to check service availability
+      responses:
+        '200':
+          description: Service is available
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "pong"
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /health:
+    get:
+      tags:
+        - Health
+      summary: Health check endpoint
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthCheckResponse'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    DownloadRequestDTO:
+      type: object
+      properties:
+        url:
+          type: string
+          format: uri
+          description: The URL to download the file from.
+        downloadTargetPool:
+          type: string
+          description: The target pool where the file should be downloaded.
+        filename:
+          type: string
+          description: The desired filename for the downloaded file.
+      required:
+        - url
+        - downloadTargetPool
+    DownloadStatusDTO:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: The unique identifier for the download.
+        created:
+          type: string
+          format: date-time
+          description: The timestamp when the download was created.
+        updated:
+          type: string
+          format: date-time
+          nullable: true
+          description: The timestamp when the download was last updated.
+        status:
+          type: string
+          description: The current status of the download (e.g., pending, in_progress, completed, failed).
+        progress:
+          type: number
+          format: float
+          description: The progress of the download as a percentage (0 to 100).
+        errorMessage:
+          type: string
+          nullable: true
+          description: An error message if the download failed.
+      required:
+        - id
+        - created
+        - status
+        - progress
+    Site:
+      type: object
+      properties: 
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        url:
+          type: string
+          format: uri
+        downloaders:
+          type: array
+          items:
+            $ref: '#/components/schemas/Downloader'
+      required:
+        - id
+        - name
+        - url
+    Downloader:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        slug:
+          type: string
+        name:
+          type: string
+        version:
+          type: string
+        supportedSites:
+          type: array
+          items:
+            $ref: '#/components/schemas/Site'
+      required:
+        - id
+        - slug
+        - name
+        - version
+    ErrorResponse:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+      required:
+        - code
+        - message
+    HealthCheckResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          description: The health status of the service (e.g., "healthy", "unhealthy").
+        uptime:
+          type: string
+          description: The total uptime of the service.
+        timestamp:
+          type: string
+          format: date-time
+          description: The timestamp when the health check was performed.
+      required:
+        - status
+        - uptime
+        - timestamp
