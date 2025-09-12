@@ -12,6 +12,7 @@ class GalleryDlWebDownloader implements DownloaderInterface
     public function __construct(
         protected(set) LoggerInterface $logger,
         protected(set) HttpClientInterface $httpClient,
+        protected(set) string $hostUrl = 'http://gallery-dl:9080',
     )
     {
     }
