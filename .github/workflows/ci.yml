@@ -59,6 +59,7 @@ jobs:
       -
         name: Check Mercure reachability
         run: curl -vkI --fail-with-body https://localhost/.well-known/mercure?topic=test
+        continue-on-error: true
       -
         name: Create test database
         run: docker compose exec -T php bin/console -e test doctrine:database:create

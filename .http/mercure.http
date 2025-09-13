@@ -1,0 +1,2 @@
+### Test Mercure hub availability
+HEAD {{ client.host }}/.well-known/mercure?topic=test
