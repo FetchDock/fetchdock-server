@@ -19,6 +19,8 @@ class GalleryDlCliDownloader implements DownloaderInterface
         private(set) string $configPath,
         #[Autowire(param: 'downloader.gallery_dl_cli.binary_path')]
         private(set) string $binaryPath,
+        #[Autowire(param: 'downloader.gallery_dl_cli.cownloads_dir')]
+        private(set) string $downloadPath,
         private LoggerInterface $logger
     )
     {
@@ -26,15 +28,32 @@ class GalleryDlCliDownloader implements DownloaderInterface
 
     public function download(DownloadJobInterface $downloadJob): true
     {
+        $this->logger->debug(
+            'Starting download with gallery-dl CLI',
+            [
+                'url' => $downloadJob->getUrl()->__toString(),
+                'configPath' => $this->configPath,
+                'binaryPath' => $this->binaryPath,
+                'downloadPath' => $this->downloadPath,
+            ]
+        );
         $this->createConfigFileIfNotExists();
+        $this->createDownloadDirectoryIfNotExists();
 
         // TODO: Implement download() method.
         $downloadProcess = new Process([
             $this->binaryPath,
             '--config', $this->configPath,
             $downloadJob->getUrl()->__toString()
-        ]);
-        $downloadProcess->mustRun();
+        ], $this->downloadPath);
+
+        $downloadProcess->mustRun(function($type, $buffer)  {
+            if (Process::ERR === $type) {
+                $this->logger->error('gallery-dl error output: ' . $buffer);
+            } else {
+                $this->logger->info('gallery-dl output: ' . $buffer);
+            }
+        });
         if (!$downloadProcess->isSuccessful()) {
             throw new \RuntimeException($downloadProcess->getErrorOutput());
         } else {
@@ -114,7 +133,13 @@ class GalleryDlCliDownloader implements DownloaderInterface
             }
         }
     }
-
+    
+    private function createDownloadDirectoryIfNotExists(): void
+    {
+        if (!is_dir($this->downloadPath)) {
+            mkdir($this->downloadPath, 0755, true);
+        }
+    }
 
     private function fetchSupportedDomains(): array
     {
