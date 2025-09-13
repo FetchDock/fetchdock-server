@@ -1,6 +1,6 @@
-name: Release
+name: Update API-Platform
 permissions:
-  contents: write 
+  contents: write
   pull-requests: write
 
 on:
@@ -9,6 +9,9 @@ on:
       tag:
         description: 'API Platform core tag'
         required: true
+
+env:
+  REGISTRY: ghcr.io
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
@@ -23,11 +26,19 @@ jobs:
         name: Checkout
         uses: actions/checkout@v5
       -
+        name: Set registry name
+        run: echo "IMAGE_PREFIX=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+      -
         name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       -
+        name: Set registry name
+        run: echo "IMAGE_PREFIX=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+      -
         name: Build Docker images
         uses: docker/bake-action@v6
+        env:
+          IMAGES_PREFIX: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}
         with:
           pull: true
           load: true

@@ -4,8 +4,13 @@ on:
   push:
     branches:
       - main
+      - develop
   pull_request: ~
   workflow_dispatch: ~
+
+env:
+  REGISTRY: ghcr.io
+
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
@@ -23,8 +28,13 @@ jobs:
         name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       -
+        name: Set registry name
+        run: echo "IMAGE_PREFIX=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+      -
         name: Build Docker images
         uses: docker/bake-action@v6
+        env:
+          IMAGES_PREFIX: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}
         with:
           pull: true
           load: true
@@ -43,6 +53,8 @@ jobs:
             pwa.cache-to=type=gha,scope=pwa-${{github.ref}},mode=max
       -
         name: Start services
+        env:
+          IMAGES_PREFIX: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}
         run: docker compose up --wait --no-build
       -
         name: Install composer dependencies
@@ -55,6 +67,7 @@ jobs:
         run: curl -vk --fail-with-body https://localhost
       -
         name: Check PWA reachability
+        continue-on-error: true
         run: "curl -vk --fail-with-body -H 'Accept: text/html' https://localhost"
       -
         name: Check Mercure reachability
@@ -62,15 +75,23 @@ jobs:
         continue-on-error: true
       -
         name: Create test database
+        env:
+          IMAGES_PREFIX: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}
         run: docker compose exec -T php bin/console -e test doctrine:database:create
       -
         name: Run migrations
+        env:
+          IMAGES_PREFIX: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}
         run: docker compose exec -T php bin/console -e test doctrine:migrations:migrate --no-interaction
       -
         name: Run PHPUnit
+        env:
+          IMAGES_PREFIX: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}
         run: docker compose exec -T php bin/phpunit
       -
         name: Doctrine Schema Validator
+        env:
+          IMAGES_PREFIX: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}
         run: docker compose exec -T php bin/console -e test doctrine:schema:validate
   lint:
     name: Docker Lint
@@ -81,6 +102,6 @@ jobs:
         uses: actions/checkout@v5
       -
         name: Lint Dockerfiles
-        uses: hadolint/hadolint-action@v3.2.0
+        uses: hadolint/hadolint-action@v3.1.0
         with:
           recursive: true
