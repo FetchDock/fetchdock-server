@@ -8,7 +8,7 @@ parameters:
     downloader.gallery_dl_web.host: 'http://gallery-dl:9080'
 
     downloader.gallery_dl_cli.enabled: true
-    downloader.gallery_dl_cli.cownloads_dir: '%app.download_dir%'
+    downloader.gallery_dl_cli.downloads_dir: '%app.download_dir%'
     downloader.gallery_dl_cli.binary_path: '/usr/local/bin/gallery-dl'
     downloader.gallery_dl_cli.config_path: '%kernel.project_dir%/config/gallery-dl/config.json'
 
