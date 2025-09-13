@@ -3,7 +3,6 @@
 namespace App\Service\Downloader;
 
 use App\Enum\DownloaderTypeEnum;
-use Psr\Cache\CacheItemPoolInterface;
 use Psr\Http\Message\UriInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;

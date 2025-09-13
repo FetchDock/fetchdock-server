@@ -1,0 +1,42 @@
+### Create a new download job with minimal payload
+POST {{ client.host }}/download_jobs
+Content-Type: application/ld+json
+
+{
+    "uri": "https://example.com"
+}
+
+### Create a new download job with user agent
+POST {{ client.host }}/download_jobs
+Content-Type: application/ld+json
+
+{
+  "uri": "https://example.com",
+  "userAgent": "string"
+}
+
+### Create a new download job with cookies
+POST {{ client.host }}/download_jobs
+Content-Type: application/ld+json
+
+{
+  "uri": "https://example.com",
+  "userAgent": "string",
+  "cookies": [
+    "key=value",
+    "key2=value2"
+  ]
+}
+
+### Create a new download job with full payload
+POST {{ client.host }}/download_jobs
+Content-Type: application/ld+json
+
+{
+  "uri": "https://example.com",
+  "userAgent": "string",
+  "cookies": [
+    "string"
+  ],
+  "downloader": "mock"
+}
