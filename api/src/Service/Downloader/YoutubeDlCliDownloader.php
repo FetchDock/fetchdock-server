@@ -105,6 +105,13 @@ class YoutubeDlCliDownloader implements DownloaderInterface
 
     private function createConfigFileIfNotExists(): void
     {
+        // Create the directory if it does not exist
+        $configDir = dirname($this->configPath);
+        if (!is_dir($configDir)) {
+            $this->logger->debug('Creating yt-dlp config directory', ['path' => $configDir]);
+            mkdir($configDir, 0755, true);
+        }
+
         if (!file_exists($this->configPath)) {
             $this->logger->info('Creating yt-dlp config file', ['path' => $this->configPath]);
             file_put_contents($this->configPath, <<<EOF
