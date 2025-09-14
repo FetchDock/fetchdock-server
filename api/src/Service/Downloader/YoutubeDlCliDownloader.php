@@ -146,7 +146,6 @@ class YoutubeDlCliDownloader implements DownloaderInterface
 
 ## Abort if fragment is unavailable
 --abort-on-unavailable-fragment
---fragment-retries 10
 EOF
 
             );
