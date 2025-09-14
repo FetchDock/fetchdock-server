@@ -61,9 +61,8 @@ class YoutubeDlCliDownloader implements DownloaderInterface
         });
         if (!$downloadProcess->isSuccessful()) {
             throw new \RuntimeException($downloadProcess->getErrorOutput());
-        } else {
-            return true;
         }
+        return true;
     }
 
     public function getDownloaderType(): DownloaderTypeEnum
