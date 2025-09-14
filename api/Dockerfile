@@ -12,7 +12,7 @@ FROM dunglas/frankenphp:1-php8.4 AS frankenphp_upstream
 # https://docs.docker.com/compose/compose-file/#target
 
 ## Download the latest gallery-dl & yt-dlp binary from GitHub
-# hadolint ignore=DL3008
+# hadolint ignore=DL3008,DL3013
 RUN apt-get update && apt-get install --no-install-recommends -y \
     ca-certificates \
 	curl \
