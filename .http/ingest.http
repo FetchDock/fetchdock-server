@@ -51,3 +51,14 @@ Content-Type: application/json
     "url":"https://civitai.com/images/93433767",
     "auto_start":true
 }
+
+### Create a new download job for a supported, but not yet whitelisted domain
+POST {{ client.host }}/add
+Content-Type: application/json
+
+{
+    "quality":"best",
+    "format":"any",
+    "url":"https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+    "auto_start":true
+}
