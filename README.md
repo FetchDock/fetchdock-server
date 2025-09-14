@@ -56,6 +56,17 @@ More to be added in the future.
 
 ### Usage of AI assisted code generation
 
+#### Usage of AI assistance during code development
+
+I (PBXg33k) use GitHub Co-pilot to assist me during code development.
+GitHub Copilot suggests code snippets based on the context of the file I'm working on.
+I heavily scrutinize and review every suggestion made by the AI, to ensure quality and correctness.
+Suggested code is not blindly accepted, but undergoes scrutiny and testing before being accepted.
+
+I treat AI as a Junior developer, who needs to be supervised and reviewed by a senior developer.
+
+#### Usage of AI assistance on issues and pull requests
+
 Some issues of this project were addressed using AI assisted code generation (GitHub Copilot).
 
 This decision was made to speed up development time, since this is a one-person project and I have limited time to work on it.
