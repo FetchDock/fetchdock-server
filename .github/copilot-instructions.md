@@ -77,6 +77,18 @@ docker compose exec php vendor/bin/php-cs-fixer fix
 # Location: api/.php-cs-fixer.dist.php uses @Symfony rules
 ```
 
+
+#### Unit Tests
+
+You should **ALWAYS** run tests in docker to ensure consistency:
+- this ensures the correct PHP version and environment
+
+```bash
+# Run PHPUnit tests
+docker compose exec -T php bin/phpunit
+# Location: api/phpunit.xml.dist
+``` 
+
 #### Useful Commands
 ```bash
 # Execute any command in PHP container
@@ -89,7 +101,7 @@ make logs
 make down
 
 # Force recreate (useful after Docker changes)
-make force-recreate
+make build
 ```
 
 ### Service URLs (when running)
