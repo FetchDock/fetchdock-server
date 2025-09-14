@@ -16,7 +16,7 @@ class DownloaderFactory
     public function __construct(
         #[AutoWireIterator('app.downloader')]
         iterable $downloaders,
-        private(set) LoggerInterface $logger,
+        private LoggerInterface $logger,
     )
     {
         // Reindex the iterable to an array to avoid multiple iterations over the generator.

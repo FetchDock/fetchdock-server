@@ -25,7 +25,7 @@ class UrlDownloadCommand extends Command
     private ?DownloaderInterface $downloader = null;
 
     public function __construct(
-        private(set) DownloaderFactory $downloaderCollection
+        private DownloaderFactory $downloaderCollection
     )
     {
         parent::__construct();

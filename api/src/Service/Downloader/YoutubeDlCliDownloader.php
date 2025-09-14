@@ -13,14 +13,14 @@ use Symfony\Contracts\Cache\TagAwareCacheInterface;
 class YoutubeDlCliDownloader implements DownloaderInterface
 {
     public function __construct(
-        private(set) TagAwareCacheInterface $cache,
+        private TagAwareCacheInterface $cache,
         #[\Symfony\Component\DependencyInjection\Attribute\Autowire(param: 'downloader.yt_dlp_cli.config_path')]
-        private(set) string $configPath,
+        private string $configPath,
         #[\Symfony\Component\DependencyInjection\Attribute\Autowire(param: 'downloader.yt_dlp_cli.binary_path')]
-        private(set) string $binaryPath,
+        private string $binaryPath,
         #[\Symfony\Component\DependencyInjection\Attribute\Autowire(param: 'downloader.yt_dlp_cli.downloads_dir')]
-        private(set) string $downloadPath,
-        private(set) LoggerInterface $logger
+        private string $downloadPath,
+        private LoggerInterface $logger
     )
     {
     }

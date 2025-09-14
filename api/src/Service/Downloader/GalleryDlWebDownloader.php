@@ -11,9 +11,9 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 class GalleryDlWebDownloader implements DownloaderInterface
 {
     public function __construct(
-        protected(set) LoggerInterface $logger,
-        protected(set) HttpClientInterface $httpClient,
-        protected(set) string $hostUrl = 'http://gallery-dl:9080',
+        protected LoggerInterface $logger,
+        protected HttpClientInterface $httpClient,
+        protected string $hostUrl = 'http://gallery-dl:9080',
     )
     {
     }

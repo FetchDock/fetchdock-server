@@ -14,13 +14,13 @@ use Symfony\Contracts\Cache\TagAwareCacheInterface;
 class GalleryDlCliDownloader implements DownloaderInterface
 {
     public function __construct(
-        private(set) TagAwareCacheInterface $cache,
+        private TagAwareCacheInterface $cache,
         #[Autowire(param: 'downloader.gallery_dl_cli.config_path')]
-        private(set) string $configPath,
+        private string $configPath,
         #[Autowire(param: 'downloader.gallery_dl_cli.binary_path')]
-        private(set) string $binaryPath,
+        private string $binaryPath,
         #[Autowire(param: 'downloader.gallery_dl_cli.downloads_dir')]
-        private(set) string $downloadPath,
+        private string $downloadPath,
         private LoggerInterface $logger
     )
     {
