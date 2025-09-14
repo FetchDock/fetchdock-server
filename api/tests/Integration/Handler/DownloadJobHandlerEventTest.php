@@ -10,6 +10,7 @@ use App\Event\JobPickedUpEvent;
 use App\Event\JobUpdateEvent;
 use App\Factory\DownloaderFactory;
 use App\Handler\DownloadJobHandler;
+use App\Service\Downloader\DownloaderInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -173,15 +174,15 @@ class DownloadJobHandlerEventTest extends TestCase
 
     private function createMockDownloader()
     {
-        $downloader = $this->createMock(\stdClass::class);
+        $downloader = $this->createMock(DownloaderInterface::class);
         $downloader->method('getIdentifier')->willReturn('mock');
-        $downloader->method('download')->willReturn(null);
+        $downloader->method('download')->willReturn(true);
         return $downloader;
     }
 
     private function createMockDownloaderThatThrows(\Exception $exception)
     {
-        $downloader = $this->createMock(\stdClass::class);
+        $downloader = $this->createMock(DownloaderInterface::class);
         $downloader->method('getIdentifier')->willReturn('mock');
         $downloader->method('download')->willThrowException($exception);
         return $downloader;
