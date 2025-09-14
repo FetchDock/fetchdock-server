@@ -53,6 +53,10 @@ class DownloaderFactory
     {
         $this->logger->debug('Looking for downloaders supporting URI', ['uri' => $uri]);
         foreach ($this->downloaders as $downloader) {
+            $this->logger->debug('Checking downloader for URI support', [
+                'downloader' => $downloader->getIdentifier(),
+                'uri' => $uri
+            ]);
             /** @var \App\Service\Downloader\DownloaderInterface $downloader */
             if ($downloader->supportsUri($uri)) {
                 yield $downloader;

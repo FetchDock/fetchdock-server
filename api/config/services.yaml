@@ -16,6 +16,10 @@ parameters:
 
     downloader.yt_dlp.enabled: true
     downloader.yt_dlp.binary_path: '/usr/local/bin/yt-dlp'
+    downloader.yt_dlp_cli.enabled: true
+    downloader.yt_dlp_cli.downloads_dir: '%app.download_dir%'
+    downloader.yt_dlp_cli.binary_path: '/usr/local/bin/yt-dlp'
+    downloader.yt_dlp_cli.config_path: '%kernel.project_dir%/config/yt-dlp/yt-dlp.conf'
 
 services:
     # default configuration for services in *this* file

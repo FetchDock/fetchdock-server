@@ -9,6 +9,7 @@ use App\Dto\DownloadJobDTO;
 use App\Entity\DownloadJob;
 use App\Enum\DownloadStateEnum;
 use App\Factory\DownloaderFactory;
+use GuzzleHttp\Psr7\Uri;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\Exception\BadRequestException;
 use ApiPlatform\Symfony\Messenger\Processor as MessengerProcessor;
@@ -45,7 +46,6 @@ class DownloadJobQueuedProcessor implements ProcessorInterface
             );
         }
 
-
         $downloadJob = new DownloadJob()
             ->setUri($data->uri)
             ->setUserAgent($data->userAgent ?? null)
@@ -54,6 +54,20 @@ class DownloadJobQueuedProcessor implements ProcessorInterface
 
         if (isset($data->downloader)) {
             $downloadJob->setDownloader($data->downloader);
+        } else {
+            // Try to determine the downloader by URI
+            // This will for example run "yt-dlp --simulate <uri>" to see if yt-dlp supports the given URI
+            $downloaders = $this->downloaderFactory->getDownloadersByUri(new Uri($data->uri));
+            foreach ($downloaders as $downloader) {
+                $downloadJob->setDownloader($downloader->getIdentifier());
+                break; // Use the first matching downloader
+            }
+
+            if (!$downloadJob->getDownloader()) {
+                throw new BadRequestException(
+                    'No downloader found for the given URI. Possible values: ' . implode(', ', array_map(fn($d) => $d->getIdentifier(), $this->downloaderFactory->getEnabledDownloaders()))
+                );
+            }
         }
 
         // Try converting the uri to a valid URI

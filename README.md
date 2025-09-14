@@ -16,13 +16,22 @@ More to be added in the future.
 
 ## Features
 - Download files from various platforms using a single API
-- Support for multiple backends (yt-dlp, gallery-dl)
+- Support for multiple backends
+  - yt-dlp 
+  - gallery-dl
+  - [gallery-dl-server](https://github.com/qx6ghqkz/gallery-dl-server)
+  - mock backend for testing
+- Asynchronous processing of download (depending on number of workers)
 - Easy to extend with additional backends
+  - Just create a new class implementing the `App\Service\Downloader\DownloaderInterface` and it's automatically registered
 - Dockerized for easy deployment
 - API documentation with Swagger UI
+- Compatibility tested with the following MeTube browser extensions. [INSTRUCTIONS](https://github.com/PBXg33k/php-download-router/wiki/Browser-Extensions-%E2%80%90-Metube)
+  - [Firefox](https://addons.mozilla.org/en-US/firefox/addon/metube-downloader/) 
+  - [Chrome and Chromium based browsers](https://chromewebstore.google.com/detail/metube-downloader/fbmkmdnlhacefjljljlbhkodfmfkijdh)
 
 
-### Future Plans
+### Future Plans (in no particular order)
 - [ ] Add more backends for different platforms
 - [ ] Implement authentication and authorization
 - [ ] Add support for scheduling downloads

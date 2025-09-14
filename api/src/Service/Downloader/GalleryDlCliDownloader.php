@@ -44,6 +44,7 @@ class GalleryDlCliDownloader implements DownloaderInterface
         $downloadProcess = new Process([
             $this->binaryPath,
             '--config', $this->configPath,
+            '--verbose',
             $downloadJob->getUrl()->__toString()
         ], $this->downloadPath);
 
