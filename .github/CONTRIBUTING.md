@@ -1,14 +1,14 @@
-# Contributing to API Platform
+# Contributing to PHP Download Router
 
 First, thank you for contributing, you're awesome!
 
-To have your code integrated in the API Platform project, there are some rules to follow, but don't panic, it's easy!
+To have your code integrated in the PHP Download Router project, there are some rules to follow, but don't panic, it's easy!
 
 ## Reporting Bugs
 
 If you happen to find a bug, we kindly request you to report it. However, before submitting it, please:
 
-  * Check the [project documentation available online](https://api-platform.com/docs/)
+  * Check the [project wiki available online](https://github.com/PBXg33k/php-download-router/wiki)
 
 Then, if it appears that it's a real bug, you may report it using Github by following these 3 points:
 
@@ -22,11 +22,11 @@ Then, if it appears that it's a real bug, you may report it using Github by foll
 
 ### Writing a Pull Request
 
-You should base your changes on the `main` branch.
+You should base your changes on the `develop` branch.
 
 ### Matching Coding Standards
 
-The API Platform project follows [Symfony coding standards](https://symfony.com/doc/current/contributing/code/standards.html).
+The PHP Download Router project follows [Symfony coding standards](https://symfony.com/doc/current/contributing/code/standards.html).
 But don't worry, you can fix CS issues automatically using the [PHP CS Fixer](http://cs.sensiolabs.org/) tool:
 
 ```bash
@@ -42,11 +42,9 @@ When you send a PR, just make sure that:
 
 * You add valid test cases.
 * Tests are green.
-* You make a PR on the related documentation in the [api-platform/docs](https://github.com/api-platform/docs) repository.
+* You make a PR on the related documentation in the [php-download-router/wiki](https://github.com/PBXg33k/php-download-router/wiki) repository.
 * You make the PR on the same branch you based your changes on. If you see commits
   that you did not make in your PR, you're doing it wrong.
-* Also don't forget to add a comment when you update a PR with a ping to [the maintainers](https://github.com/orgs/api-platform/people),
-  so he/she will get a notification.
 * Squash your commits into one commit. (see the next chapter)
 
 Fill in the following header from the pull request template:
@@ -94,9 +92,6 @@ git push --force
 
 # License and Copyright Attribution
 
-When you open a Pull Request to the API Platform project, you agree to license your code under the [MIT license](../LICENSE)
-and to transfer the copyright on the submitted code to [Kévin Dunglas](https://github.com/dunglas).
-
-Be sure to you have the right to do that (if you are a professional, ask your company)!
+When you open a Pull Request to the PHP Download Router project, you agree to license your code under the [MIT license](../LICENSE).
 
 If you include code from another project, please mention it in the Pull Request description and credit the original author.

@@ -1,6 +1,6 @@
 api_platform:
-    title: Hello API Platform
-    version: 1.0.0
+    title: Download Router
+    version: 0.1.2
     # Mercure integration, remove if unwanted
     mercure:
         include_type: true

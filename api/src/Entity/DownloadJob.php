@@ -28,6 +28,7 @@ use Psr\Http\Message\UriInterface;
     uriTemplate: '/add',
     formats: ['json' => ['application/json']],
     status: 202,
+    openapi: false,
     description: "Endpoint for the Metube browser extension to add download jobs.",
     input: MetubeDownloadJob::class,
     output: false,
