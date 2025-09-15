@@ -34,13 +34,14 @@ class DownloadJobHandler
     )
     {
         try {
+            // Load the DownloadJob from the database to ensure we have the latest state
+            $downloadJob = $this->entityManager->getRepository(DownloadJob::class)->find($downloadJob->getId());
+            if (!$downloadJob) {
+                throw new InvalidArgumentException('DownloadJob not found with ID: ' . $downloadJob->getId());
+            }
+
             // Dispatch job picked up event
             $this->eventDispatcher->dispatch(new JobPickedUpEvent($downloadJob));
-
-            $this->logger->info('Processing download job', [
-                'downloadJobId' => $downloadJob->getId(),
-                'uri' => $downloadJob->getUri()
-            ]);
 
             // Check if downloader is set, if so, get the downloader by identifier
             if ($downloadJob->getDownloader()) {
@@ -48,6 +49,11 @@ class DownloadJobHandler
                 if (!$downloader) {
                     throw new InvalidArgumentException('Invalid downloader specified: ' . $downloadJob->getDownloader());
                 }
+                $this->eventDispatcher->dispatch(new JobUpdateEvent(
+                    $downloadJob,
+                    'Using specified downloader: ' . $downloader->getIdentifier(),
+                    ['downloader' => $downloader->getIdentifier()]
+                ));
             } else {
                 // Get downloader by URI
                 $downloaders = $this->getDownloaderByUri($downloadJob->getUri());
