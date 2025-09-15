@@ -6,10 +6,11 @@ use App\Entity\DownloadJob;
 use App\Enum\DownloadStateEnum;
 use App\Event\JobCompletedEvent;
 use App\Event\JobFailedEvent;
-use App\Event\JobPickedUpEvent; 
+use App\Event\JobPickedUpEvent;
 use App\Event\JobUpdateEvent;
 use App\Factory\DownloaderFactory;
 use App\Handler\DownloadJobHandler;
+use App\Repository\DownloadJobRepository;
 use App\Service\Downloader\DownloaderInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
@@ -23,6 +24,7 @@ class DownloadJobHandlerEventTest extends TestCase
     private array $dispatchedEvents = [];
     private DownloadJobHandler $handler;
     private EntityManagerInterface $entityManager;
+    private DownloadJobRepository $downloadJobRepository;
     private DownloaderFactory $downloaderFactory;
     private LoggerInterface $logger;
 
@@ -35,21 +37,22 @@ class DownloadJobHandlerEventTest extends TestCase
         $this->eventDispatcher->addListener(JobPickedUpEvent::class, function (JobPickedUpEvent $event) {
             $this->dispatchedEvents[] = $event;
         });
-        
+
         $this->eventDispatcher->addListener(JobUpdateEvent::class, function (JobUpdateEvent $event) {
             $this->dispatchedEvents[] = $event;
         });
-        
+
         $this->eventDispatcher->addListener(JobCompletedEvent::class, function (JobCompletedEvent $event) {
             $this->dispatchedEvents[] = $event;
         });
-        
+
         $this->eventDispatcher->addListener(JobFailedEvent::class, function (JobFailedEvent $event) {
             $this->dispatchedEvents[] = $event;
         });
 
         // Mock dependencies
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
+        $this->downloadJobRepository = $this->createMock(DownloadJobRepository::class);
         $this->downloaderFactory = $this->createMock(DownloaderFactory::class);
         $this->logger = $this->createMock(LoggerInterface::class);
 
@@ -78,6 +81,18 @@ class DownloadJobHandlerEventTest extends TestCase
 
         $this->entityManager
             ->expects($this->once())
+            ->method('getRepository')
+            ->with(DownloadJob::class)
+            ->willReturn($this->downloadJobRepository);
+
+        $this->downloadJobRepository
+            ->expects($this->once())
+            ->method('find')
+            ->with($downloadJob->getId())
+            ->willReturn($downloadJob);
+
+        $this->entityManager
+            ->expects($this->once())
             ->method('persist')
             ->with($downloadJob);
 
@@ -90,7 +105,7 @@ class DownloadJobHandlerEventTest extends TestCase
         // Verify JobPickedUpEvent was dispatched
         $pickedUpEvents = array_filter($this->dispatchedEvents, fn($event) => $event instanceof JobPickedUpEvent);
         $this->assertCount(1, $pickedUpEvents);
-        
+
         $pickedUpEvent = array_shift($pickedUpEvents);
         $this->assertSame($downloadJob, $pickedUpEvent->getDownloadJob());
 
@@ -113,6 +128,18 @@ class DownloadJobHandlerEventTest extends TestCase
             ->willReturn([$mockDownloader]);
 
         $this->entityManager
+            ->expects($this->once())
+            ->method('getRepository')
+            ->with(DownloadJob::class)
+            ->willReturn($this->downloadJobRepository);
+
+        $this->downloadJobRepository
+            ->expects($this->once())
+            ->method('find')
+            ->with($downloadJob->getId())
+            ->willReturn($downloadJob);
+
+        $this->entityManager
             ->expects($this->exactly(2))
             ->method('persist')
             ->with($downloadJob);
@@ -126,7 +153,7 @@ class DownloadJobHandlerEventTest extends TestCase
         // Verify JobUpdateEvent was dispatched
         $updateEvents = array_filter($this->dispatchedEvents, fn($event) => $event instanceof JobUpdateEvent);
         $this->assertCount(1, $updateEvents);
-        
+
         $updateEvent = array_shift($updateEvents);
         $this->assertSame($downloadJob, $updateEvent->getDownloadJob());
         $this->assertStringContainsString('Downloader selected', $updateEvent->getUpdateMessage());
@@ -142,7 +169,19 @@ class DownloadJobHandlerEventTest extends TestCase
         // Mock downloader to throw exception
         $exception = new \Exception('Download failed');
         $mockDownloader = $this->createMockDownloaderThatThrows($exception);
-        
+
+        $this->entityManager
+            ->expects($this->once())
+            ->method('getRepository')
+            ->with(DownloadJob::class)
+            ->willReturn($this->downloadJobRepository);
+
+        $this->downloadJobRepository
+            ->expects($this->once())
+            ->method('find')
+            ->with($downloadJob->getId())
+            ->willReturn($downloadJob);
+
         $this->downloaderFactory
             ->expects($this->once())
             ->method('getDownloadersByUri')
@@ -165,7 +204,7 @@ class DownloadJobHandlerEventTest extends TestCase
         // Verify JobFailedEvent was dispatched
         $failedEvents = array_filter($this->dispatchedEvents, fn($event) => $event instanceof JobFailedEvent);
         $this->assertCount(1, $failedEvents);
-        
+
         $failedEvent = array_shift($failedEvents);
         $this->assertSame($downloadJob, $failedEvent->getDownloadJob());
         $this->assertSame($exception, $failedEvent->getException());

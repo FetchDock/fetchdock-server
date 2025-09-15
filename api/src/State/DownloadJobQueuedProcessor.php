@@ -7,8 +7,10 @@ use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
 use ApiPlatform\Symfony\Messenger\Processor as MessengerProcessor;
 use App\Dto\DownloadJobDTO;
+use App\Dto\JobAcceptedDTO;
 use App\Entity\DownloadJob;
 use App\Enum\DownloadStateEnum;
+use App\Enum\JobTypeEnum;
 use App\Factory\DownloaderFactory;
 use Exception;
 use GuzzleHttp\Psr7\Uri;
@@ -39,10 +41,8 @@ class DownloadJobQueuedProcessor implements ProcessorInterface
      * @param Operation $operation
      * @param array $uriVariables
      * @param array $context
-     * @return void
-     * @throws ExceptionInterface
      */
-    public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = [])
+    public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): JobAcceptedDTO
     {
         // Validate downloader
         if (isset($data->downloader) && !$this->downloaderFactory->isValidDownloader($data->downloader)) {
@@ -109,7 +109,13 @@ class DownloadJobQueuedProcessor implements ProcessorInterface
         $this->persistProcessor->process($downloadJob, $operation, $uriVariables, $context);
 
         // Dispatch the job to the messenger queue
-        return $this->messengerProcessor->process($downloadJob, $operation, $uriVariables, $context);
+        $this->messengerProcessor->process($downloadJob, $operation, $uriVariables, $context);
+
+        // Return a JobAcceptedDTO with the job ID
+        return new JobAcceptedDTO()
+            ->setJobId($downloadJob->getId())
+            ->setJobType(JobTypeEnum::DOWNLOAD);
+
     }
 
     private function getDomainProbeCacheKey(DownloadJob $downloadJob): string

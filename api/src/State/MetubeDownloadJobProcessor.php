@@ -5,6 +5,7 @@ namespace App\State;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
 use App\Dto\DownloadJobDTO;
+use App\Dto\JobAcceptedDTO;
 use App\Model\MetubeDownloadJob;
 
 class MetubeDownloadJobProcessor implements ProcessorInterface
@@ -20,15 +21,14 @@ class MetubeDownloadJobProcessor implements ProcessorInterface
      * @param Operation $operation
      * @param array $uriVariables
      * @param array $context
-     * @return void
      */
-    public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = [])
+    public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): JobAcceptedDTO
     {
         // Convert MetubeDownloadJob to DownloadJobDTO
         $downloadJobDTO = new DownloadJobDTO();
         $downloadJobDTO->uri = $data->url;
 
         // Pass to DownloadJobQueuedProcessor
-        $this->downloadJobQueuedProcessor->process($downloadJobDTO, $operation, $uriVariables, $context);
+        return $this->downloadJobQueuedProcessor->process($downloadJobDTO, $operation, $uriVariables, $context);
     }
 }

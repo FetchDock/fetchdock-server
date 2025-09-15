@@ -5,12 +5,15 @@ namespace App\Entity;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Post;
 use App\Dto\DownloadJobDTO;
+use App\Dto\JobAcceptedDTO;
 use App\Enum\DownloadStateEnum;
 use App\Model\DownloadJobInterface;
 use App\Model\MetubeDownloadJob;
 use App\Repository\DownloadJobRepository;
 use App\State\DownloadJobQueuedProcessor;
 use App\State\MetubeDownloadJobProcessor;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
@@ -23,9 +26,9 @@ use Psr\Http\Message\UriInterface;
         new Post(
             status: 202,
             input: DownloadJobDTO::class,
-            output: false,
+            output: JobAcceptedDTO::class,
             messenger: 'input',
-            processor: DownloadJobQueuedProcessor::class
+            processor: DownloadJobQueuedProcessor::class,
         ),
         new Post(
             uriTemplate: '/add',
@@ -34,7 +37,7 @@ use Psr\Http\Message\UriInterface;
             openapi: false,
             description: "Endpoint for the Metube browser extension to add download jobs.",
             input: MetubeDownloadJob::class,
-            output: false,
+            output: JobAcceptedDTO::class,
             messenger: 'input',
             processor: MetubeDownloadJobProcessor::class
         )
@@ -64,6 +67,17 @@ class DownloadJob implements DownloadJobInterface
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $downloader = null;
+
+    /**
+     * @var Collection<int, DownloadJobEvent>
+     */
+    #[ORM\OneToMany(targetEntity: DownloadJobEvent::class, mappedBy: 'downloadJob', cascade: ['persist'], orphanRemoval: false)]
+    private Collection $downloadJobEvents;
+
+    public function __construct()
+    {
+        $this->downloadJobEvents = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -133,5 +147,35 @@ class DownloadJob implements DownloadJobInterface
     public function getUrl(): UriInterface
     {
         return new Uri($this->uri);
+    }
+
+    /**
+     * @return Collection<int, DownloadJobEvent>
+     */
+    public function getDownloadJobEvents(): Collection
+    {
+        return $this->downloadJobEvents;
+    }
+
+    public function addDownloadJobEvent(DownloadJobEvent $downloadJobEvent): static
+    {
+        if (!$this->downloadJobEvents->contains($downloadJobEvent)) {
+            $this->downloadJobEvents->add($downloadJobEvent);
+            $downloadJobEvent->setDownloadJob($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDownloadJobEvent(DownloadJobEvent $downloadJobEvent): static
+    {
+        if ($this->downloadJobEvents->removeElement($downloadJobEvent)) {
+            // set the owning side to null (unless already changed)
+            if ($downloadJobEvent->getDownloadJob() === $this) {
+                $downloadJobEvent->setDownloadJob(null);
+            }
+        }
+
+        return $this;
     }
 }
