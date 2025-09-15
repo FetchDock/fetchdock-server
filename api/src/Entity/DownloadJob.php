@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Post;
 use App\Dto\DownloadJobDTO;
 use App\Enum\DownloadStateEnum;
@@ -17,23 +18,28 @@ use GuzzleHttp\Psr7\Uri;
 use Psr\Http\Message\UriInterface;
 
 #[ORM\Entity(repositoryClass: DownloadJobRepository::class)]
-#[Post(
-    status: 202,
-    input: DownloadJobDTO::class,
-    output: false,
-    messenger: 'input',
-    processor: DownloadJobQueuedProcessor::class
-)]
-#[Post(
-    uriTemplate: '/add',
-    formats: ['json' => ['application/json']],
-    status: 202,
-    openapi: false,
-    description: "Endpoint for the Metube browser extension to add download jobs.",
-    input: MetubeDownloadJob::class,
-    output: false,
-    messenger: 'input',
-    processor: MetubeDownloadJobProcessor::class
+#[ApiResource(
+    operations: [
+        new Post(
+            status: 202,
+            input: DownloadJobDTO::class,
+            output: false,
+            messenger: 'input',
+            processor: DownloadJobQueuedProcessor::class
+        ),
+        new Post(
+            uriTemplate: '/add',
+            formats: ['json' => ['application/json']],
+            status: 202,
+            openapi: false,
+            description: "Endpoint for the Metube browser extension to add download jobs.",
+            input: MetubeDownloadJob::class,
+            output: false,
+            messenger: 'input',
+            processor: MetubeDownloadJobProcessor::class
+        )
+    ],
+    mercure: true
 )]
 class DownloadJob implements DownloadJobInterface
 {
