@@ -65,6 +65,17 @@ class DownloadJob implements DownloadJobInterface
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $downloader = null;
 
+    /**
+     * @var Collection<int, DownloadJobEvent>
+     */
+    #[ORM\OneToMany(targetEntity: DownloadJobEvent::class, mappedBy: 'downloadJob', cascade: ['persist'], orphanRemoval: false)]
+    private Collection $downloadJobEvents;
+
+    public function __construct()
+    {
+        $this->downloadJobEvents = new ArrayCollection();
+    }
+
     public function getId(): ?int
     {
         return $this->id;
@@ -133,5 +144,35 @@ class DownloadJob implements DownloadJobInterface
     public function getUrl(): UriInterface
     {
         return new Uri($this->uri);
+    }
+
+    /**
+     * @return Collection<int, DownloadJobEvent>
+     */
+    public function getDownloadJobEvents(): Collection
+    {
+        return $this->downloadJobEvents;
+    }
+
+    public function addDownloadJobEvent(DownloadJobEvent $downloadJobEvent): static
+    {
+        if (!$this->downloadJobEvents->contains($downloadJobEvent)) {
+            $this->downloadJobEvents->add($downloadJobEvent);
+            $downloadJobEvent->setDownloadJob($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDownloadJobEvent(DownloadJobEvent $downloadJobEvent): static
+    {
+        if ($this->downloadJobEvents->removeElement($downloadJobEvent)) {
+            // set the owning side to null (unless already changed)
+            if ($downloadJobEvent->getDownloadJob() === $this) {
+                $downloadJobEvent->setDownloadJob(null);
+            }
+        }
+
+        return $this;
     }
 }
