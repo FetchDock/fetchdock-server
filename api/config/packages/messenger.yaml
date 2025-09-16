@@ -5,10 +5,10 @@ framework:
 
         transports:
             # https://symfony.com/doc/current/messenger.html#transport-configuration
-            async: '%env(MESSENGER_TRANSPORT_DSN)%/messages'
-            download-jobs: '%env(MESSENGER_TRANSPORT_DSN)%/download-jobs'
-            logs: '%env(MESSENGER_TRANSPORT_DSN)%/logs'
-            failed: 'doctrine://default?queue_name=failed'
+            async: 'doctrine://default?auto_setup=false&queue_name=messages'
+            download-jobs: 'doctrine://default?auto_setup=false&queue_name=download-jobs'
+            logs: 'doctrine://default?auto_setup=false&queue_name=logs'
+            failed: 'doctrine://default?auto_setup=false&queue_name=failed'
             # sync: 'sync://'
 
         routing:
