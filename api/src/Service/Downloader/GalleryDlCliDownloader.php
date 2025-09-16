@@ -14,6 +14,17 @@ use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 class GalleryDlCliDownloader implements DownloaderInterface
 {
+    /**
+     * Maximum time in seconds to allow the process to run.
+     * Currently set to 30 minutes.
+     */
+    private const float TIMEOUT = 1800.0;
+    /**
+     * Maximum time in seconds to allow the process to be idle (no output).
+     * Currently set to 5 minute.
+     */
+    private const float IDLE_TIMEOUT = 300.0;
+
     public function __construct(
         private TagAwareCacheInterface $cache,
         #[Autowire(param: 'downloader.gallery_dl_cli.config_path')]
@@ -48,6 +59,11 @@ class GalleryDlCliDownloader implements DownloaderInterface
             '--verbose',
             $downloadJob->getUrl()->__toString()
         ], $this->downloadPath);
+
+        // Set a timeout of 30 minutes
+        $downloadProcess->setTimeout(self::TIMEOUT);
+        // Set an idle timeout of 5 minutes
+        $downloadProcess->setIdleTimeout(self::IDLE_TIMEOUT);
 
         $downloadProcess->mustRun(function (string $type, string $buffer) {
             if (Process::ERR === $type) {
