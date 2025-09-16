@@ -73,11 +73,11 @@ class DownloadJobHandlerTest extends TestCase
             ->with('mock')
             ->willReturn($mockDownloader);
 
-        $this->entityManager->expects($this->exactly(2))
+        $this->entityManager->expects($this->exactly(1))
             ->method('persist')
             ->with($downloadJob);
 
-        $this->entityManager->expects($this->exactly(2))
+        $this->entityManager->expects($this->exactly(1))
             ->method('flush');
 
         $this->handler->__invoke($downloadJob);
@@ -108,11 +108,11 @@ class DownloadJobHandlerTest extends TestCase
         $this->downloaderFactory->method('getDownloadersByUri')
             ->willReturn([$mockDownloader]);
 
-        $this->entityManager->expects($this->exactly(3))
+        $this->entityManager->expects($this->exactly(2))
             ->method('persist')
             ->with($downloadJob);
 
-        $this->entityManager->expects($this->exactly(3))
+        $this->entityManager->expects($this->exactly(2))
             ->method('flush');
 
         $this->handler->__invoke($downloadJob);
@@ -131,7 +131,7 @@ class DownloadJobHandlerTest extends TestCase
     public function testJobNotFoundInDatabase(): void
     {
         $downloadJob = new DownloadJob();
-        
+
         $this->downloadJobRepository->method('find')
             ->willReturn(null);
 
@@ -155,11 +155,11 @@ class DownloadJobHandlerTest extends TestCase
             ->with('invalid-downloader')
             ->willReturn(null);
 
-        $this->entityManager->expects($this->exactly(2))
+        $this->entityManager->expects($this->exactly(1))
             ->method('persist')
             ->with($downloadJob);
 
-        $this->entityManager->expects($this->exactly(2))
+        $this->entityManager->expects($this->exactly(1))
             ->method('flush');
 
         $this->expectException(\InvalidArgumentException::class);
@@ -185,11 +185,11 @@ class DownloadJobHandlerTest extends TestCase
         $this->downloaderFactory->method('getDownloadersByUri')
             ->willReturn([]);
 
-        $this->entityManager->expects($this->exactly(2))
+        $this->entityManager->expects($this->exactly(1))
             ->method('persist')
             ->with($downloadJob);
 
-        $this->entityManager->expects($this->exactly(2))
+        $this->entityManager->expects($this->exactly(1))
             ->method('flush');
 
         $this->expectException(\InvalidArgumentException::class);
@@ -220,11 +220,11 @@ class DownloadJobHandlerTest extends TestCase
             ->with('mock')
             ->willReturn($mockDownloader);
 
-        $this->entityManager->expects($this->exactly(2))
+        $this->entityManager->expects($this->exactly(1))
             ->method('persist')
             ->with($downloadJob);
 
-        $this->entityManager->expects($this->exactly(2))
+        $this->entityManager->expects($this->exactly(1))
             ->method('flush');
 
         $this->expectException(\RuntimeException::class);
