@@ -41,7 +41,7 @@ class DownloadWorkflowIntegrationTest extends TestCase
         $this->mockDownloader = new MockDownloader();
         $this->logger = $this->createMock(LoggerInterface::class);
         $this->downloaderFactory = new DownloaderFactory([$this->mockDownloader], $this->logger);
-        
+
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
         $this->repository = $this->createMock(DownloadJobRepository::class);
         $this->cache = $this->createMock(TagAwareCacheInterface::class);
@@ -58,7 +58,7 @@ class DownloadWorkflowIntegrationTest extends TestCase
             ->willReturn($this->repository);
 
         $persistProcessor = $this->createMock(ProcessorInterface::class);
-        $messengerProcessor = $this->createMock(MessengerProcessor::class);
+        $messengerProcessor = $this->createMock(ProcessorInterface::class);
 
         $this->processor = new DownloadJobQueuedProcessor(
             $persistProcessor,
@@ -99,7 +99,7 @@ class DownloadWorkflowIntegrationTest extends TestCase
                 return $job;
             });
 
-        $messengerProcessor = $this->createMock(MessengerProcessor::class);
+        $messengerProcessor = $this->createMock(ProcessorInterface::class);
 
         $processor = new DownloadJobQueuedProcessor(
             $persistProcessor,
@@ -166,7 +166,7 @@ class DownloadWorkflowIntegrationTest extends TestCase
                 return $job;
             });
 
-        $messengerProcessor = $this->createMock(MessengerProcessor::class);
+        $messengerProcessor = $this->createMock(ProcessorInterface::class);
 
         $processor = new DownloadJobQueuedProcessor(
             $persistProcessor,
@@ -214,7 +214,7 @@ class DownloadWorkflowIntegrationTest extends TestCase
             ->method('invalidateTags');
 
         $persistProcessor = $this->createMock(ProcessorInterface::class);
-        $messengerProcessor = $this->createMock(MessengerProcessor::class);
+        $messengerProcessor = $this->createMock(ProcessorInterface::class);
 
         $processor = new DownloadJobQueuedProcessor(
             $persistProcessor,
@@ -294,7 +294,7 @@ class DownloadWorkflowIntegrationTest extends TestCase
         $operation = $this->createMock(Operation::class);
 
         $persistProcessor = $this->createMock(ProcessorInterface::class);
-        $messengerProcessor = $this->createMock(MessengerProcessor::class);
+        $messengerProcessor = $this->createMock(ProcessorInterface::class);
 
         $processor = new DownloadJobQueuedProcessor(
             $persistProcessor,
@@ -330,7 +330,7 @@ class DownloadWorkflowIntegrationTest extends TestCase
                 return $job;
             });
 
-        $messengerProcessor = $this->createMock(MessengerProcessor::class);
+        $messengerProcessor = $this->createMock(ProcessorInterface::class);
 
         $processor = new DownloadJobQueuedProcessor(
             $persistProcessor,

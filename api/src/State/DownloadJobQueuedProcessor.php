@@ -29,7 +29,8 @@ class DownloadJobQueuedProcessor implements ProcessorInterface
          */
         #[Autowire(service: 'api_platform.doctrine.orm.state.persist_processor')]
         private ProcessorInterface     $persistProcessor,
-        private MessengerProcessor     $messengerProcessor,
+        #[Autowire(service: MessengerProcessor::class)]
+        private ProcessorInterface     $messengerProcessor,
         private DownloaderFactory      $downloaderFactory,
         private TagAwareCacheInterface $cache
     )

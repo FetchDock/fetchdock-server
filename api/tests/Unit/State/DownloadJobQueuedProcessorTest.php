@@ -23,7 +23,7 @@ class DownloadJobQueuedProcessorTest extends TestCase
 {
     private DownloadJobQueuedProcessor $processor;
     private ProcessorInterface $persistProcessor;
-    private MessengerProcessor $messengerProcessor;
+    private ProcessorInterface $messengerProcessor;
     private DownloaderFactory $downloaderFactory;
     private TagAwareCacheInterface $cache;
     private Operation $operation;
@@ -31,7 +31,7 @@ class DownloadJobQueuedProcessorTest extends TestCase
     protected function setUp(): void
     {
         $this->persistProcessor = $this->createMock(ProcessorInterface::class);
-        $this->messengerProcessor = $this->createMock(MessengerProcessor::class);
+        $this->messengerProcessor = $this->createMock(ProcessorInterface::class);
         $this->downloaderFactory = $this->createMock(DownloaderFactory::class);
         $this->cache = $this->createMock(TagAwareCacheInterface::class);
         $this->operation = $this->createMock(Operation::class);
@@ -303,7 +303,7 @@ class DownloadJobQueuedProcessorTest extends TestCase
 
         // Both should use the same cache key since they're from the same domain
         $this->cache->expects($this->never())->method('get');
-        
+
         $this->persistProcessor->method('process')
             ->willReturnCallback(function (DownloadJob $job) {
                 $reflection = new \ReflectionClass($job);
