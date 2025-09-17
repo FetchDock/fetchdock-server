@@ -7,6 +7,7 @@ services:
     volumes:
       - ./api:/app
       - /app/var
+      - ./build/logs:/app/build/logs
       - vendor_php:/app/vendor
       - cache_php:/app/cache
       - ./api/frankenphp/Caddyfile:/etc/frankenphp/Caddyfile:ro
