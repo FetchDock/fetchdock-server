@@ -29,7 +29,8 @@ class DownloadJobQueuedProcessor implements ProcessorInterface
          */
         #[Autowire(service: 'api_platform.doctrine.orm.state.persist_processor')]
         private ProcessorInterface     $persistProcessor,
-        private MessengerProcessor     $messengerProcessor,
+        #[Autowire(service: MessengerProcessor::class)]
+        private ProcessorInterface     $messengerProcessor,
         private DownloaderFactory      $downloaderFactory,
         private TagAwareCacheInterface $cache
     )
@@ -99,9 +100,7 @@ class DownloadJobQueuedProcessor implements ProcessorInterface
 
         // Try converting the uri to a valid URI
         // If it fails, throw a 400 error
-        try {
-            $uri = new Uri($downloadJob->getUri());
-        } catch (Exception $e) {
+        if (filter_var($downloadJob->getUri(), FILTER_VALIDATE_URL) === FALSE) {
             throw new BadRequestException('Invalid URI');
         }
 

@@ -7,6 +7,9 @@ services:
     volumes:
       - ./api:/app
       - /app/var
+      - ./build/logs:/app/build/logs
+      - vendor_php:/app/vendor
+      - cache_php:/app/cache
       - ./api/frankenphp/Caddyfile:/etc/frankenphp/Caddyfile:ro
       - ./api/frankenphp/conf.d/20-app.dev.ini:/usr/local/etc/php/app.conf.d/20-app.dev.ini:ro
       - ./downloads:/downloads
@@ -29,6 +32,8 @@ services:
     volumes:
       - ./api:/app
       - /app/var
+      - vendor_worker:/app/vendor
+      - cache_worker:/app/cache
       - ./api/frankenphp/Caddyfile:/etc/frankenphp/Caddyfile:ro
       - ./api/frankenphp/conf.d/20-app.dev.ini:/usr/local/etc/php/app.conf.d/20-app.dev.ini:ro
       - ./downloads:/downloads
@@ -67,3 +72,9 @@ services:
 
 ###> symfony/mercure-bundle ###
 ###< symfony/mercure-bundle ###
+
+volumes:
+  vendor_php:
+  cache_php:
+  vendor_worker:
+  cache_worker:

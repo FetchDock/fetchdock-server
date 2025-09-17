@@ -25,8 +25,13 @@ force-recreate:
 build:
 	$(DOCKER_COMPOSE_PREFIX) docker compose build --no-cache --pull
 
+prep-test:
+	$(DOCKER_COMPOSE_PREFIX) docker compose exec -T php bin/console -e test doctrine:database:create
+	$(DOCKER_COMPOSE_PREFIX) docker compose exec -T php bin/console -e test doctrine:migrations:migrate --no-interaction
+	$(DOCKER_COMPOSE_PREFIX) docker compose exec -T php bin/console -e test doctrine:fixtures:load --no-interaction
+
 test:
-	$(DOCKER_COMPOSE_PREFIX) docker compose exec -it php ./bin/phpunit --colors=always --testdox
+	$(DOCKER_COMPOSE_PREFIX) docker compose exec --env XDEBUG_MODE=coverage -it php ./bin/phpunit --colors=always --testdox
 
 integration:
 	docker run --network host -w /app -v ./e2e:/app --rm --ipc=host mcr.microsoft.com/playwright:v1.50.0-noble /bin/sh -c 'npm i; npx playwright test;'

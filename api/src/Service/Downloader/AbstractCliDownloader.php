@@ -79,6 +79,7 @@ abstract class AbstractCliDownloader implements DownloaderInterface
     protected function createDownloadDirectoryIfNotExists(): void
     {
         if (!is_dir($this->downloadPath)) {
+            $this->logger->debug('Creating download directory', ['path' => $this->downloadPath]);
             mkdir($this->downloadPath, 0755, true);
         }
     }
