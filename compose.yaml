@@ -54,7 +54,8 @@ services:
       MERCURE_JWT_SECRET: ${CADDY_MERCURE_JWT_SECRET:-!ChangeThisMercureHubJWTSecretKey!}
     volumes:
       - /tmp/downloader-downloads:/downloads
-    command: bin/console messenger:consume async --limit=100 -vv
+    #command: bin/console messenger:consume async --limit=100 -vv
+    entrypoint: usr/local/bin/docker-entrypoint
     healthcheck:
       test: ["CMD", "true"]
       timeout: 5s
