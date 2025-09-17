@@ -38,7 +38,7 @@ class DownloadJobHandler
             // Load the DownloadJob from the database to ensure we have the latest state
             $downloadJobEntity = $this->entityManager->getRepository(DownloadJob::class)->find($downloadJob->getId());
             if (!$downloadJobEntity) {
-                throw new EntityNotFoundException('DownloadJob not found with ID: ' . $downloadJobEntity->getId());
+                throw new EntityNotFoundException('DownloadJob not found with ID: ' . $downloadJob->getId());
             }
 
             // Dispatch job picked up event
@@ -100,13 +100,16 @@ class DownloadJobHandler
 
             throw $e; // Re-throw to ensure the message is not lost
         } catch (Throwable $exception) {
-            // Update job state to failed
-            $downloadJobEntity->setState(DownloadStateEnum::FAILED);
-            $this->entityManager->persist($downloadJobEntity);
-            $this->entityManager->flush();
-
-            // Dispatch job failed event
-            $this->eventDispatcher->dispatch(new JobFailedEvent($downloadJobEntity, $exception));
+            if($downloadJobEntity instanceof DownloadJob) {
+                // Update job state to failed
+                $downloadJobEntity->setState(DownloadStateEnum::FAILED);
+                $this->entityManager->persist($downloadJobEntity);
+                $this->entityManager->flush();
+                $this->eventDispatcher->dispatch(new JobFailedEvent($downloadJobEntity, $exception));
+            } else {
+                // Dispatch job failed event
+                $this->eventDispatcher->dispatch(new JobFailedEvent($downloadJob, $exception));
+            }
 
             // Re-throw the exception to maintain existing error handling behavior
             throw $exception;

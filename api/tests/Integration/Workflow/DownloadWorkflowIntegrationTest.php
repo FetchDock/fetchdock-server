@@ -123,11 +123,11 @@ class DownloadWorkflowIntegrationTest extends TestCase
             ->with(123)
             ->willReturn($persistedJob);
 
-        $this->entityManager->expects($this->exactly(2))
+        $this->entityManager->expects($this->once())
             ->method('persist')
             ->with($persistedJob);
 
-        $this->entityManager->expects($this->exactly(2))
+        $this->entityManager->expects($this->once())
             ->method('flush');
 
         $this->handler->__invoke($persistedJob);
@@ -268,11 +268,11 @@ class DownloadWorkflowIntegrationTest extends TestCase
             ->with(789)
             ->willReturn($job);
 
-        $this->entityManager->expects($this->exactly(2))
+        $this->entityManager->expects($this->once())
             ->method('persist')
             ->with($job);
 
-        $this->entityManager->expects($this->exactly(2))
+        $this->entityManager->expects($this->once())
             ->method('flush');
 
         $this->expectException(\RuntimeException::class);
