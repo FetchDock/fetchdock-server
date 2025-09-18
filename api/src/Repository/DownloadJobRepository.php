@@ -16,6 +16,14 @@ class DownloadJobRepository extends ServiceEntityRepository
         parent::__construct($registry, DownloadJob::class);
     }
 
+    public function findWithoutFiles()
+    {
+        return $this->createQueryBuilder('d')
+            ->andWhere('d.files IS EMPTY')
+            ->getQuery()
+            ->getResult();
+    }
+
 //    /**
 //     * @return DownloadJob[] Returns an array of DownloadJob objects
 //     */
