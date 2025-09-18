@@ -2,6 +2,9 @@
 
 namespace App\Service\Downloader;
 
+use App\Entity\DownloadJob;
+use App\Repository\DownloadedFileRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Http\Message\UriInterface;
 use Psr\Log\LoggerInterface;
@@ -21,7 +24,9 @@ class YoutubeDlCliDownloader extends AbstractCliDownloader implements Downloader
         #[Autowire(param: 'downloader.yt_dlp_cli.downloads_dir')]
         protected string $downloadPath,
         protected LoggerInterface $logger,
-        protected EventDispatcherInterface $eventDispatcher
+        protected EventDispatcherInterface $eventDispatcher,
+        protected DownloadedFileRepository $downloadedFileRepository,
+        protected EntityManagerInterface $entityManager
     )
     {
         parent::__construct($cache, $eventDispatcher, $configPath, $binaryPath, $downloadPath, $logger);
@@ -85,5 +90,43 @@ EOF;
         } catch (ProcessFailedException $e) {
             return false;
         }
+    }
+
+    public function addFilesToDownloadJobFromCommandOutput(DownloadJob $downloadJob, string $commandOutput): void
+    {
+        // Convert \n to actual new lines
+        $lines = explode("\n", $commandOutput);
+
+        // Look for the line that starts with [info] Writing internet shortcut (.desktop) to:
+        // This file will contain a line like: Name={path to file}
+        foreach ($lines as $line) {
+            $line = trim($line);
+            if (str_starts_with($line, '[info] Writing internet shortcut (.desktop) to: ')) {
+                $filePath = trim(substr($line, strlen('[info] Writing internet shortcut (.desktop) to: ')));
+                if (file_exists($filePath) && is_file($filePath)) {
+                    $downloadedFile = $this->downloadedFileRepository->findOneBy(['path' => $filePath]);
+                    if (!$downloadedFile) {
+                        $downloadedFile = new \App\Entity\DownloadedFile();
+                        $downloadedFile->setPath($filePath);
+                        $downloadedFile->setVisible(true);
+                        // Trim the file extension for the name and append .info.json
+                        // That file contains all the metadat in a JSON format
+                        $metadataFilePath = preg_replace('/\.desktop$/', '.info.json', $filePath);
+                        if (file_exists($metadataFilePath) && is_file($metadataFilePath)) {
+                            $metadata = json_decode(file_get_contents($metadataFilePath), true);
+                            if (json_last_error() === JSON_ERROR_NONE) {
+                                $downloadedFile->setMetadata($metadata);
+                            } else {
+                                $downloadedFile->setMetadata([]);
+                            }
+                        }
+                    }
+                    $downloadedFile->addDownloadJob($downloadJob);
+                    $this->entityManager->persist($downloadedFile);
+                }
+            }
+        }
+        $this->entityManager->persist($downloadJob);
+        $this->entityManager->flush();
     }
 }

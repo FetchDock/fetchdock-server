@@ -219,6 +219,11 @@ class AbstractCliDownloaderTest extends TestCase
             {
                 return 'test-config-content';
             }
+
+            public function addFilesToDownloadJobFromCommandOutput(DownloadJob $downloadJob, string $commandOutput): void
+            {
+                // TODO: Implement addFilesToDownloadJobFromCommandOutput() method.
+            }
         };
     }
 }

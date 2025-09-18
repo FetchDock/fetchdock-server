@@ -1,5 +1,5 @@
 # Makefile
-DOCKER_COMPOSE_PREFIX ?= IMAGES_PREFIX=ghcr.io/pbxg33k/php-download-router
+DOCKER_COMPOSE_PREFIX ?= IMAGES_PREFIX=ghcr.io/pbxg33k/php-download-router XDEBUG_MODE=debug
 ENV ?=
 
 up:

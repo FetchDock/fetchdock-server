@@ -2,6 +2,7 @@
 
 namespace App\Service\Downloader;
 
+use App\Entity\DownloadJob;
 use App\Enum\DownloaderTypeEnum;
 use App\Event\CliProcessErrOutputEvent;
 use App\Event\CliProcessStartEvent;
@@ -29,6 +30,8 @@ abstract class AbstractCliDownloader implements DownloaderInterface
     ) {}
 
     abstract protected function getConfigFileContents(): string;
+
+    abstract public function addFilesToDownloadJobFromCommandOutput(DownloadJob $downloadJob, string $commandOutput): void;
 
     public function download(DownloadJobInterface $downloadJob): true
     {

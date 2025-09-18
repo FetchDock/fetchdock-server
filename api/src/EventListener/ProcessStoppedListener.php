@@ -6,7 +6,9 @@ use App\Entity\DownloadJob;
 use App\Entity\DownloadJobEvent;
 use App\Enum\DownloadStateEnum;
 use App\Event\CliProcessStopEvent;
+use App\Factory\DownloaderFactory;
 use App\Repository\DownloadJobRepository;
+use App\Service\Downloader\AbstractCliDownloader;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
@@ -16,7 +18,8 @@ readonly class ProcessStoppedListener
     public function __construct(
         private LoggerInterface        $logger,
         private EntityManagerInterface $entityManager,
-        private DownloadJobRepository  $downloadJobRepository
+        private DownloadJobRepository  $downloadJobRepository,
+        private DownloaderFactory      $downloaderFactory
     )
     {
     }
@@ -61,6 +64,33 @@ readonly class ProcessStoppedListener
             }
             $this->entityManager->persist($downloadJob);
             $this->entityManager->flush();
+        }
+    }
+
+    #[AsEventListener(event: CliProcessStopEvent::class)]
+    public function addFilesToDownloadJobFromCommandOutput(CliProcessStopEvent $event): void
+    {
+        $downloadJob = $event->downloadJob;
+
+        if($downloadJob->getState() !== DownloadStateEnum::COMPLETED) {
+            return;
+        }
+
+        if($downloadJob->getDownloader() === null) {
+            $downloader = $this->downloaderFactory->getDownloadersByUri($downloadJob->getUrl());
+        } else {
+            $downloader = $this->downloaderFactory->getDownloaderByIdentifier($downloadJob->getDownloader());
+        }
+
+        if($downloader === null) {
+            return;
+        }
+
+        if($downloader instanceof AbstractCliDownloader) {
+            $downloader->addFilesToDownloadJobFromCommandOutput(
+                $downloadJob,
+                $event->process->getOutput()
+            );
         }
     }
 }
