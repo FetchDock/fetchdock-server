@@ -2,6 +2,7 @@
 
 namespace App\Service\Downloader;
 
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Http\Message\UriInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -13,16 +14,17 @@ class YoutubeDlCliDownloader extends AbstractCliDownloader implements Downloader
 {
     public function __construct(
         protected TagAwareCacheInterface $cache,
-        #[Autowire(param: 'downloader.gallery_dl_cli.config_path')]
+        #[Autowire(param: 'downloader.yt_dlp_cli.config_path')]
         protected string $configPath,
-        #[Autowire(param: 'downloader.gallery_dl_cli.binary_path')]
+        #[Autowire(param: 'downloader.yt_dlp_cli.binary_path')]
         protected string $binaryPath,
-        #[Autowire(param: 'downloader.gallery_dl_cli.downloads_dir')]
+        #[Autowire(param: 'downloader.yt_dlp_cli.downloads_dir')]
         protected string $downloadPath,
-        protected LoggerInterface $logger
+        protected LoggerInterface $logger,
+        protected EventDispatcherInterface $eventDispatcher
     )
     {
-        parent::__construct($cache, $configPath, $binaryPath, $downloadPath, $logger);
+        parent::__construct($cache, $eventDispatcher, $configPath, $binaryPath, $downloadPath, $logger);
     }
 
     public function getIdentifier(): string
