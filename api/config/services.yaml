@@ -11,14 +11,14 @@ parameters:
 
     downloader.gallery_dl_cli.enabled: true
     downloader.gallery_dl_cli.downloads_dir: '%app.download_dir%'
-    downloader.gallery_dl_cli.binary_path: '/usr/local/bin/gallery-dl'
+    downloader.gallery_dl_cli.binary_path: 'gallery-dl'
     downloader.gallery_dl_cli.config_path: '%kernel.project_dir%/config/gallery-dl/config.json'
 
     downloader.yt_dlp.enabled: true
-    downloader.yt_dlp.binary_path: '/usr/local/bin/yt-dlp'
+    downloader.yt_dlp.binary_path: 'yt-dlp'
     downloader.yt_dlp_cli.enabled: true
     downloader.yt_dlp_cli.downloads_dir: '%app.download_dir%'
-    downloader.yt_dlp_cli.binary_path: '/usr/local/bin/yt-dlp'
+    downloader.yt_dlp_cli.binary_path: 'yt-dlp'
     downloader.yt_dlp_cli.config_path: '%kernel.project_dir%/config/yt-dlp/yt-dlp.conf'
 
 services:
