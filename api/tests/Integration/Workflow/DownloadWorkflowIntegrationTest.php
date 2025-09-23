@@ -17,6 +17,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcher;
+use Symfony\Component\Uid\Uuid;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 /**
@@ -111,7 +112,10 @@ class DownloadWorkflowIntegrationTest extends TestCase
         $result = $processor->process($dto, $operation);
 
         // Verify DTO processing
-        $this->assertSame(123, $result->getJobId());
+        $this->assertIsString($result->getJobUuid());
+        $this->assertMatchesRegularExpression('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/', $result->getJobUuid());
+        $this->assertIsString($result->getToken());
+        $this->assertSame(64, strlen($result->getToken()));
         $this->assertNotNull($persistedJob);
         $this->assertSame('https://example.com/test.zip', $persistedJob->getUri());
         $this->assertSame('mock', $persistedJob->getDownloader());
@@ -120,7 +124,7 @@ class DownloadWorkflowIntegrationTest extends TestCase
 
         // Step 2: Simulate job handling
         $this->repository->method('find')
-            ->with(123)
+            ->with($persistedJob->getId())
             ->willReturn($persistedJob);
 
         $this->entityManager->expects($this->once())
@@ -178,7 +182,10 @@ class DownloadWorkflowIntegrationTest extends TestCase
         $result = $processor->process($dto, $operation);
 
         // Verify auto-selection worked
-        $this->assertSame(456, $result->getJobId());
+        $this->assertIsString($result->getJobUuid());
+        $this->assertMatchesRegularExpression('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/', $result->getJobUuid());
+        $this->assertIsString($result->getToken());
+        $this->assertSame(64, strlen($result->getToken()));
         $this->assertSame('mock', $persistedJob->getDownloader());
 
         // Step 2: Handle the job

@@ -6,7 +6,8 @@ use App\Enum\JobTypeEnum;
 
 class JobAcceptedDTO
 {
-    public int $jobId;
+    public string $jobUuid;
+    public string $token;
     public JobTypeEnum $jobType;
     public string $status = 'Accepted';
     public string $message = 'Your job has been accepted and is being processed.';
@@ -22,14 +23,25 @@ class JobAcceptedDTO
         return $this;
     }
 
-    public function getJobId(): int
+    public function getJobUuid(): string
     {
-        return $this->jobId;
+        return $this->jobUuid;
     }
 
-    public function setJobId(int $jobId): JobAcceptedDTO
+    public function setJobUuid(string $jobUuid): JobAcceptedDTO
     {
-        $this->jobId = $jobId;
+        $this->jobUuid = $jobUuid;
+        return $this;
+    }
+
+    public function getToken(): string
+    {
+        return $this->token;
+    }
+
+    public function setToken(string $token): JobAcceptedDTO
+    {
+        $this->token = $token;
         return $this;
     }
 

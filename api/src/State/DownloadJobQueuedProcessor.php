@@ -110,9 +110,10 @@ class DownloadJobQueuedProcessor implements ProcessorInterface
         // Dispatch the job to the messenger queue
         $this->messengerProcessor->process($downloadJob, $operation, $uriVariables, $context);
 
-        // Return a JobAcceptedDTO with the job ID
+        // Return a JobAcceptedDTO with the job UUID and token
         return new JobAcceptedDTO()
-            ->setJobId($downloadJob->getId())
+            ->setJobUuid($downloadJob->getUuid()->toRfc4122())
+            ->setToken($downloadJob->getToken())
             ->setJobType(JobTypeEnum::DOWNLOAD);
 
     }

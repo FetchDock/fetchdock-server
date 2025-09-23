@@ -2,24 +2,31 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Doctrine\Orm\State\Options;
+use ApiPlatform\Doctrine\Orm\Util\QueryNameGeneratorInterface;
 use ApiPlatform\Metadata\ApiResource;
-use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Link;
 use App\Repository\DownloadJobEventRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\ORM\QueryBuilder;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
 
 #[ORM\Entity(repositoryClass: DownloadJobEventRepository::class)]
 #[ApiResource(
-    uriTemplate: '/download_jobs/{id}/events.{_format}',
+    uriTemplate: '/download_jobs/{downloadJobUuid}/events.{_format}',
     operations: [new GetCollection()],
     uriVariables: [
-        'id' => new Link(
-            fromProperty: 'downloadJobEvents',
-            fromClass: DownloadJob::class
+        'downloadJobUuid' => new Link(
+            #fromProperty: 'downloadJobEvents',
+            toProperty: 'downloadJob',
+            fromClass: DownloadJob::class,
+            identifiers: ['uuid'],
         )
-    ]
+    ],
+    stateOptions: new Options(
+        handleLinks: [self::class, 'handleLinks'],
+    )
 )]
 class DownloadJobEvent
 {
@@ -154,5 +161,13 @@ class DownloadJobEvent
         $this->exceptionMessage = $exceptionMessage;
 
         return $this;
+    }
+
+    public static function handleLinks(QueryBuilder $queryBuilder, array $uriVariables, QueryNameGeneratorInterface $queryNameGenerator): void
+    {
+        $queryBuilder
+            ->join($queryBuilder->getRootAliases()[0].'.downloadJob', 'download_job')
+            ->andWhere('download_job.uuid = :downloadJob')
+            ->setParameter('downloadJob', $uriVariables['downloadJobUuid']);
     }
 }

@@ -19,6 +19,8 @@ use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
 use GuzzleHttp\Psr7\Uri;
 use Psr\Http\Message\UriInterface;
+use Symfony\Bridge\Doctrine\Types\UuidType;
+use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity(repositoryClass: DownloadJobRepository::class)]
 #[ApiResource(
@@ -53,6 +55,12 @@ class DownloadJob implements DownloadJobInterface
     #[ORM\Column]
     private ?int $id = null;
 
+    #[ORM\Column(type: UuidType::NAME, unique: true)]
+    private ?Uuid $uuid = null;
+
+    #[ORM\Column(length: 64)]
+    private ?string $token = null;
+
     #[ORM\Column(type: Types::TEXT)]
     private ?string $uri = null;
 
@@ -83,12 +91,24 @@ class DownloadJob implements DownloadJobInterface
     public function __construct()
     {
         $this->downloadJobEvents = new ArrayCollection();
+        $this->uuid = Uuid::v4();
+        $this->token = bin2hex(random_bytes(32)); // 64 character hex string
         $this->files = new ArrayCollection();
     }
 
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function getUuid(): ?Uuid
+    {
+        return $this->uuid;
+    }
+
+    public function getToken(): ?string
+    {
+        return $this->token;
     }
 
     public function getUri(): ?string

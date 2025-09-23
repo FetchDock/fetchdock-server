@@ -7,6 +7,7 @@ use App\Entity\DownloadJobEvent;
 use App\Enum\DownloadStateEnum;
 use GuzzleHttp\Psr7\Uri;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Uid\Uuid;
 
 class DownloadJobTest extends TestCase
 {
@@ -20,6 +21,9 @@ class DownloadJobTest extends TestCase
     public function testEntityInstantiation(): void
     {
         $this->assertNull($this->downloadJob->getId());
+        $this->assertInstanceOf(Uuid::class, $this->downloadJob->getUuid());
+        $this->assertIsString($this->downloadJob->getToken());
+        $this->assertSame(64, strlen($this->downloadJob->getToken())); // 32 bytes = 64 hex chars
         $this->assertNull($this->downloadJob->getUri());
         $this->assertNull($this->downloadJob->getUserAgent());
         $this->assertNull($this->downloadJob->getCookies());
@@ -109,6 +113,30 @@ class DownloadJobTest extends TestCase
 
         $this->assertInstanceOf(Uri::class, $url);
         $this->assertSame($uri, (string)$url);
+    }
+
+    public function testUuidIsGeneratedAndUnique(): void
+    {
+        $job1 = new DownloadJob();
+        $job2 = new DownloadJob();
+        
+        $this->assertInstanceOf(Uuid::class, $job1->getUuid());
+        $this->assertInstanceOf(Uuid::class, $job2->getUuid());
+        $this->assertNotEquals($job1->getUuid()->toRfc4122(), $job2->getUuid()->toRfc4122());
+    }
+
+    public function testTokenIsGeneratedAndUnique(): void
+    {
+        $job1 = new DownloadJob();
+        $job2 = new DownloadJob();
+        
+        $this->assertIsString($job1->getToken());
+        $this->assertIsString($job2->getToken());
+        $this->assertSame(64, strlen($job1->getToken()));
+        $this->assertSame(64, strlen($job2->getToken()));
+        $this->assertNotEquals($job1->getToken(), $job2->getToken());
+        $this->assertTrue(ctype_xdigit($job1->getToken())); // Is hexadecimal
+        $this->assertTrue(ctype_xdigit($job2->getToken())); // Is hexadecimal
     }
 
     public function testAddDownloadJobEvent(): void

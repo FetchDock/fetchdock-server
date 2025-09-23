@@ -86,7 +86,10 @@ class DownloadJobQueuedProcessorTest extends TestCase
         $result = $this->processor->process($data, $this->operation);
 
         $this->assertInstanceOf(JobAcceptedDTO::class, $result);
-        $this->assertSame(123, $result->getJobId());
+        $this->assertIsString($result->getJobUuid());
+        $this->assertMatchesRegularExpression('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/', $result->getJobUuid()); // Valid UUID format
+        $this->assertIsString($result->getToken());
+        $this->assertSame(64, strlen($result->getToken()));
         $this->assertSame(JobTypeEnum::DOWNLOAD, $result->getJobType());
     }
 
@@ -142,7 +145,9 @@ class DownloadJobQueuedProcessorTest extends TestCase
         $result = $this->processor->process($data, $this->operation);
 
         $this->assertInstanceOf(JobAcceptedDTO::class, $result);
-        $this->assertSame(456, $result->getJobId());
+        $this->assertIsString($result->getJobUuid());
+        $this->assertMatchesRegularExpression('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/', $result->getJobUuid());
+        $this->assertIsString($result->getToken());
     }
 
     public function testProcessWithAutoDownloaderSelectionNotCached(): void
@@ -192,7 +197,9 @@ class DownloadJobQueuedProcessorTest extends TestCase
         $result = $this->processor->process($data, $this->operation);
 
         $this->assertInstanceOf(JobAcceptedDTO::class, $result);
-        $this->assertSame(789, $result->getJobId());
+        $this->assertIsString($result->getJobUuid());
+        $this->assertMatchesRegularExpression('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/', $result->getJobUuid());
+        $this->assertIsString($result->getToken());
     }
 
     public function testProcessWithNoDownloaderFound(): void
@@ -284,7 +291,9 @@ class DownloadJobQueuedProcessorTest extends TestCase
         $result = $this->processor->process($data, $this->operation);
 
         $this->assertInstanceOf(JobAcceptedDTO::class, $result);
-        $this->assertSame(999, $result->getJobId());
+        $this->assertIsString($result->getJobUuid());
+        $this->assertMatchesRegularExpression('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/', $result->getJobUuid());
+        $this->assertIsString($result->getToken());
         $this->assertSame(JobTypeEnum::DOWNLOAD, $result->getJobType());
     }
 

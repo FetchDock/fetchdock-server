@@ -29,8 +29,11 @@ class MetubeDownloadJobProcessorTest extends TestCase
         $metubeJob = new MetubeDownloadJob();
         $metubeJob->url = 'https://youtube.com/watch?v=test123';
 
+        $expectedUuid = '6ba7b810-9dad-11d1-80b4-00c04fd430c8';
+        $expectedToken = 'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890';
         $expectedResult = new JobAcceptedDTO();
-        $expectedResult->setJobId(456);
+        $expectedResult->setJobUuid($expectedUuid);
+        $expectedResult->setToken($expectedToken);
         $expectedResult->setJobType(JobTypeEnum::DOWNLOAD);
 
         $this->downloadJobQueuedProcessor->expects($this->once())
@@ -48,7 +51,8 @@ class MetubeDownloadJobProcessorTest extends TestCase
         $result = $this->processor->process($metubeJob, $this->operation);
 
         $this->assertInstanceOf(JobAcceptedDTO::class, $result);
-        $this->assertSame(456, $result->getJobId());
+        $this->assertSame($expectedUuid, $result->getJobUuid());
+        $this->assertSame($expectedToken, $result->getToken());
         $this->assertSame(JobTypeEnum::DOWNLOAD, $result->getJobType());
     }
 
@@ -60,8 +64,11 @@ class MetubeDownloadJobProcessorTest extends TestCase
         $uriVariables = ['id' => 123];
         $context = ['operation' => 'create'];
         
+        $expectedUuid = '6ba7b810-9dad-11d1-80b4-00c04fd430c9';
+        $expectedToken = 'fedcba0987654321fedcba0987654321fedcba0987654321fedcba0987654321';
         $expectedResult = new JobAcceptedDTO();
-        $expectedResult->setJobId(789);
+        $expectedResult->setJobUuid($expectedUuid);
+        $expectedResult->setToken($expectedToken);
         $expectedResult->setJobType(JobTypeEnum::DOWNLOAD);
 
         $this->downloadJobQueuedProcessor->expects($this->once())
@@ -94,9 +101,11 @@ class MetubeDownloadJobProcessorTest extends TestCase
             $metubeJob = new MetubeDownloadJob();
             $metubeJob->url = $url;
 
-            $expectedJobId = 100 + $index;
+            $expectedUuid = '6ba7b810-9dad-11d1-80b4-00c04fd430c' . $index;
+            $expectedToken = bin2hex(random_bytes(32));
             $expectedResult = new JobAcceptedDTO();
-            $expectedResult->setJobId($expectedJobId);
+            $expectedResult->setJobUuid($expectedUuid);
+            $expectedResult->setToken($expectedToken);
             $expectedResult->setJobType(JobTypeEnum::DOWNLOAD);
 
             $processor = new MetubeDownloadJobProcessor(
@@ -114,7 +123,8 @@ class MetubeDownloadJobProcessorTest extends TestCase
             $processor = new MetubeDownloadJobProcessor($mockProcessor);
             $result = $processor->process($metubeJob, $this->operation);
 
-            $this->assertSame($expectedJobId, $result->getJobId());
+            $this->assertSame($expectedUuid, $result->getJobUuid());
+            $this->assertSame($expectedToken, $result->getToken());
         }
     }
 
@@ -145,7 +155,8 @@ class MetubeDownloadJobProcessorTest extends TestCase
                 $capturedDTO = $dto;
                 
                 $result = new JobAcceptedDTO();
-                $result->setJobId(555);
+                $result->setJobUuid('6ba7b810-9dad-11d1-80b4-00c04fd430dd');
+                $result->setToken(bin2hex(random_bytes(32)));
                 $result->setJobType(JobTypeEnum::DOWNLOAD);
                 return $result;
             });
