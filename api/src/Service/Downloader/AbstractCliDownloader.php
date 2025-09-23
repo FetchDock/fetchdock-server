@@ -2,8 +2,14 @@
 
 namespace App\Service\Downloader;
 
+use App\Entity\DownloadJob;
 use App\Enum\DownloaderTypeEnum;
+use App\Event\CliProcessErrOutputEvent;
+use App\Event\CliProcessStartEvent;
+use App\Event\CliProcessStdOutputEvent;
+use App\Event\CliProcessStopEvent;
 use App\Model\DownloadJobInterface;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
 use Symfony\Component\Process\Process;
@@ -16,6 +22,7 @@ abstract class AbstractCliDownloader implements DownloaderInterface
 
     public function __construct(
         protected TagAwareCacheInterface $cache,
+        protected EventDispatcherInterface $eventDispatcher,
         protected string $configPath,
         protected string $binaryPath,
         protected string $downloadPath,
@@ -23,6 +30,8 @@ abstract class AbstractCliDownloader implements DownloaderInterface
     ) {}
 
     abstract protected function getConfigFileContents(): string;
+
+    abstract public function addFilesToDownloadJobFromCommandOutput(DownloadJob $downloadJob, string $commandOutput): void;
 
     public function download(DownloadJobInterface $downloadJob): true
     {
@@ -49,13 +58,37 @@ abstract class AbstractCliDownloader implements DownloaderInterface
         $downloadProcess->setTimeout(self::TIMEOUT);
         $downloadProcess->setIdleTimeout(self::IDLE_TIMEOUT);
 
-        $downloadProcess->mustRun(function (string $type, string $buffer) {
+        $this->eventDispatcher->dispatch(new CliProcessStartEvent(
+            command: $downloadProcess->getCommandLine(),
+            downloadJob: $downloadJob,
+            process: $downloadProcess
+        ));
+
+        $downloadProcess->mustRun(function (string $type, string $buffer) use ($downloadJob, $downloadProcess) {
             if (Process::ERR === $type) {
-                $this->logger->error($this->getIdentifier() . ' error output: ' . $buffer);
+                $this->eventDispatcher->dispatch(new CliProcessErrOutputEvent(
+                    output: $buffer,
+                    downloadJob: $downloadJob,
+                    process: $downloadProcess
+                ));
             } else {
-                $this->logger->info($this->getIdentifier() . ' output: ' . $buffer);
+                $this->eventDispatcher->dispatch(new CliProcessStdOutputEvent(
+                    output: $buffer,
+                    downloadJob: $downloadJob,
+                    process: $downloadProcess
+                ));
             }
         });
+
+        $this->eventDispatcher->dispatch(new CliProcessStopEvent(
+            downloadJob: $downloadJob,
+            wasSuccessful: $downloadProcess->isSuccessful(),
+            errorOutput: $downloadProcess->isSuccessful() ? null : $downloadProcess->getErrorOutput(),
+            process: $downloadProcess,
+            exitCode: $downloadProcess->getExitCode(),
+            exitCodeText: $downloadProcess->getExitCodeText()
+        ));
+
         if (!$downloadProcess->isSuccessful()) {
             throw new RuntimeException($downloadProcess->getErrorOutput());
         }

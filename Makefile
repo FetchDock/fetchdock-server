@@ -1,5 +1,5 @@
 # Makefile
-DOCKER_COMPOSE_PREFIX ?= IMAGES_PREFIX=ghcr.io/pbxg33k/php-download-router
+DOCKER_COMPOSE_PREFIX ?= IMAGES_PREFIX=ghcr.io/pbxg33k/php-download-router XDEBUG_MODE=debug
 ENV ?=
 
 up:
@@ -10,6 +10,12 @@ logs:
 
 down:
 	$(DOCKER_COMPOSE_PREFIX) docker compose down
+
+clean:
+	$(DOCKER_COMPOSE_PREFIX) docker compose down -v --remove-orphans
+
+clean-images:
+	$(DOCKER_COMPOSE_PREFIX) docker compose down -v --rmi all --remove-orphans
 
 restart:
 	$(DOCKER_COMPOSE_PREFIX) docker compose down
@@ -24,6 +30,8 @@ force-recreate:
 
 build:
 	$(DOCKER_COMPOSE_PREFIX) docker compose build --no-cache --pull
+
+rebuild: clean-images build up
 
 prep-test:
 	$(DOCKER_COMPOSE_PREFIX) docker compose exec -T php bin/console -e test doctrine:database:create

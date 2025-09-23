@@ -2,6 +2,11 @@
 
 namespace App\Service\Downloader;
 
+use App\Entity\DownloadedFile;
+use App\Entity\DownloadJob;
+use App\Repository\DownloadedFileRepository;
+use Doctrine\ORM\EntityManagerInterface;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Http\Message\UriInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -13,16 +18,19 @@ class GalleryDlCliDownloader extends AbstractCliDownloader implements Downloader
 {
     public function __construct(
         protected TagAwareCacheInterface $cache,
-        #[Autowire(param: 'downloader.yt_dlp_cli.config_path')]
+        #[Autowire(param: 'downloader.gallery_dl_cli.config_path')]
         protected string $configPath,
-        #[Autowire(param: 'downloader.yt_dlp_cli.binary_path')]
+        #[Autowire(param: 'downloader.gallery_dl_cli.binary_path')]
         protected string $binaryPath,
-        #[Autowire(param: 'downloader.yt_dlp_cli.downloads_dir')]
+        #[Autowire(param: 'downloader.gallery_dl_cli.downloads_dir')]
         protected string $downloadPath,
-        protected LoggerInterface $logger
+        protected LoggerInterface $logger,
+        protected EventDispatcherInterface $eventDispatcher,
+        protected DownloadedFileRepository $downloadedFileRepository,
+        protected EntityManagerInterface $entityManager
     )
     {
-        parent::__construct($cache, $configPath, $binaryPath, $downloadPath, $logger);
+        parent::__construct($cache, $eventDispatcher, $configPath, $binaryPath, $downloadPath, $logger);
     }
 
     public function getIdentifier(): string
@@ -78,5 +86,46 @@ class GalleryDlCliDownloader extends AbstractCliDownloader implements Downloader
     {
         $supportedDomains = $this->getSupportedDomains();
         return in_array($uri->getHost(), $supportedDomains, true);
+    }
+
+
+    public function addFilesToDownloadJobFromCommandOutput(DownloadJob $downloadJob, string $commandOutput): void
+    {
+        // Convert \n to actual new lines
+        $lines = explode("\n", $commandOutput);
+
+        // Example output:
+        //./gallery-dl/kemono/patreon/123/123_filename.pdf
+        //./gallery-dl/kemono/patreon/123/123_filename.zip
+
+        foreach ($lines as $line) {
+            $line = trim($line);
+            if (empty($line)) {
+                continue;
+            }
+            // Remove leading ./ if present
+            if (str_starts_with($line, './')) {
+                $line = substr($line, 2);
+            }
+            $filePath = $this->downloadPath . '/' . ltrim($line, '/');
+            if (file_exists($filePath) && is_file($filePath)) {
+                $downloadedFile = $this->downloadedFileRepository->findOneBy(['path' => $filePath]);
+                if (!$downloadedFile) {
+                    $downloadedFile = new DownloadedFile();
+                    $downloadedFile->setPath($filePath);
+                    $downloadedFile->setVisible(true);
+                    // TODO: Create a foolproof way to extract metadata if available
+                    // Corrent .metadata.json filename generation is not foolproof right now
+                    $downloadedFile->setMetadata([]);
+                    $this->entityManager->persist($downloadedFile);
+                }
+                $downloadedFile->addDownloadJob($downloadJob);
+                $this->entityManager->persist($downloadJob);
+                $this->entityManager->flush();
+                $this->logger->info("Added file to download job: " . $filePath);
+            } else {
+                $this->logger->warning("File listed in command output does not exist: " . $filePath);
+            }
+        }
     }
 }

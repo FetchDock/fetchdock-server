@@ -10,10 +10,12 @@ use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Process\Process;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
+use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 class AbstractCliDownloaderTest extends TestCase
 {
     private TagAwareCacheInterface $cache;
+    private EventDispatcherInterface $eventDispatcher;
     private LoggerInterface $logger;
     private string $configPath;
     private string $binaryPath;
@@ -22,6 +24,7 @@ class AbstractCliDownloaderTest extends TestCase
     protected function setUp(): void
     {
         $this->cache = $this->createMock(TagAwareCacheInterface::class);
+        $this->eventDispatcher = $this->createMock(EventDispatcherInterface::class);
         $this->logger = $this->createMock(LoggerInterface::class);
         $this->configPath = '/tmp/test-config.conf';
         $this->binaryPath = '/usr/bin/test-binary';
@@ -31,40 +34,40 @@ class AbstractCliDownloaderTest extends TestCase
     public function testGetDownloaderType(): void
     {
         $downloader = $this->createConcreteDownloader();
-        
+
         $this->assertSame(DownloaderTypeEnum::CLI_DOWNLOADER, $downloader->getDownloaderType());
     }
 
     public function testDownloaderImplementsInterface(): void
     {
         $downloader = $this->createConcreteDownloader();
-        
+
         $this->assertInstanceOf(\App\Service\Downloader\DownloaderInterface::class, $downloader);
     }
 
     public function testConstructorSetsProperties(): void
     {
         $downloader = $this->createConcreteDownloader();
-        
+
         // Use reflection to verify protected properties are set correctly
         $reflection = new \ReflectionClass($downloader);
-        
+
         $cacheProperty = $reflection->getProperty('cache');
         $cacheProperty->setAccessible(true);
         $this->assertSame($this->cache, $cacheProperty->getValue($downloader));
-        
+
         $configPathProperty = $reflection->getProperty('configPath');
         $configPathProperty->setAccessible(true);
         $this->assertSame($this->configPath, $configPathProperty->getValue($downloader));
-        
+
         $binaryPathProperty = $reflection->getProperty('binaryPath');
         $binaryPathProperty->setAccessible(true);
         $this->assertSame($this->binaryPath, $binaryPathProperty->getValue($downloader));
-        
+
         $downloadPathProperty = $reflection->getProperty('downloadPath');
         $downloadPathProperty->setAccessible(true);
         $this->assertSame($this->downloadPath, $downloadPathProperty->getValue($downloader));
-        
+
         $loggerProperty = $reflection->getProperty('logger');
         $loggerProperty->setAccessible(true);
         $this->assertSame($this->logger, $loggerProperty->getValue($downloader));
@@ -73,10 +76,10 @@ class AbstractCliDownloaderTest extends TestCase
     public function testTimeoutConstants(): void
     {
         $reflection = new \ReflectionClass(AbstractCliDownloader::class);
-        
+
         $this->assertTrue($reflection->hasConstant('TIMEOUT'));
         $this->assertTrue($reflection->hasConstant('IDLE_TIMEOUT'));
-        
+
         $this->assertSame(1800.0, $reflection->getConstant('TIMEOUT'));
         $this->assertSame(300.0, $reflection->getConstant('IDLE_TIMEOUT'));
     }
@@ -85,28 +88,28 @@ class AbstractCliDownloaderTest extends TestCase
     {
         $tempDir = sys_get_temp_dir() . '/test-downloader-' . uniqid();
         $configPath = $tempDir . '/config/test.conf';
-        
+
         $downloader = $this->createConcreteDownloader($configPath);
-        
+
         $this->logger->expects($this->once())
             ->method('debug')
             ->with('Creating config directory', ['path' => dirname($configPath)]);
-        
+
         $this->logger->expects($this->once())
             ->method('info')
             ->with('Creating config file', ['path' => $configPath]);
-        
+
         // Use reflection to call the protected method
         $reflection = new \ReflectionClass($downloader);
         $method = $reflection->getMethod('createConfigFileIfNotExists');
         $method->setAccessible(true);
-        
+
         $method->invoke($downloader);
-        
+
         $this->assertDirectoryExists(dirname($configPath));
         $this->assertFileExists($configPath);
         $this->assertStringContainsString('test-config-content', file_get_contents($configPath));
-        
+
         // Cleanup
         unlink($configPath);
         rmdir(dirname($configPath));
@@ -117,21 +120,21 @@ class AbstractCliDownloaderTest extends TestCase
     {
         $tempFile = tempnam(sys_get_temp_dir(), 'existing-config');
         file_put_contents($tempFile, 'existing content');
-        
+
         $downloader = $this->createConcreteDownloader($tempFile);
-        
+
         $this->logger->expects($this->never())
             ->method('info');
-        
+
         // Use reflection to call the protected method
         $reflection = new \ReflectionClass($downloader);
         $method = $reflection->getMethod('createConfigFileIfNotExists');
         $method->setAccessible(true);
-        
+
         $method->invoke($downloader);
-        
+
         $this->assertSame('existing content', file_get_contents($tempFile));
-        
+
         // Cleanup
         unlink($tempFile);
     }
@@ -139,22 +142,22 @@ class AbstractCliDownloaderTest extends TestCase
     public function testCreateDownloadDirectoryIfNotExists(): void
     {
         $tempDir = sys_get_temp_dir() . '/test-downloads-' . uniqid();
-        
+
         $downloader = $this->createConcreteDownloader(null, null, $tempDir);
-        
+
         $this->logger->expects($this->once())
             ->method('debug')
             ->with('Creating download directory', ['path' => $tempDir]);
-        
+
         // Use reflection to call the protected method
         $reflection = new \ReflectionClass($downloader);
         $method = $reflection->getMethod('createDownloadDirectoryIfNotExists');
         $method->setAccessible(true);
-        
+
         $method->invoke($downloader);
-        
+
         $this->assertDirectoryExists($tempDir);
-        
+
         // Cleanup
         rmdir($tempDir);
     }
@@ -163,21 +166,21 @@ class AbstractCliDownloaderTest extends TestCase
     {
         $tempDir = sys_get_temp_dir() . '/existing-downloads-' . uniqid();
         mkdir($tempDir);
-        
+
         $downloader = $this->createConcreteDownloader(null, null, $tempDir);
-        
+
         $this->logger->expects($this->never())
             ->method('debug');
-        
+
         // Use reflection to call the protected method
         $reflection = new \ReflectionClass($downloader);
         $method = $reflection->getMethod('createDownloadDirectoryIfNotExists');
         $method->setAccessible(true);
-        
+
         $method->invoke($downloader);
-        
+
         $this->assertDirectoryExists($tempDir);
-        
+
         // Cleanup
         rmdir($tempDir);
     }
@@ -186,6 +189,7 @@ class AbstractCliDownloaderTest extends TestCase
     {
         return new class(
             $this->cache,
+            $this->eventDispatcher,
             $configPath ?? $this->configPath,
             $binaryPath ?? $this->binaryPath,
             $downloadPath ?? $this->downloadPath,
@@ -214,6 +218,11 @@ class AbstractCliDownloaderTest extends TestCase
             protected function getConfigFileContents(): string
             {
                 return 'test-config-content';
+            }
+
+            public function addFilesToDownloadJobFromCommandOutput(DownloadJob $downloadJob, string $commandOutput): void
+            {
+                // TODO: Implement addFilesToDownloadJobFromCommandOutput() method.
             }
         };
     }

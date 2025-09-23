@@ -82,11 +82,18 @@ class DownloadJob implements DownloadJobInterface
     #[ORM\OneToMany(targetEntity: DownloadJobEvent::class, mappedBy: 'downloadJob', cascade: ['persist'], orphanRemoval: false)]
     private Collection $downloadJobEvents;
 
+    /**
+     * @var Collection<int, DownloadedFile>
+     */
+    #[ORM\ManyToMany(targetEntity: DownloadedFile::class, mappedBy: 'downloadJob')]
+    private Collection $files;
+
     public function __construct()
     {
         $this->downloadJobEvents = new ArrayCollection();
         $this->uuid = Uuid::v4();
         $this->token = bin2hex(random_bytes(32)); // 64 character hex string
+        $this->files = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -194,6 +201,33 @@ class DownloadJob implements DownloadJobInterface
             if ($downloadJobEvent->getDownloadJob() === $this) {
                 $downloadJobEvent->setDownloadJob(null);
             }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, DownloadedFile>
+     */
+    public function getFiles(): Collection
+    {
+        return $this->files;
+    }
+
+    public function addFile(DownloadedFile $downloadedFile): static
+    {
+        if (!$this->files->contains($downloadedFile)) {
+            $this->files->add($downloadedFile);
+            $downloadedFile->addDownloadJob($this);
+        }
+
+        return $this;
+    }
+
+    public function removeFile(DownloadedFile $downloadedFile): static
+    {
+        if ($this->files->removeElement($downloadedFile)) {
+            $downloadedFile->removeDownloadJob($this);
         }
 
         return $this;
