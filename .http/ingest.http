@@ -52,6 +52,17 @@ Content-Type: application/json
     "auto_start":true
 }
 
+### Civitai post example
+POST {{ client.host }}/add
+Content-Type: application/json
+
+{
+    "quality":"best",
+    "format":"any",
+    "url":"https://civitai.com/posts/20880106",
+    "auto_start":true
+}
+
 ### Create a new download job for a supported, but not yet whitelisted domain
 POST {{ client.host }}/add
 Content-Type: application/json
