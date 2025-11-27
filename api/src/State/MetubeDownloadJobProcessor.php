@@ -8,7 +8,7 @@ use App\Dto\DownloadJobDTO;
 use App\Dto\JobAcceptedDTO;
 use App\Model\MetubeDownloadJob;
 
-readonly class MetubeDownloadJobProcessor implements ProcessorInterface
+class MetubeDownloadJobProcessor implements ProcessorInterface
 {
     public function __construct(
         private DownloadJobQueuedProcessor $downloadJobQueuedProcessor,

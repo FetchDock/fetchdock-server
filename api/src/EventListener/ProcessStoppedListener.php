@@ -13,7 +13,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 
-readonly class ProcessStoppedListener
+class ProcessStoppedListener
 {
     public function __construct(
         private LoggerInterface        $logger,
