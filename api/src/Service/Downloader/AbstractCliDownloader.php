@@ -145,7 +145,7 @@ abstract class AbstractCliDownloader implements DownloaderInterface
      */
     protected function getVersionFromPip(string $package): ?array
     {
-        return $this->cache->get("{$this->getIdentifier()}-version", function (ItemInterface $item) use ($package) {
+        return $this->cache->get("{$this->getIdentifier()}-{$package}-version", function (ItemInterface $item) use ($package) {
             $item->tag(['cli-version', $package]);
             $item->expiresAfter(new \DateInterval('PT1H'));
 
