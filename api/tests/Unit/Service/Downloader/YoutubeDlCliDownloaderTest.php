@@ -2,7 +2,6 @@
 
 namespace App\Tests\Unit\Service\Downloader;
 
-use App\Entity\DownloadJob;
 use App\Repository\DownloadedFileRepository;
 use App\Service\Downloader\CliDownloaderInterface;
 use App\Service\Downloader\YoutubeDlCliDownloader;
@@ -58,49 +57,7 @@ class YoutubeDlCliDownloaderTest extends TestCase
         $actualArgs = $this->downloader->getUpdateCommandArgs();
 
         $this->assertSame($expectedArgs, $actualArgs);
-    }
-
-    public function testGetUpdateCommandArgsReturnsNonEmptyArray(): void
-    {
-        $args = $this->downloader->getUpdateCommandArgs();
-
-        $this->assertNotEmpty($args);
-        $this->assertIsArray($args);
-    }
-
-    public function testGetUpdateCommandArgsContainsPipCommand(): void
-    {
-        $args = $this->downloader->getUpdateCommandArgs();
-
-        $this->assertSame('pip', $args[0]);
-    }
-
-    public function testGetUpdateCommandArgsContainsInstallSubcommand(): void
-    {
-        $args = $this->downloader->getUpdateCommandArgs();
-
-        $this->assertSame('install', $args[1]);
-    }
-
-    public function testGetUpdateCommandArgsContainsUpgradeFlag(): void
-    {
-        $args = $this->downloader->getUpdateCommandArgs();
-
-        $this->assertSame('--upgrade', $args[2]);
-    }
-
-    public function testGetUpdateCommandArgsContainsCorrectPackageName(): void
-    {
-        $args = $this->downloader->getUpdateCommandArgs();
-
-        $this->assertSame('yt-dlp', $args[3]);
-    }
-
-    public function testGetUpdateCommandArgsHasExactlyFourElements(): void
-    {
-        $args = $this->downloader->getUpdateCommandArgs();
-
-        $this->assertCount(4, $args);
+        $this->assertCount(4, $actualArgs);
     }
 
     public function testGetSupportedDomainsReturnsEmptyArray(): void
