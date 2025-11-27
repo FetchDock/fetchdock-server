@@ -10,10 +10,10 @@ use App\Factory\DownloaderFactory;
 use App\Service\Downloader\DownloaderInterface;
 use Error;
 
-readonly class DownloaderProvider implements ProviderInterface
+class DownloaderProvider implements ProviderInterface
 {
     public function __construct(
-        private(set) DownloaderFactory $downloaderFactory
+        private DownloaderFactory $downloaderFactory
     )
     {
     }
