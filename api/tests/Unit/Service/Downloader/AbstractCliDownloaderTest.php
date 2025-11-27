@@ -210,9 +210,14 @@ class AbstractCliDownloaderTest extends TestCase
                 return ['test.com'];
             }
 
-            public function getVersion(): string
+            public function getCurrentVersion(): string
             {
                 return '1.0.0-test';
+            }
+
+            public function getLatestVersion(): string
+            {
+                return '1.0.1-test';
             }
 
             protected function getConfigFileContents(): string

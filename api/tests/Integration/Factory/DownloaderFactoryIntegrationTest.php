@@ -21,7 +21,7 @@ class DownloaderFactoryIntegrationTest extends TestCase
     {
         $this->logger = $this->createMock(LoggerInterface::class);
         $this->mockDownloader = new MockDownloader();
-        
+
         $this->factory = new DownloaderFactory(
             [$this->mockDownloader],
             $this->logger
@@ -31,7 +31,7 @@ class DownloaderFactoryIntegrationTest extends TestCase
     public function testFactoryWithRealMockDownloader(): void
     {
         $enabledDownloaders = iterator_to_array($this->factory->getEnabledDownloaders());
-        
+
         $this->assertCount(1, $enabledDownloaders);
         $this->assertArrayHasKey('mock', $enabledDownloaders);
         $this->assertSame($this->mockDownloader, $enabledDownloaders['mock']);
@@ -40,7 +40,7 @@ class DownloaderFactoryIntegrationTest extends TestCase
     public function testGetDownloaderByIdentifierWithRealDownloader(): void
     {
         $downloader = $this->factory->getDownloaderByIdentifier('mock');
-        
+
         $this->assertSame($this->mockDownloader, $downloader);
         $this->assertSame('mock', $downloader->getIdentifier());
         $this->assertSame(['example.com', 'test.com'], $downloader->getSupportedDomains());
@@ -50,7 +50,7 @@ class DownloaderFactoryIntegrationTest extends TestCase
     {
         $supportedUri = new Uri('https://example.com/video.mp4');
         $supportedDownloaders = iterator_to_array($this->factory->getDownloadersByUri($supportedUri));
-        
+
         $this->assertCount(1, $supportedDownloaders);
         $this->assertSame($this->mockDownloader, $supportedDownloaders[0]);
     }
@@ -59,15 +59,15 @@ class DownloaderFactoryIntegrationTest extends TestCase
     {
         $unsupportedUri = new Uri('https://notsupported.com/video.mp4');
         $supportedDownloaders = iterator_to_array($this->factory->getDownloadersByUri($unsupportedUri));
-        
+
         $this->assertCount(0, $supportedDownloaders);
     }
 
     public function testRealDownloaderProperties(): void
     {
         $downloader = $this->factory->getDownloaderByIdentifier('mock');
-        
-        $this->assertSame('1.0.0-mock', $downloader->getVersion());
+
+        $this->assertSame('1.0.0-mock', $downloader->getCurrentVersion());
         $this->assertSame(\App\Enum\DownloaderTypeEnum::CLI_DOWNLOADER, $downloader->getDownloaderType());
     }
 
@@ -119,7 +119,7 @@ class DownloaderFactoryIntegrationTest extends TestCase
             );
 
         $factory = new DownloaderFactory([$this->mockDownloader], $logger);
-        
+
         $uri = new Uri('https://example.com/test.zip');
         iterator_to_array($factory->getDownloadersByUri($uri));
     }
@@ -136,13 +136,13 @@ class DownloaderFactoryIntegrationTest extends TestCase
         // Test that repeated calls return consistent results
         $downloader1 = $this->factory->getDownloaderByIdentifier('mock');
         $downloader2 = $this->factory->getDownloaderByIdentifier('mock');
-        
+
         $this->assertSame($downloader1, $downloader2);
-        
+
         $uri = new Uri('https://example.com/consistency-test.zip');
         $downloaders1 = iterator_to_array($this->factory->getDownloadersByUri($uri));
         $downloaders2 = iterator_to_array($this->factory->getDownloadersByUri($uri));
-        
+
         $this->assertCount(1, $downloaders1);
         $this->assertCount(1, $downloaders2);
         $this->assertSame($downloaders1[0], $downloaders2[0]);
@@ -170,7 +170,7 @@ class DownloaderFactoryIntegrationTest extends TestCase
 
         // The factory should handle the exception gracefully and continue with other downloaders
         $uri = new Uri('https://example.com/test.zip');
-        
+
         $this->expectException(\RuntimeException::class);
         iterator_to_array($factory->getDownloadersByUri($uri));
     }

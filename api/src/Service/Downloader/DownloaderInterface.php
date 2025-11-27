@@ -41,9 +41,16 @@ interface DownloaderInterface
     public function supportsUri(UriInterface $uri): bool;
 
     /**
-     * Get the version of the downloader service.
+     * Get the currently installed version of the downloader service
      *
      * @return string Version string (e.g. "2024.06.1")
      */
-    public function getVersion(): string;
+    public function getCurrentVersion(): string;
+
+    /**
+     * Get the latest available version of the downloader service
+     *
+     * @return string Version string (e.g. "2024.06.1")
+     */
+    public function getLatestVersion(): string;
 }

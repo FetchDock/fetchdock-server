@@ -25,19 +25,11 @@ readonly class VersionProvider implements ProviderInterface
         if ($operation instanceof CollectionOperationInterface) {
             $downloaders = [];
             foreach ($this->downloaderFactory->getEnabledDownloaders() as $downloader) {
-                if ($downloader->getDownloaderType() === DownloaderTypeEnum::CLI_DOWNLOADER) {
-                    $version = $this->cache->get(
-                        "downloader_version_{$downloader->getIdentifier()}",
-                        function () use ($downloader) {
-                            return $downloader->getVersion();
-                        }
-                    );
-                } else {
-                    $version = $downloader->getVersion();
-                }
                 $downloaders[] = new Version(
                     id: $downloader->getIdentifier(),
-                    version: $version,
+                    version: $downloader->getCurrentVersion(),
+                    currentVersion: $downloader->getCurrentVersion(),
+                    latestVersion: $downloader->getLatestVersion(),
                 );
             }
 
@@ -49,7 +41,9 @@ readonly class VersionProvider implements ProviderInterface
             if ($downloader) {
                 return new Version(
                     id: $downloader->getIdentifier(),
-                    version: $downloader->getVersion(),
+                    version: $downloader->getCurrentVersion(),
+                    currentVersion: $downloader->getCurrentVersion(),
+                    latestVersion: $downloader->getLatestVersion(),
                 );
             }
         }

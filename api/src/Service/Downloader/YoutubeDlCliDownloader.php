@@ -109,6 +109,16 @@ class YoutubeDlCliDownloader extends AbstractCliDownloader implements Downloader
         $this->entityManager->flush();
     }
 
+    public function getCurrentVersion(): string
+    {
+        return $this->getVersionFromPip('yt-dlp')['latest'];
+    }
+
+    public function getLatestVersion(): string
+    {
+        return $this->getVersionFromPip('yt-dlp')['installed'];
+    }
+
     private function addFileToDownloadJobFromCommandOutput(DownloadJob $downloadJob, string $filePath): void
     {
         if (file_exists($filePath) && is_file($filePath)) {

@@ -13,6 +13,7 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
 use Symfony\Component\Process\Process;
+use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 abstract class AbstractCliDownloader implements DownloaderInterface
@@ -119,7 +120,12 @@ abstract class AbstractCliDownloader implements DownloaderInterface
         }
     }
 
-    public function getVersion(): string
+    public function getDownloaderType(): DownloaderTypeEnum
+    {
+        return DownloaderTypeEnum::CLI_DOWNLOADER;
+    }
+
+    public function getCurrentVersion(): string
     {
         $process = new Process([$this->binaryPath, '--version']);
         $process->mustRun();
@@ -129,8 +135,39 @@ abstract class AbstractCliDownloader implements DownloaderInterface
         return trim($process->getOutput());
     }
 
-    public function getDownloaderType(): DownloaderTypeEnum
+    protected function getVersionFromPip(string $package): ?array
     {
-        return DownloaderTypeEnum::CLI_DOWNLOADER;
+        return $this->cache->get("{$this->getIdentifier()}-version", function (ItemInterface $item) use ($package) {
+            $item->tag(['cli-version', $package]);
+            $item->expiresAfter(new \DateInterval('PT1H'));
+
+            // Run and parse the
+            $process = new Process([
+                'pip',
+                'index',
+                'versions',
+                $package
+            ]);
+
+            $versions = [];
+
+            $process->mustRun(function(string $type, string $buffer) use (&$versions) {
+                if (Process::OUT === $type) {
+                    if(str_contains($buffer, 'INSTALLED')) {
+                        $versions['installed'] = trim(str_replace('INSTALLED:', '', $buffer));
+                    }
+
+                    if (str_contains($buffer, 'LATEST')) {
+                        $versions['latest'] = trim(str_replace('LATEST:', '', $buffer));
+                    }
+                }
+            });
+
+            if($process->isSuccessful()) {
+                return $versions;
+            }
+
+            return null;
+        });
     }
 }

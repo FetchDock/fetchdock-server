@@ -4,6 +4,7 @@ namespace App\Service\Downloader;
 
 use App\Enum\DownloaderTypeEnum;
 use App\Model\DownloadJobInterface;
+use Deprecated;
 use Psr\Http\Message\UriInterface;
 
 class MockDownloader implements DownloaderInterface
@@ -35,7 +36,12 @@ class MockDownloader implements DownloaderInterface
         return ['example.com', 'test.com'];
     }
 
-    public function getVersion(): string
+    public function getCurrentVersion(): string
+    {
+        return $this->getLatestVersion();
+    }
+
+    public function getLatestVersion(): string
     {
         return '1.0.0-mock';
     }

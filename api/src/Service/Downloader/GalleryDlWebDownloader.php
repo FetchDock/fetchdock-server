@@ -4,6 +4,7 @@ namespace App\Service\Downloader;
 
 use App\Enum\DownloaderTypeEnum;
 use App\Model\DownloadJobInterface;
+use Deprecated;
 use Psr\Http\Message\UriInterface;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
@@ -410,7 +411,7 @@ class GalleryDlWebDownloader implements DownloaderInterface
         return 'gallery-dl-web';
     }
 
-    public function getVersion(): string
+    public function getCurrentVersion(): string
     {
         // Since gallery-dl-web does not provide an endpoint to get the version,
         // we'll get the HTML body and extract it from there using symfony's DomCrawler
@@ -428,5 +429,10 @@ class GalleryDlWebDownloader implements DownloaderInterface
         $ytDlpVersion = trim($crawler->filterXPath($ytDlpVersionXPath)->text());
 
         return "gallery-dl-web: $galleryDlWebVersion | gallery-dl-cli: $galleryDlCliVersion | yt-dlp: $ytDlpVersion";
+    }
+
+    public function getLatestVersion(): string
+    {
+        return $this->getCurrentVersion();
     }
 }

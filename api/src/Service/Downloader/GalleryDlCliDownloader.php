@@ -47,7 +47,7 @@ class GalleryDlCliDownloader extends AbstractCliDownloader implements Downloader
 
     public function getSupportedDomains(): array
     {
-        $version = $this->getVersion();
+        $version = $this->getCurrentVersion();
         return $this->cache->get('gallery_dl_cli_supported_domains_' . $version, function (ItemInterface $item) {
             $item->tag([
                 'downloader_supported_domains',
@@ -131,5 +131,15 @@ class GalleryDlCliDownloader extends AbstractCliDownloader implements Downloader
         // If you want to generate a default config, you can run the binary with --config-create and parse the output.
         // For simplicity, return an empty config or a default template.
         return "{}";
+    }
+
+    public function getCurrentVersion(): string
+    {
+        return $this->getVersionFromPip('gallery-dl')['latest'];
+    }
+
+    public function getLatestVersion(): string
+    {
+        return $this->getVersionFromPip('gallery-dl')['installed'];
     }
 }
