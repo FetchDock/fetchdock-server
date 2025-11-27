@@ -171,7 +171,7 @@ abstract class AbstractCliDownloader implements DownloaderInterface
                 }
             });
 
-            if($process->isSuccessful()) {
+            if ($process->isSuccessful()) {
                 return $versions;
             }
 
