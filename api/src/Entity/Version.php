@@ -23,7 +23,7 @@ class Version
 {
     public function __construct(
         public string $id,
-        #[ApiProperty(deprecationReason: "Use currentVersion and latestVersion")]
+        #[ApiProperty(deprecationReason: "Deprecated: use currentVersion and latestVersion instead. The version field will be removed after 2025-06-01. See API documentation for migration details.")]
         public string $version,
         public string $currentVersion,
         public string $latestVersion,
