@@ -22,6 +22,7 @@ More to be added in the future.
   - [gallery-dl-server](https://github.com/qx6ghqkz/gallery-dl-server)
   - mock backend for testing
 - Asynchronous processing of download (depending on number of workers)
+- Auto upgrade CLI downloaders
 - Easy to extend with additional backends
   - Just create a new class implementing the `App\Service\Downloader\DownloaderInterface` and it's automatically registered
 - Dockerized for easy deployment

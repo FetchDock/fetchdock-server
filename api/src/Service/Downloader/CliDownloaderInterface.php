@@ -14,3 +14,4 @@ interface CliDownloaderInterface extends DownloaderInterface
      * @return array Command arguments for updating the downloader.
      */
     public function getUpdateCommandArgs(): array;
+}
