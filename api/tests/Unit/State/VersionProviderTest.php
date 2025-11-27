@@ -4,7 +4,6 @@ namespace App\Tests\Unit\State;
 
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
-use ApiPlatform\Metadata\Operation;
 use App\Entity\Version;
 use App\Factory\DownloaderFactory;
 use App\Service\Downloader\DownloaderInterface;

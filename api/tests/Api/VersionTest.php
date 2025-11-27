@@ -105,8 +105,7 @@ class VersionTest extends ApiTestCase
 
         $this->assertResponseIsSuccessful();
 
-        $json = $response->getContent();
-        $data = json_decode($json, true);
+        $data = $response->toArray();
 
         // Verify all version-related fields are present in the response
         $this->assertArrayHasKey('version', $data, 'Deprecated version field should be present');
