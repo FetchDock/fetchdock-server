@@ -3,6 +3,7 @@
 namespace App\Tests\Unit\Factory;
 
 use App\Factory\DownloaderFactory;
+use App\Service\Downloader\CliDownloaderInterface;
 use App\Service\Downloader\DownloaderInterface;
 use GuzzleHttp\Psr7\Uri;
 use PHPUnit\Framework\TestCase;
@@ -150,9 +151,81 @@ class DownloaderFactoryTest extends TestCase
         $this->assertContains($downloader, $enabledDownloaders);
     }
 
+    public function testGetCliDownloadersReturnsOnlyCliDownloaders(): void
+    {
+        $cliDownloader1 = $this->createMockCliDownloader('cli-downloader-1', ['youtube.com']);
+        $cliDownloader2 = $this->createMockCliDownloader('cli-downloader-2', ['twitter.com']);
+        $nonCliDownloader = $this->createMockDownloader('non-cli-downloader', ['example.com']);
+
+        $this->factory = new DownloaderFactory(
+            [$cliDownloader1, $nonCliDownloader, $cliDownloader2],
+            $this->logger
+        );
+
+        $cliDownloaders = iterator_to_array($this->factory->getCliDownloaders());
+
+        $this->assertCount(2, $cliDownloaders);
+        $this->assertContains($cliDownloader1, $cliDownloaders);
+        $this->assertContains($cliDownloader2, $cliDownloaders);
+        $this->assertNotContains($nonCliDownloader, $cliDownloaders);
+    }
+
+    public function testGetCliDownloadersFiltersOutNonCliDownloaders(): void
+    {
+        $nonCliDownloader1 = $this->createMockDownloader('non-cli-1', ['example.com']);
+        $nonCliDownloader2 = $this->createMockDownloader('non-cli-2', ['test.com']);
+        $cliDownloader = $this->createMockCliDownloader('cli-downloader', ['youtube.com']);
+
+        $this->factory = new DownloaderFactory(
+            [$nonCliDownloader1, $cliDownloader, $nonCliDownloader2],
+            $this->logger
+        );
+
+        $cliDownloaders = iterator_to_array($this->factory->getCliDownloaders());
+
+        $this->assertCount(1, $cliDownloaders);
+        $this->assertContains($cliDownloader, $cliDownloaders);
+        foreach ($cliDownloaders as $downloader) {
+            $this->assertInstanceOf(CliDownloaderInterface::class, $downloader);
+        }
+    }
+
+    public function testGetCliDownloadersReturnsIterableThatCanBeConvertedToArray(): void
+    {
+        $cliDownloader = $this->createMockCliDownloader('cli-downloader', ['youtube.com']);
+        $this->factory = new DownloaderFactory([$cliDownloader], $this->logger);
+
+        $cliDownloaders = $this->factory->getCliDownloaders();
+
+        $this->assertIsIterable($cliDownloaders);
+        $cliDownloadersArray = iterator_to_array($cliDownloaders);
+        $this->assertIsArray($cliDownloadersArray);
+        $this->assertCount(1, $cliDownloadersArray);
+        $this->assertSame($cliDownloader, $cliDownloadersArray[0]);
+    }
+
+    public function testGetCliDownloadersReturnsEmptyIterableWhenNoCliDownloaders(): void
+    {
+        $nonCliDownloader = $this->createMockDownloader('non-cli', ['example.com']);
+        $this->factory = new DownloaderFactory([$nonCliDownloader], $this->logger);
+
+        $cliDownloaders = iterator_to_array($this->factory->getCliDownloaders());
+
+        $this->assertCount(0, $cliDownloaders);
+    }
+
     private function createMockDownloader(string $identifier, array $supportedDomains): DownloaderInterface
     {
         $mock = $this->createMock(DownloaderInterface::class);
+        $mock->method('getIdentifier')->willReturn($identifier);
+        $mock->method('getSupportedDomains')->willReturn($supportedDomains);
+
+        return $mock;
+    }
+
+    private function createMockCliDownloader(string $identifier, array $supportedDomains): CliDownloaderInterface
+    {
+        $mock = $this->createMock(CliDownloaderInterface::class);
         $mock->method('getIdentifier')->willReturn($identifier);
         $mock->method('getSupportedDomains')->willReturn($supportedDomains);
 
