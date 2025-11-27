@@ -15,7 +15,7 @@ use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
  * Example event listener that logs job events.
  * This demonstrates how workers' events can be picked up and handled.
  */
-readonly class JobEventLogger
+class JobEventLogger
 {
     public function __construct(
         private LoggerInterface        $logger,
