@@ -111,12 +111,12 @@ class YoutubeDlCliDownloader extends AbstractCliDownloader implements CliDownloa
 
     public function getCurrentVersion(): string
     {
-        return $this->getVersionFromPip('yt-dlp')['latest'];
+        return $this->getVersionFromPip('yt-dlp')['installed'];
     }
 
     public function getLatestVersion(): string
     {
-        return $this->getVersionFromPip('yt-dlp')['installed'];
+        return $this->getVersionFromPip('yt-dlp')['latest'];
     }
 
     private function addFileToDownloadJobFromCommandOutput(DownloadJob $downloadJob, string $filePath): void
