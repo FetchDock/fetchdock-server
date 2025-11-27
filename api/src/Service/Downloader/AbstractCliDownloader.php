@@ -135,6 +135,14 @@ abstract class AbstractCliDownloader implements DownloaderInterface
         return trim($process->getOutput());
     }
 
+    /**
+     * Get the installed and latest versions of a pip package.
+     *
+     * Uses the 'pip index versions' command and caches results for 1 hour.
+     *
+     * @param string $package The pip package name (e.g., 'yt-dlp', 'gallery-dl')
+     * @return array|null Array with 'installed' and 'latest' keys, or null on failure
+     */
     protected function getVersionFromPip(string $package): ?array
     {
         return $this->cache->get("{$this->getIdentifier()}-version", function (ItemInterface $item) use ($package) {
