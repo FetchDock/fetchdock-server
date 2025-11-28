@@ -138,7 +138,7 @@ abstract class AbstractCliDownloader implements DownloaderInterface
     /**
      * Get the installed and latest versions of a pip package.
      *
-     * Uses the 'pip index versions' command and caches results for 1 hour.
+     * Uses the 'pip index versions' command and caches results for 5 minutes.
      *
      * @param string $package The pip package name (e.g., 'yt-dlp', 'gallery-dl')
      * @return array{installed: string, latest: string}|null Array with 'installed' and 'latest' keys guaranteed, or null on failure
