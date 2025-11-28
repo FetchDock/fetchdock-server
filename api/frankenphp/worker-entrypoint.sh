@@ -16,6 +16,12 @@ printenv | grep -v '^PWD=' | grep -v '^SHLVL=' | grep -v '^_' > /etc/environment
 
 # Start cron with logging
 cron > /var/log/cron.log 2>&1 &
+# Verify cron started successfully
+sleep 1
+if ! pgrep -x cron > /dev/null; then
+    echo "ERROR: cron failed to start. Check /var/log/cron.log for details." >&2
+fi
+
 # Call the main entrypoint script with the bin/console command and the appropriate arguments
 # to run the Symfony Messenger worker
 # You can customize the arguments as needed
