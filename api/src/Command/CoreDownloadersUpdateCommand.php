@@ -56,5 +56,6 @@ class CoreDownloadersUpdateCommand extends Command
                 $io->success("Upgraded {$downloader->getIdentifier()} to {$versionOutput}");
             }
         }
+        return Command::SUCCESS;
     }
 }
