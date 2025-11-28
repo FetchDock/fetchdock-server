@@ -188,4 +188,12 @@ EOF;
     {
         return $this->getPipUpdateCommandArgs('yt-dlp');
     }
+
+    public function getVersionCommandArgs(): array
+    {
+        return [
+            'yt-dlp',
+            '--version'
+        ];
+    }
 }

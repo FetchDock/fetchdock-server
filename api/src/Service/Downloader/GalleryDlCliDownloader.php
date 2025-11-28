@@ -155,4 +155,12 @@ class GalleryDlCliDownloader extends AbstractCliDownloader implements CliDownloa
     {
         return $this->getPipUpdateCommandArgs('gallery-dl');
     }
+
+    public function getVersionCommandArgs(): array
+    {
+        return [
+            'gallery-dl',
+            '--version',
+        ];
+    }
 }
