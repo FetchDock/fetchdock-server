@@ -49,7 +49,11 @@ class CoreDownloadersUpdateCommand extends Command
             });
 
             if($process->isSuccessful()) {
-                $io->success("Upgraded {$downloader->getIdentifier()} to {$downloader->getCurrentVersion()}");
+                // Run the version command to get the actual updated version
+                $versionProcess = new Process($downloader->getVersionCommandArgs());
+                $versionProcess->run();
+                $versionOutput = trim($versionProcess->getOutput());
+                $io->success("Upgraded {$downloader->getIdentifier()} to {$versionOutput}");
             }
         }
     }
