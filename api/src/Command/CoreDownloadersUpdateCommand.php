@@ -33,7 +33,7 @@ class CoreDownloadersUpdateCommand extends Command
     {
         $io = new SymfonyStyle($input, $output);
 
-        foreach($this->downloaderFactory->getCliDownloaders() as $downloader) {
+        foreach ($this->downloaderFactory->getCliDownloaders() as $downloader) {
             $process = new Process(
                 $downloader->getUpdateCommandArgs()
             );
