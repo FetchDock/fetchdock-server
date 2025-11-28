@@ -52,7 +52,7 @@ class GalleryDlCliDownloaderTest extends TestCase
 
     public function testGetUpdateCommandArgsReturnsCorrectArray(): void
     {
-        $expectedArgs = ['pip', 'install', '--upgrade', 'gallery-dl'];
+        $expectedArgs = ['pip3', 'install', '--upgrade', 'gallery-dl'];
 
         $actualArgs = $this->downloader->getUpdateCommandArgs();
 
