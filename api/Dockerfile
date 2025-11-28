@@ -27,6 +27,9 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
     && wget --progress=dot:giga https://raw.githubusercontent.com/vishnubob/wait-for-it/81b1373f17855a4dc21156cfe1694c31d7d1792e/wait-for-it.sh -O /usr/local/bin/wait-for-it \
     && chmod +x /usr/local/bin/wait-for-it
 
+# Note: The cron package is installed, but this container does not use systemd or a traditional init system.
+# Cron must be started manually (e.g., via entrypoint scripts) for scheduled jobs to run.
+
 COPY frankenphp/cron/cron.hourly/* /etc/cron.hourly
 RUN chmod +x /etc/cron.hourly/*
 
