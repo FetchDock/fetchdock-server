@@ -151,7 +151,7 @@ abstract class AbstractCliDownloader implements DownloaderInterface
 
             // Run and parse the output of 'pip index versions <package>' to extract installed and latest package versions.
             $process = new Process([
-                'pip',
+                'pip3',
                 'index',
                 'versions',
                 $package
@@ -188,12 +188,12 @@ abstract class AbstractCliDownloader implements DownloaderInterface
      * Generate pip update command arguments for a package.
      *
      * @param string $package The pip package name to update.
-     * @return array Command arguments for Process: ['pip', 'install', '--upgrade', $package]
+     * @return array Command arguments for Process: ['pip3', 'install', '--upgrade', $package]
      */
     protected function getPipUpdateCommandArgs(string $package): array
     {
         return [
-            'pip',
+            'pip3',
             'install',
             '--upgrade',
             $package,

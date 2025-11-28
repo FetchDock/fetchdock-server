@@ -198,7 +198,7 @@ class AbstractCliDownloaderTest extends TestCase
 
         $this->assertIsArray($result);
         $this->assertCount(4, $result);
-        $this->assertSame(['pip', 'install', '--upgrade', 'yt-dlp'], $result);
+        $this->assertSame(['pip3', 'install', '--upgrade', 'yt-dlp'], $result);
     }
 
     public function testGetPipUpdateCommandArgsWithDifferentPackage(): void
@@ -212,7 +212,7 @@ class AbstractCliDownloaderTest extends TestCase
 
         $result = $method->invoke($downloader, 'gallery-dl');
 
-        $this->assertSame(['pip', 'install', '--upgrade', 'gallery-dl'], $result);
+        $this->assertSame(['pip3', 'install', '--upgrade', 'gallery-dl'], $result);
     }
 
     public function testGetVersionFromPipReturnsCachedValue(): void
