@@ -22,6 +22,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
     mkvtoolnix \
     ffmpeg \
     cron \
+    procps \
 	&& rm -rf /var/lib/apt/lists/* \
     && pip3 install --no-cache-dir gallery-dl brotli psycopg[binary] "yt-dlp[default]" --break-system-packages \
     && wget --progress=dot:giga https://raw.githubusercontent.com/vishnubob/wait-for-it/81b1373f17855a4dc21156cfe1694c31d7d1792e/wait-for-it.sh -O /usr/local/bin/wait-for-it \

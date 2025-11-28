@@ -196,6 +196,7 @@ abstract class AbstractCliDownloader implements DownloaderInterface
             'pip3',
             'install',
             '--upgrade',
+            '--break-system-packages',
             $package,
         ];
     }
