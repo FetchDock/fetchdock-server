@@ -7,7 +7,8 @@ This document provides an overview of all tests added to increase coverage and m
 ```
 api/tests/
 ├── Api/                          # API Integration Tests
-│   └── DownloadJobTest.php       # API endpoint tests (existing)
+│   ├── DownloadJobTest.php       # API endpoint tests (existing)
+│   └── VersionTest.php           # Version API endpoint tests (latestVersion field)
 ├── Integration/                  # Integration Tests
 │   ├── Factory/
 │   │   └── DownloaderFactoryIntegrationTest.php    # Real downloader integration
@@ -38,7 +39,8 @@ api/tests/
     │       └── MockDownloaderTest.php              # Mock implementation
     ├── State/
     │   ├── DownloadJobQueuedProcessorTest.php      # Main processing logic
-    │   └── MetubeDownloadJobProcessorTest.php      # MeTube integration
+    │   ├── MetubeDownloadJobProcessorTest.php      # MeTube integration
+    │   └── VersionProviderTest.php                 # Version provider with latestVersion
     └── Validator/
         └── SelectDownloaderValidatorTest.php       # Custom validation
 ```
@@ -67,6 +69,7 @@ api/tests/
 ### State Processors (100% Coverage)
 - **DownloadJobQueuedProcessor**: Complex business logic, validation, caching
 - **MetubeDownloadJobProcessor**: DTO conversion, delegation
+- **VersionProvider**: Version API provider with latestVersion integration
 
 ### Handlers (100% Coverage)
 - **DownloadJobHandler**: Complete workflow, event dispatching, error handling

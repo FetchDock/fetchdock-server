@@ -2,8 +2,8 @@
 
 namespace App\Tests\Unit\State;
 
-use ApiPlatform\Metadata\CollectionOperationInterface;
-use ApiPlatform\Metadata\Operation;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
 use App\Entity\Version;
 use App\Factory\DownloaderFactory;
 use App\Service\Downloader\DownloaderInterface;
@@ -21,174 +21,128 @@ class VersionProviderTest extends TestCase
         $this->provider = new VersionProvider($this->downloaderFactory);
     }
 
-    public function testProvideCollectionReturnsAllVersionFields(): void
+    public function testProvideCollectionReturnsVersionsWithLatestVersion(): void
     {
-        $downloader1 = $this->createMockDownloader('youtube-dl', '2024.06.01', '2024.07.01');
-        $downloader2 = $this->createMockDownloader('gallery-dl', '1.25.0', '1.26.0');
+        $mockDownloader1 = $this->createMock(DownloaderInterface::class);
+        $mockDownloader1->method('getIdentifier')->willReturn('downloader1');
+        $mockDownloader1->method('getCurrentVersion')->willReturn('1.0.0');
+        $mockDownloader1->method('getLatestVersion')->willReturn('1.1.0');
 
-        $this->downloaderFactory
+        $mockDownloader2 = $this->createMock(DownloaderInterface::class);
+        $mockDownloader2->method('getIdentifier')->willReturn('downloader2');
+        $mockDownloader2->method('getCurrentVersion')->willReturn('2.0.0');
+        $mockDownloader2->method('getLatestVersion')->willReturn('2.5.0');
+
+        $this->downloaderFactory->expects($this->once())
             ->method('getEnabledDownloaders')
-            ->willReturn([$downloader1, $downloader2]);
+            ->willReturn([$mockDownloader1, $mockDownloader2]);
 
-        $operation = $this->createCollectionOperation();
+        // Use real GetCollection instance - it extends Operation and implements CollectionOperationInterface
+        $operation = new GetCollection();
 
         $result = $this->provider->provide($operation);
 
         $this->assertIsArray($result);
         $this->assertCount(2, $result);
 
-        // Check first downloader
+        // Verify first version has correct latestVersion
         $this->assertInstanceOf(Version::class, $result[0]);
-        $this->assertSame('youtube-dl', $result[0]->id);
-        $this->assertSame('2024.06.01', $result[0]->version);
-        $this->assertSame('2024.06.01', $result[0]->currentVersion);
-        $this->assertSame('2024.07.01', $result[0]->latestVersion);
+        $this->assertSame('downloader1', $result[0]->id);
+        $this->assertSame('1.0.0', $result[0]->currentVersion);
+        $this->assertSame('1.1.0', $result[0]->latestVersion);
 
-        // Check second downloader
+        // Verify second version has correct latestVersion
         $this->assertInstanceOf(Version::class, $result[1]);
-        $this->assertSame('gallery-dl', $result[1]->id);
-        $this->assertSame('1.25.0', $result[1]->version);
-        $this->assertSame('1.25.0', $result[1]->currentVersion);
-        $this->assertSame('1.26.0', $result[1]->latestVersion);
+        $this->assertSame('downloader2', $result[1]->id);
+        $this->assertSame('2.0.0', $result[1]->currentVersion);
+        $this->assertSame('2.5.0', $result[1]->latestVersion);
     }
 
-    public function testProvideCollectionVersionMatchesCurrentVersion(): void
+    public function testProvideSingleVersionReturnsVersionWithLatestVersion(): void
     {
-        $downloader = $this->createMockDownloader('test-dl', '2.0.0', '3.0.0');
+        $mockDownloader = $this->createMock(DownloaderInterface::class);
+        $mockDownloader->method('getIdentifier')->willReturn('test-downloader');
+        $mockDownloader->method('getCurrentVersion')->willReturn('3.0.0');
+        $mockDownloader->method('getLatestVersion')->willReturn('3.2.0');
 
-        $this->downloaderFactory
-            ->method('getEnabledDownloaders')
-            ->willReturn([$downloader]);
+        $this->downloaderFactory->expects($this->once())
+            ->method('getDownloaderByIdentifier')
+            ->with('test-downloader')
+            ->willReturn($mockDownloader);
 
-        $operation = $this->createCollectionOperation();
+        // Use real Get instance - it extends Operation
+        $operation = new Get();
+
+        $result = $this->provider->provide($operation, ['id' => 'test-downloader']);
+
+        $this->assertInstanceOf(Version::class, $result);
+        $this->assertSame('test-downloader', $result->id);
+        $this->assertSame('3.0.0', $result->currentVersion);
+        $this->assertSame('3.2.0', $result->latestVersion);
+    }
+
+    public function testProvideSingleVersionReturnsNullForUnknownDownloader(): void
+    {
+        $this->downloaderFactory->expects($this->once())
+            ->method('getDownloaderByIdentifier')
+            ->with('unknown-downloader')
+            ->willReturn(null);
+
+        // Use real Get instance - it extends Operation
+        $operation = new Get();
+
+        $result = $this->provider->provide($operation, ['id' => 'unknown-downloader']);
+
+        $this->assertNull($result);
+    }
+
+    public function testProvideWithoutIdReturnsNull(): void
+    {
+        // Use real Get instance - it extends Operation
+        $operation = new Get();
 
         $result = $this->provider->provide($operation);
 
-        $this->assertIsArray($result);
-        $this->assertCount(1, $result);
-        $this->assertSame($result[0]->version, $result[0]->currentVersion);
-    }
-
-    public function testProvideSingleItemReturnsAllVersionFields(): void
-    {
-        $downloader = $this->createMockDownloader('youtube-dl', '2024.06.01', '2024.07.01');
-
-        $this->downloaderFactory
-            ->method('getDownloaderByIdentifier')
-            ->with('youtube-dl')
-            ->willReturn($downloader);
-
-        $operation = $this->createSingleItemOperation();
-
-        $result = $this->provider->provide($operation, ['id' => 'youtube-dl']);
-
-        $this->assertInstanceOf(Version::class, $result);
-        $this->assertSame('youtube-dl', $result->id);
-        $this->assertSame('2024.06.01', $result->version);
-        $this->assertSame('2024.06.01', $result->currentVersion);
-        $this->assertSame('2024.07.01', $result->latestVersion);
-    }
-
-    public function testProvideSingleItemVersionMatchesCurrentVersion(): void
-    {
-        $downloader = $this->createMockDownloader('test-dl', '1.0.0', '2.0.0');
-
-        $this->downloaderFactory
-            ->method('getDownloaderByIdentifier')
-            ->with('test-dl')
-            ->willReturn($downloader);
-
-        $operation = $this->createSingleItemOperation();
-
-        $result = $this->provider->provide($operation, ['id' => 'test-dl']);
-
-        $this->assertInstanceOf(Version::class, $result);
-        $this->assertSame($result->version, $result->currentVersion);
-    }
-
-    public function testProvideSingleItemReturnsNullForNonExistentDownloader(): void
-    {
-        $this->downloaderFactory
-            ->method('getDownloaderByIdentifier')
-            ->with('non-existent')
-            ->willReturn(null);
-
-        $operation = $this->createSingleItemOperation();
-
-        $result = $this->provider->provide($operation, ['id' => 'non-existent']);
-
         $this->assertNull($result);
     }
 
-    public function testProvideSingleItemReturnsNullWhenNoIdProvided(): void
+    public function testProvideCollectionWithNoDownloadersReturnsEmptyArray(): void
     {
-        $operation = $this->createSingleItemOperation();
-
-        $result = $this->provider->provide($operation, []);
-
-        $this->assertNull($result);
-    }
-
-    public function testProvideCollectionReturnsEmptyArrayWhenNoDownloaders(): void
-    {
-        $this->downloaderFactory
+        $this->downloaderFactory->expects($this->once())
             ->method('getEnabledDownloaders')
             ->willReturn([]);
 
-        $operation = $this->createCollectionOperation();
+        // Use real GetCollection instance - it extends Operation and implements CollectionOperationInterface
+        $operation = new GetCollection();
 
         $result = $this->provider->provide($operation);
 
         $this->assertIsArray($result);
-        $this->assertCount(0, $result);
+        $this->assertEmpty($result);
     }
 
-    public function testProvideCollectionWithDownloaderHavingMatchingVersions(): void
+    public function testVersionPropertyMatchesBothCurrentAndLatestWhenUpToDate(): void
     {
-        $downloader = $this->createMockDownloader('up-to-date', '1.0.0', '1.0.0');
+        $mockDownloader = $this->createMock(DownloaderInterface::class);
+        $mockDownloader->method('getIdentifier')->willReturn('up-to-date');
+        $mockDownloader->method('getCurrentVersion')->willReturn('5.0.0');
+        $mockDownloader->method('getLatestVersion')->willReturn('5.0.0');
 
-        $this->downloaderFactory
-            ->method('getEnabledDownloaders')
-            ->willReturn([$downloader]);
+        $this->downloaderFactory->expects($this->once())
+            ->method('getDownloaderByIdentifier')
+            ->with('up-to-date')
+            ->willReturn($mockDownloader);
 
-        $operation = $this->createCollectionOperation();
+        // Use real Get instance - it extends Operation
+        $operation = new Get();
 
-        $result = $this->provider->provide($operation);
+        $result = $this->provider->provide($operation, ['id' => 'up-to-date']);
 
-        $this->assertIsArray($result);
-        $this->assertCount(1, $result);
-        $this->assertSame('1.0.0', $result[0]->currentVersion);
-        $this->assertSame('1.0.0', $result[0]->latestVersion);
-        $this->assertSame($result[0]->version, $result[0]->currentVersion);
-    }
-
-    /**
-     * Create an anonymous class operation that implements CollectionOperationInterface.
-     * This is needed because the VersionProvider checks for CollectionOperationInterface
-     * to determine if it should return a collection or a single item.
-     */
-    private function createCollectionOperation(): Operation
-    {
-        return new class extends Operation implements CollectionOperationInterface {
-        };
-    }
-
-    /**
-     * Create a mock operation that does NOT implement CollectionOperationInterface.
-     * This simulates a single item Get operation.
-     */
-    private function createSingleItemOperation(): Operation
-    {
-        return $this->createMock(Operation::class);
-    }
-
-    private function createMockDownloader(string $identifier, string $currentVersion, string $latestVersion): DownloaderInterface
-    {
-        $mock = $this->createMock(DownloaderInterface::class);
-        $mock->method('getIdentifier')->willReturn($identifier);
-        $mock->method('getCurrentVersion')->willReturn($currentVersion);
-        $mock->method('getLatestVersion')->willReturn($latestVersion);
-
-        return $mock;
+        $this->assertInstanceOf(Version::class, $result);
+        $this->assertSame('5.0.0', $result->version);
+        $this->assertSame('5.0.0', $result->currentVersion);
+        $this->assertSame('5.0.0', $result->latestVersion);
+        // Verify version equals currentVersion (deprecated field)
+        $this->assertSame($result->currentVersion, $result->version);
     }
 }
