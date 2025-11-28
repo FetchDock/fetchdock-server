@@ -2,7 +2,6 @@
 
 namespace App\Factory;
 
-use App\Enum\DownloaderTypeEnum;
 use App\Service\Downloader\CliDownloaderInterface;
 use App\Service\Downloader\DownloaderInterface;
 use Psr\Http\Message\UriInterface;
