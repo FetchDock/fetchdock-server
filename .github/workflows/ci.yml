@@ -93,7 +93,7 @@ jobs:
         name: Run PHPUnit
         env:
           IMAGES_PREFIX: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}
-        run: docker compose exec -T php bin/phpunit
+        run: docker compose exec -T php vendor/bin/simple-phpunit
       -
         name: Doctrine Schema Validator
         env:
