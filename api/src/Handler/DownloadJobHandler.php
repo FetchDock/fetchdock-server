@@ -9,6 +9,7 @@ use App\Event\JobFailedEvent;
 use App\Event\JobPickedUpEvent;
 use App\Event\JobUpdateEvent;
 use App\Factory\DownloaderFactory;
+use App\Service\Downloader\DownloaderInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityNotFoundException;
 use GuzzleHttp\Psr7\Uri;
@@ -32,7 +33,7 @@ class DownloadJobHandler
 
     public function __invoke(
         DownloadJob $downloadJob
-    )
+    ): void
     {
         try {
             // Load the DownloadJob from the database to ensure we have the latest state
@@ -115,12 +116,12 @@ class DownloadJobHandler
         }
     }
 
-    private function getDownloaderByDownloaderIdentifier(string $identifier)
+    private function getDownloaderByDownloaderIdentifier(string $identifier): ?DownloaderInterface
     {
         return $this->downloaderFactory->getDownloaderByIdentifier($identifier);
     }
 
-    private function getDownloaderByUri(string $uri)
+    private function getDownloaderByUri(string $uri): iterable
     {
         return $this->downloaderFactory->getDownloadersByUri(new Uri($uri));
     }

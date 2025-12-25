@@ -6,6 +6,11 @@ use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
 
 class VersionTest extends ApiTestCase
 {
+    protected function setUp(): void
+    {
+        self::$alwaysBootKernel = true;
+    }
+
     public function testGetVersionsCollection(): void
     {
         $response = static::createClient()->request('GET', '/versions');

@@ -75,12 +75,11 @@ class DownloadJobQueuedProcessor implements ProcessorInterface
                     // Cache for 24 hours if a downloader was found
                     $item->expiresAfter(86400);
                     return $downloader->getIdentifier();
-//                    $downloadJob->setDownloader($downloader->getIdentifier());
-                    break; // Use the first matching downloader
                 }
 
                 return false; // No downloader found
             });
+
             if ($downloaderKey) {
                 $downloadJob->setDownloader($downloaderKey);
             } else {
