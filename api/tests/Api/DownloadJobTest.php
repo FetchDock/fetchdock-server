@@ -6,6 +6,11 @@ use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
 
 class DownloadJobTest extends ApiTestCase
 {
+    protected function setUp(): void
+    {
+        self::$alwaysBootKernel = true;
+    }
+
     public function testCreateDownloadJobWithFullPayload(): void
     {
         static::createClient()->request('POST', '/download_jobs', [

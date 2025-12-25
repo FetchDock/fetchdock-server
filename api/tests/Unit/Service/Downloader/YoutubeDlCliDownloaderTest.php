@@ -52,12 +52,12 @@ class YoutubeDlCliDownloaderTest extends TestCase
 
     public function testGetUpdateCommandArgsReturnsCorrectArray(): void
     {
-        $expectedArgs = ['pip3', 'install', '--upgrade', 'yt-dlp'];
+        $expectedArgs = ['pip3', 'install', '--upgrade', '--break-system-packages', 'yt-dlp'];
 
         $actualArgs = $this->downloader->getUpdateCommandArgs();
 
         $this->assertSame($expectedArgs, $actualArgs);
-        $this->assertCount(4, $actualArgs);
+        $this->assertCount(5, $actualArgs);
     }
 
     public function testGetSupportedDomainsReturnsEmptyArray(): void

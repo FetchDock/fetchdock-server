@@ -6,3 +6,6 @@ api/config/gallery-dl/config.json
 api/config/yt-dlp/yt-dlp.conf
 docker/gallery-dl/config/gallery-dl.conf
 .http/http-client.private.env.json
+/api/bolt.db
+/api/config/jwt/*.pem
+*~ # Jetbrains temp files

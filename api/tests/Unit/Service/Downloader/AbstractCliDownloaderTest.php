@@ -53,23 +53,23 @@ class AbstractCliDownloaderTest extends TestCase
         $reflection = new \ReflectionClass($downloader);
 
         $cacheProperty = $reflection->getProperty('cache');
-        $cacheProperty->setAccessible(true);
+
         $this->assertSame($this->cache, $cacheProperty->getValue($downloader));
 
         $configPathProperty = $reflection->getProperty('configPath');
-        $configPathProperty->setAccessible(true);
+
         $this->assertSame($this->configPath, $configPathProperty->getValue($downloader));
 
         $binaryPathProperty = $reflection->getProperty('binaryPath');
-        $binaryPathProperty->setAccessible(true);
+
         $this->assertSame($this->binaryPath, $binaryPathProperty->getValue($downloader));
 
         $downloadPathProperty = $reflection->getProperty('downloadPath');
-        $downloadPathProperty->setAccessible(true);
+
         $this->assertSame($this->downloadPath, $downloadPathProperty->getValue($downloader));
 
         $loggerProperty = $reflection->getProperty('logger');
-        $loggerProperty->setAccessible(true);
+
         $this->assertSame($this->logger, $loggerProperty->getValue($downloader));
     }
 
@@ -102,7 +102,7 @@ class AbstractCliDownloaderTest extends TestCase
         // Use reflection to call the protected method
         $reflection = new \ReflectionClass($downloader);
         $method = $reflection->getMethod('createConfigFileIfNotExists');
-        $method->setAccessible(true);
+
 
         $method->invoke($downloader);
 
@@ -129,7 +129,7 @@ class AbstractCliDownloaderTest extends TestCase
         // Use reflection to call the protected method
         $reflection = new \ReflectionClass($downloader);
         $method = $reflection->getMethod('createConfigFileIfNotExists');
-        $method->setAccessible(true);
+
 
         $method->invoke($downloader);
 
@@ -152,7 +152,7 @@ class AbstractCliDownloaderTest extends TestCase
         // Use reflection to call the protected method
         $reflection = new \ReflectionClass($downloader);
         $method = $reflection->getMethod('createDownloadDirectoryIfNotExists');
-        $method->setAccessible(true);
+
 
         $method->invoke($downloader);
 
@@ -175,7 +175,7 @@ class AbstractCliDownloaderTest extends TestCase
         // Use reflection to call the protected method
         $reflection = new \ReflectionClass($downloader);
         $method = $reflection->getMethod('createDownloadDirectoryIfNotExists');
-        $method->setAccessible(true);
+
 
         $method->invoke($downloader);
 
@@ -192,13 +192,13 @@ class AbstractCliDownloaderTest extends TestCase
         // Use reflection to call the protected method
         $reflection = new \ReflectionClass($downloader);
         $method = $reflection->getMethod('getPipUpdateCommandArgs');
-        $method->setAccessible(true);
+
 
         $result = $method->invoke($downloader, 'yt-dlp');
 
         $this->assertIsArray($result);
-        $this->assertCount(4, $result);
-        $this->assertSame(['pip3', 'install', '--upgrade', 'yt-dlp'], $result);
+        $this->assertCount(5, $result);
+        $this->assertSame(['pip3', 'install', '--upgrade', '--break-system-packages', 'yt-dlp'], $result);
     }
 
     public function testGetPipUpdateCommandArgsWithDifferentPackage(): void
@@ -208,11 +208,11 @@ class AbstractCliDownloaderTest extends TestCase
         // Use reflection to call the protected method
         $reflection = new \ReflectionClass($downloader);
         $method = $reflection->getMethod('getPipUpdateCommandArgs');
-        $method->setAccessible(true);
+
 
         $result = $method->invoke($downloader, 'gallery-dl');
 
-        $this->assertSame(['pip3', 'install', '--upgrade', 'gallery-dl'], $result);
+        $this->assertSame(['pip3', 'install', '--upgrade', '--break-system-packages', 'gallery-dl'], $result);
     }
 
     public function testGetVersionFromPipReturnsCachedValue(): void
@@ -230,7 +230,7 @@ class AbstractCliDownloaderTest extends TestCase
         // Use reflection to call the protected method
         $reflection = new \ReflectionClass($downloader);
         $method = $reflection->getMethod('getVersionFromPip');
-        $method->setAccessible(true);
+
 
         $result = $method->invoke($downloader, 'yt-dlp');
 
@@ -250,7 +250,7 @@ class AbstractCliDownloaderTest extends TestCase
         // Use reflection to call the protected method
         $reflection = new \ReflectionClass($downloader);
         $method = $reflection->getMethod('getVersionFromPip');
-        $method->setAccessible(true);
+
 
         $result = $method->invoke($downloader, 'gallery-dl');
 
@@ -271,7 +271,7 @@ class AbstractCliDownloaderTest extends TestCase
 
         $reflection = new \ReflectionClass($downloader);
         $method = $reflection->getMethod('getVersionFromPip');
-        $method->setAccessible(true);
+
 
         $result1 = $method->invoke($downloader, 'yt-dlp');
         $result2 = $method->invoke($downloader, 'gallery-dl');
@@ -302,7 +302,7 @@ class AbstractCliDownloaderTest extends TestCase
 
         $reflection = new \ReflectionClass($downloader);
         $method = $reflection->getMethod('getVersionFromPip');
-        $method->setAccessible(true);
+
 
         $result = $method->invoke($downloader, 'test-package');
 

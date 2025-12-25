@@ -6,13 +6,12 @@ services:
       target: frankenphp_dev
     volumes:
       - ./api:/app
-      - /app/var
+#      - /app/var
       - ./build/logs:/app/build/logs
       - vendor_php:/app/vendor
-      - cache_php:/app/cache
+#      - cache_php:/app/cache
       - ./api/frankenphp/Caddyfile:/etc/frankenphp/Caddyfile:ro
       - ./api/frankenphp/conf.d/20-app.dev.ini:/usr/local/etc/php/app.conf.d/20-app.dev.ini:ro
-      - ./downloads:/downloads
       # If you develop on Mac or Windows you can remove the vendor/ directory
       #  from the bind-mount for better performance by enabling the next line:
       #- /app/vendor
@@ -31,12 +30,11 @@ services:
       target: frankenphp_dev
     volumes:
       - ./api:/app
-      - /app/var
+#      - /app/var
       - vendor_worker:/app/vendor
-      - cache_worker:/app/cache
+#      - cache_worker:/app/cache
       - ./api/frankenphp/Caddyfile:/etc/frankenphp/Caddyfile:ro
       - ./api/frankenphp/conf.d/20-app.dev.ini:/usr/local/etc/php/app.conf.d/20-app.dev.ini:ro
-      - ./downloads:/downloads
       # If you develop on Mac or Windows you can remove the vendor/ directory
       #  from the bind-mount for better performance by enabling the next line:
       #- /app/vendor

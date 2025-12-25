@@ -95,7 +95,7 @@ class DownloadWorkflowIntegrationTest extends TestCase
                 // Simulate ID assignment
                 $reflection = new \ReflectionClass($job);
                 $idProperty = $reflection->getProperty('id');
-                $idProperty->setAccessible(true);
+
                 $idProperty->setValue($job, 123);
                 return $job;
             });
@@ -165,7 +165,7 @@ class DownloadWorkflowIntegrationTest extends TestCase
                 $persistedJob = $job;
                 $reflection = new \ReflectionClass($job);
                 $idProperty = $reflection->getProperty('id');
-                $idProperty->setAccessible(true);
+
                 $idProperty->setValue($job, 456);
                 return $job;
             });
@@ -268,7 +268,7 @@ class DownloadWorkflowIntegrationTest extends TestCase
         // Simulate ID
         $reflection = new \ReflectionClass($job);
         $idProperty = $reflection->getProperty('id');
-        $idProperty->setAccessible(true);
+
         $idProperty->setValue($job, 789);
 
         $this->repository->method('find')
@@ -332,7 +332,7 @@ class DownloadWorkflowIntegrationTest extends TestCase
                 $job = $downloadJob;
                 $reflection = new \ReflectionClass($job);
                 $idProperty = $reflection->getProperty('id');
-                $idProperty->setAccessible(true);
+
                 $idProperty->setValue($job, 999);
                 return $job;
             });

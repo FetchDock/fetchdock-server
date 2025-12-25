@@ -28,6 +28,7 @@ update-deps:
 force-recreate:
 	$(DOCKER_COMPOSE_PREFIX) docker compose up --force-recreate --wait -d
 
+.PHONY: build
 build:
 	$(DOCKER_COMPOSE_PREFIX) docker compose build --no-cache --pull
 

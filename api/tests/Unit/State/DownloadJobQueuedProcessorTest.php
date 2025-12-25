@@ -75,7 +75,7 @@ class DownloadJobQueuedProcessorTest extends TestCase
                 // Simulate ID assignment after persistence
                 $reflection = new \ReflectionClass($job);
                 $idProperty = $reflection->getProperty('id');
-                $idProperty->setAccessible(true);
+
                 $idProperty->setValue($job, 123);
                 return $job;
             });
@@ -134,7 +134,7 @@ class DownloadJobQueuedProcessorTest extends TestCase
                 // Simulate ID assignment
                 $reflection = new \ReflectionClass($job);
                 $idProperty = $reflection->getProperty('id');
-                $idProperty->setAccessible(true);
+
                 $idProperty->setValue($job, 456);
                 return $job;
             });
@@ -186,7 +186,7 @@ class DownloadJobQueuedProcessorTest extends TestCase
                 // Simulate ID assignment
                 $reflection = new \ReflectionClass($job);
                 $idProperty = $reflection->getProperty('id');
-                $idProperty->setAccessible(true);
+
                 $idProperty->setValue($job, 789);
                 return $job;
             });
@@ -280,7 +280,7 @@ class DownloadJobQueuedProcessorTest extends TestCase
                 // Simulate ID assignment
                 $reflection = new \ReflectionClass($job);
                 $idProperty = $reflection->getProperty('id');
-                $idProperty->setAccessible(true);
+
                 $idProperty->setValue($job, 999);
                 return $job;
             });
@@ -317,7 +317,7 @@ class DownloadJobQueuedProcessorTest extends TestCase
             ->willReturnCallback(function (DownloadJob $job) {
                 $reflection = new \ReflectionClass($job);
                 $idProperty = $reflection->getProperty('id');
-                $idProperty->setAccessible(true);
+
                 $idProperty->setValue($job, 1);
                 return $job;
             });
