@@ -11,6 +11,7 @@ use Psr\Http\Message\UriInterface;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
@@ -49,11 +50,7 @@ class GalleryDlCliDownloader extends AbstractCliDownloader implements CliDownloa
         try {
             $process->mustRun();
             return $process->isSuccessful();
-        } catch (RuntimeException $e) {
-            $this->logger->debug('gallery-dl output', [
-                'output' => $process->getOutput(),
-                'errorOutput' => $process->getErrorOutput(),
-            ]);
+        } catch (ProcessFailedException $e) {
             return false;
         }
     }
