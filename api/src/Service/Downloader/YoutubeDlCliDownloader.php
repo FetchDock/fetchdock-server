@@ -46,17 +46,18 @@ class YoutubeDlCliDownloader extends AbstractCliDownloader implements CliDownloa
 
     public function supportsUri(UriInterface $uri): bool
     {
+        return $this->testUrl((string)$uri);
+    }
+
+    public function testUrl(string $url): bool
+    {
         $process = new Process([
             $this->binaryPath,
             '--simulate',
-            $uri->__toString()
+            $url
         ]);
         try {
             $process->mustRun();
-            $this->logger->debug('yt-dlp output', [
-                'output' => $process->getOutput(),
-                'errorOutput' => $process->getErrorOutput(),
-            ]);
             return $process->isSuccessful();
         } catch (ProcessFailedException $e) {
             return false;

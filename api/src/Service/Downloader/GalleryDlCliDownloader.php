@@ -44,11 +44,23 @@ class GalleryDlCliDownloader extends AbstractCliDownloader implements CliDownloa
         return $this->testUrl((string)$uri);
     }
 
-    public function testUrl($url): bool
+    public function testUrl(string $url): bool
     {
-        $process = new Process([$this->binaryPath, '--simulate', $url]);
-        $process->run();
-        return $process->isSuccessful();
+        $process = new Process([
+            $this->binaryPath,
+            '--simulate',
+            $url
+        ]);
+        try {
+            $process->mustRun();
+            return $process->isSuccessful();
+        } catch (RuntimeException $e) {
+            $this->logger->debug('gallery-dl output', [
+                'output' => $process->getOutput(),
+                'errorOutput' => $process->getErrorOutput(),
+            ]);
+            return false;
+        }
     }
 
     public function getSupportedDomains(): array
