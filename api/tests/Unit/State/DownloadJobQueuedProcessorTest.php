@@ -15,6 +15,7 @@ use App\Service\Downloader\DownloaderInterface;
 use App\State\DownloadJobQueuedProcessor;
 use GuzzleHttp\Psr7\Uri;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Exception\BadRequestException;
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
@@ -25,6 +26,7 @@ class DownloadJobQueuedProcessorTest extends TestCase
     private ProcessorInterface $persistProcessor;
     private ProcessorInterface $messengerProcessor;
     private DownloaderFactory $downloaderFactory;
+    private LoggerInterface $logger;
     private TagAwareCacheInterface $cache;
     private Operation $operation;
 
@@ -33,12 +35,14 @@ class DownloadJobQueuedProcessorTest extends TestCase
         $this->persistProcessor = $this->createMock(ProcessorInterface::class);
         $this->messengerProcessor = $this->createMock(ProcessorInterface::class);
         $this->downloaderFactory = $this->createMock(DownloaderFactory::class);
+        $this->logger = $this->createMock(LoggerInterface::class);
         $this->cache = $this->createMock(TagAwareCacheInterface::class);
         $this->operation = $this->createMock(Operation::class);
 
         $this->processor = new DownloadJobQueuedProcessor(
             $this->persistProcessor,
             $this->messengerProcessor,
+            $this->logger,
             $this->downloaderFactory,
             $this->cache
         );

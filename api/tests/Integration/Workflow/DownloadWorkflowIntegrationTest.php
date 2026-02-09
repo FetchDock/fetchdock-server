@@ -64,6 +64,7 @@ class DownloadWorkflowIntegrationTest extends TestCase
         $this->processor = new DownloadJobQueuedProcessor(
             $persistProcessor,
             $messengerProcessor,
+            $this->logger,
             $this->downloaderFactory,
             $this->cache
         );
