@@ -47,9 +47,10 @@ use Symfony\Component\Uid\Uuid;
             processor: MetubeDownloadJobProcessor::class
         ),
         new Get(
-            security: "is_granted('DOWNLOAD_JOB_VIEW') or is_granted('ROLE_ADMIN') or is_granted('ROLE_DOWNLOAD-API_ADMINS')",
+            security: "is_granted('DOWNLOAD_JOB_VIEW') or is_granted('ROLE_ADMIN') or is_granted('ROLE_DOWNLOAD-API_ADMINS')"
         ),
         new GetCollection(
+            order: ['createdAt' => 'DESC'],
             security: "is_granted('ROLE_ADMIN') or is_granted('ROLE_DOWNLOAD-API_ADMINS')"
         )
     ],
