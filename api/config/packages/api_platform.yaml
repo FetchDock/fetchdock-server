@@ -35,4 +35,10 @@ api_platform:
         authorizationUrl: '%oidc.authorization_url%'
 
         # The OAuth scopes.
-        scopes: [ 'profile', 'email', 'offline_access', 'openid' ]
+#        scopes: [ 'profile', 'email', 'offline_access', 'openid', 'roles', 'groups' ]
+        scopes:
+            profile: 'Access to your profile information'
+            email: 'Access to your email address'
+            offline_access: 'Access to refresh tokens'
+            openid: 'Authenticate using OpenID Connect'
+            roles: 'Access to your roles'
