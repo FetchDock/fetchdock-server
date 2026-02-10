@@ -30,9 +30,11 @@ if [ "$NODE_MODE" = "worker" ]; then
 	echo "[migration-coordinator] NODE_MODE=worker -> waiting for doctrine:migrations:status to report up-to-date (timeout ${MIGRATION_TIMEOUT}s)"
 	while true; do
 		# Check DB connectivity first
-		if ! DATABASE_ERROR=$(php bin/console dbal:run-sql -q 'SELECT 1' 2>&1); then
+		DATABASE_ERROR=$(php bin/console dbal:run-sql -q 'SELECT 1' 2>&1)
+		DB_EXIT_CODE=$?
+		if [ "$DB_EXIT_CODE" -ne 0 ]; then
 			# If the Doctrine command exits with 255, an unrecoverable error occurred
-			if [ $? -eq 255 ]; then
+			if [ "$DB_EXIT_CODE" -eq 255 ]; then
 				echo "[migration-coordinator] DB unreachable (unrecoverable). Exiting." >&2
 				exit 1
 			fi
