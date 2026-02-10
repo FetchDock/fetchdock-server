@@ -52,43 +52,43 @@ if [ "$1" = 'frankenphp' ] || [ "$1" = 'php' ] || [ "$1" = 'bin/console' ]; then
 				echo "[migration-coordinator] no migration files found, skipping"
 			fi
 		elif [ "$NODE_MODE" = "worker" ]; then
-        	MIGRATION_POLL_INTERVAL=${MIGRATION_POLL_INTERVAL:-2}
-        	MIGRATION_TIMEOUT=${MIGRATION_TIMEOUT:-300}
-        	START_TIME=$(date +%s)
-        	echo "[migration-coordinator] NODE_MODE=worker -> waiting for doctrine:migrations:status to report up-to-date (timeout ${MIGRATION_TIMEOUT}s)"
-        	while true; do
-        		# Check DB connectivity first
-        		if ! DATABASE_ERROR=$(php bin/console dbal:run-sql -q 'SELECT 1' 2>&1); then
-        			# If the Doctrine command exits with 255, an unrecoverable error occurred
-        			if [ $? -eq 255 ]; then
-        				echo "[migration-coordinator] DB unreachable (unrecoverable). Exiting." >&2
-        				exit 1
-        			fi
-        			# Otherwise keep waiting and retry until timeout
-        		fi
+			MIGRATION_POLL_INTERVAL=${MIGRATION_POLL_INTERVAL:-2}
+			MIGRATION_TIMEOUT=${MIGRATION_TIMEOUT:-300}
+			START_TIME=$(date +%s)
+			echo "[migration-coordinator] NODE_MODE=worker -> waiting for doctrine:migrations:status to report up-to-date (timeout ${MIGRATION_TIMEOUT}s)"
+			while true; do
+				# Check DB connectivity first
+				if ! DATABASE_ERROR=$(php bin/console dbal:run-sql -q 'SELECT 1' 2>&1); then
+					# If the Doctrine command exits with 255, an unrecoverable error occurred
+					if [ $? -eq 255 ]; then
+						echo "[migration-coordinator] DB unreachable (unrecoverable). Exiting." >&2
+						exit 1
+					fi
+					# Otherwise keep waiting and retry until timeout
+				fi
 
-        		# Check doctrine migration status output for the textual marker
-        		if php bin/console doctrine:migrations:status --no-interaction 2>/dev/null | grep -q "Already at latest version"; then
-        			echo "[migration-coordinator] migration status: Already at latest version -> proceeding"
-        			break
-        		fi
+				# Check doctrine migration status output for the textual marker
+				if php bin/console doctrine:migrations:status --no-interaction 2>/dev/null | grep -q "Already at latest version"; then
+					echo "[migration-coordinator] migration status: Already at latest version -> proceeding"
+					break
+				fi
 
-        		# Fallback: if doctrine:migrations:status isn't available or output differs, try a secondary heuristic
-        		if php bin/console doctrine:migrations:status --no-interaction 2>/dev/null | grep -q "New.*0"; then
-        			echo "[migration-coordinator] migration status: no new migrations detected -> proceeding"
-        			break
-        		fi
+				# Fallback: if doctrine:migrations:status isn't available or output differs, try a secondary heuristic
+				if php bin/console doctrine:migrations:status --no-interaction 2>/dev/null | grep -q "New.*0"; then
+					echo "[migration-coordinator] migration status: no new migrations detected -> proceeding"
+					break
+				fi
 
-        		# Check timeout
-        		NOW=$(date +%s)
-        		ELAPSED=$((NOW - START_TIME))
-        		if [ "$ELAPSED" -ge "$MIGRATION_TIMEOUT" ]; then
-        			echo "[migration-coordinator] TIMEOUT waiting for doctrine:migrations:status after ${MIGRATION_TIMEOUT}s" >&2
-        			exit 2
-        		fi
+				# Check timeout
+				NOW=$(date +%s)
+				ELAPSED=$((NOW - START_TIME))
+				if [ "$ELAPSED" -ge "$MIGRATION_TIMEOUT" ]; then
+					echo "[migration-coordinator] TIMEOUT waiting for doctrine:migrations:status after ${MIGRATION_TIMEOUT}s" >&2
+					exit 2
+				fi
 
-        		sleep $MIGRATION_POLL_INTERVAL
-        	done
+				sleep $MIGRATION_POLL_INTERVAL
+			done
 		else
 			echo "[migration-coordinator] NODE_MODE=${NODE_MODE} -> skipping migrations"
 		fi
