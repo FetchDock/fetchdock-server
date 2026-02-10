@@ -23,48 +23,6 @@ fi
 
 # If running as worker, wait for doctrine:migrations:status to report 'Already at latest version'
 NODE_MODE=${NODE_MODE:-worker}
-if [ "$NODE_MODE" = "worker" ]; then
-	MIGRATION_POLL_INTERVAL=${MIGRATION_POLL_INTERVAL:-2}
-	MIGRATION_TIMEOUT=${MIGRATION_TIMEOUT:-300}
-	START_TIME=$(date +%s)
-	echo "[migration-coordinator] NODE_MODE=worker -> waiting for doctrine:migrations:status to report up-to-date (timeout ${MIGRATION_TIMEOUT}s)"
-	while true; do
-		# Check DB connectivity first
-		DATABASE_ERROR=$(php bin/console dbal:run-sql -q 'SELECT 1' 2>&1)
-		DB_EXIT_CODE=$?
-		if [ "$DB_EXIT_CODE" -ne 0 ]; then
-			# If the Doctrine command exits with 255, an unrecoverable error occurred
-			if [ "$DB_EXIT_CODE" -eq 255 ]; then
-				echo "[migration-coordinator] DB unreachable (unrecoverable). Exiting." >&2
-				exit 1
-			fi
-			# Otherwise keep waiting and retry until timeout
-		fi
-
-		# Check doctrine migration status output for the textual marker
-		if php bin/console doctrine:migrations:status --no-interaction 2>/dev/null | grep -q "Already at latest version"; then
-			echo "[migration-coordinator] migration status: Already at latest version -> proceeding"
-			break
-		fi
-
-		# Fallback: if doctrine:migrations:status isn't available or output differs, try a secondary heuristic
-		if php bin/console doctrine:migrations:status --no-interaction 2>/dev/null | grep -q "New.*0"; then
-			echo "[migration-coordinator] migration status: no new migrations detected -> proceeding"
-			break
-		fi
-
-		# Check timeout
-		NOW=$(date +%s)
-		ELAPSED=$((NOW - START_TIME))
-		if [ "$ELAPSED" -ge "$MIGRATION_TIMEOUT" ]; then
-			echo "[migration-coordinator] TIMEOUT waiting for doctrine:migrations:status after ${MIGRATION_TIMEOUT}s" >&2
-			exit 2
-		fi
-
-		sleep $MIGRATION_POLL_INTERVAL
-	done
-fi
-
 # Call the main entrypoint script with the bin/console command and the appropriate arguments
 # to run the Symfony Messenger worker
 # You can customize the arguments as needed
