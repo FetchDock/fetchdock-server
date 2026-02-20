@@ -101,7 +101,9 @@ abstract class AbstractCliDownloader implements DownloaderInterface
         $configDir = dirname($this->configPath);
         if (!is_dir($configDir)) {
             $this->logger->debug('Creating config directory', ['path' => $configDir]);
-            mkdir($configDir, 0755, true);
+            if (!mkdir($configDir, 0755, true) && !is_dir($configDir)) {
+                throw new \RuntimeException(sprintf('Directory "%s" was not created', $configDir));
+            }
         }
 
         if (!file_exists($this->configPath)) {
@@ -116,7 +118,9 @@ abstract class AbstractCliDownloader implements DownloaderInterface
     {
         if (!is_dir($this->downloadPath)) {
             $this->logger->debug('Creating download directory', ['path' => $this->downloadPath]);
-            mkdir($this->downloadPath, 0755, true);
+            if (!mkdir($concurrentDirectory = $this->downloadPath, 0755, true) && !is_dir($concurrentDirectory)) {
+                throw new \RuntimeException(sprintf('Directory "%s" was not created', $concurrentDirectory));
+            }
         }
     }
 
@@ -161,14 +165,21 @@ abstract class AbstractCliDownloader implements DownloaderInterface
 
             $process->mustRun(function (string $type, string $buffer) use (&$versions) {
                 if (Process::OUT === $type) {
+                    $this->logger->debug('Parsing pip version output', ['output' => $buffer]);
                     if (str_contains($buffer, 'INSTALLED')) {
-                        $parts = explode(':', $buffer, 2);
-                        $versions['installed'] = trim($parts[1] ?? '');
+                        if(preg_match('/INSTALLED:\s*(\S+)/', $buffer, $matches)) {
+                            $versions['installed'] = trim($matches[1]);
+                        } else {
+                            $this->logger->warning('Failed to parse INSTALLED version from pip output', ['output' => $buffer]);
+                        }
                     }
 
                     if (str_contains($buffer, 'LATEST')) {
-                        $parts = explode(':', $buffer, 2);
-                        $versions['latest'] = trim($parts[1] ?? '');
+                        if(preg_match('/LATEST:\s*(\S+)/', $buffer, $matches)) {
+                            $versions['latest'] = trim($matches[1]);
+                        } else {
+                            $this->logger->warning('Failed to parse LATEST version from pip output', ['output' => $buffer]);
+                        }
                     }
                 }
             });
@@ -176,6 +187,7 @@ abstract class AbstractCliDownloader implements DownloaderInterface
             if ($process->isSuccessful()) {
                 // Ensure both required keys are present
                 if (isset($versions['installed']) && isset($versions['latest'])) {
+                    $this->logger->debug('Parsed pip versions successfully', ['versions' => $versions]);
                     return $versions;
                 }
             }
