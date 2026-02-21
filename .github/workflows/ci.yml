@@ -96,10 +96,9 @@ jobs:
         run: docker compose exec -e XDEBUG_MODE=coverage -T php bin/phpunit
       -
         name: Code Coverage Summary
-        uses: irongut/CodeCoverageSummary@v1.3.0
+        uses: docker://ghcr.io/ericsizemore/phpunit-coverage-check-action
         with:
-          filename: build/logs/clover.xml
-          badge: 'true'
+          clover_file: 'build/logs/clover.xml'
       -
         name: Doctrine Schema Validator
         env:
