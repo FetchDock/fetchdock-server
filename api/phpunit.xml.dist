@@ -6,7 +6,11 @@
          backupGlobals="false"
          colors="true"
          bootstrap="tests/bootstrap.php"
-         convertDeprecationsToExceptions="false"
+         failOnDeprecation="false"
+         displayDetailsOnTestsThatTriggerDeprecations="true"
+         displayDetailsOnTestsThatTriggerErrors="true"
+         displayDetailsOnTestsThatTriggerWarnings="true"
+         beStrictAboutTestsThatDoNotTestAnything="true"
 >
     <php>
         <ini name="display_errors" value="1" />
@@ -29,10 +33,19 @@
         </testsuite>
     </testsuites>
 
-    <coverage processUncoveredFiles="true">
+    <source>
         <include>
             <directory suffix=".php">src</directory>
         </include>
+        <exclude>
+            <directory suffix=".php">src/Kernel.php</directory>
+        </exclude>
+    </source>
+
+    <coverage
+        includeUncoveredFiles="true"
+    >
+
         <report>
             <clover outputFile="build/logs/clover.xml"/>
             <cobertura outputFile="build/logs/cobertura.xml"/>
@@ -40,9 +53,10 @@
         </report>
     </coverage>
 
-    <listeners>
-        <listener class="Symfony\Bridge\PhpUnit\SymfonyTestsListener" />
-    </listeners>
+<!--    <listeners>-->
+<!--        <listener class="Symfony\Bridge\PhpUnit\SymfonyTestsListener" />-->
+<!--        <listener class="Symfony\Bridge\PhpUnit\CoverageListener" />-->
+<!--    </listeners>-->
 
     <extensions>
         <bootstrap class="Symfony\Bridge\PhpUnit\SymfonyExtension">
