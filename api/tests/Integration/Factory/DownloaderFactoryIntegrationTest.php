@@ -121,10 +121,6 @@ class DownloaderFactoryIntegrationTest extends TestCase
                     default => throw new \LogicException('Unexpected number of logger calls')
                 };
             });
-//            ->withConsecutive(
-//                ['Looking for downloaders supporting URI', $this->anything()],
-//                ['Checking downloader for URI support', $this->anything()]
-//            );
 
         $factory = new DownloaderFactory([$this->mockDownloader], $logger);
 
