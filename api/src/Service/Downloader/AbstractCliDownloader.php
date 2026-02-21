@@ -161,35 +161,28 @@ abstract class AbstractCliDownloader implements DownloaderInterface
                 $package
             ]);
 
+            $process->mustRun();
+
+            $output = $process->getOutput();
+            $this->logger->debug('Parsing pip version output', ['output' => $output]);
+
             $versions = [];
 
-            $process->mustRun(function (string $type, string $buffer) use (&$versions) {
-                if (Process::OUT === $type) {
-                    $this->logger->debug('Parsing pip version output', ['output' => $buffer]);
-                    if (str_contains($buffer, 'INSTALLED')) {
-                        if (preg_match('/INSTALLED:\s*(\S+)/', $buffer, $matches)) {
-                            $versions['installed'] = trim($matches[1]);
-                        } else {
-                            $this->logger->warning('Failed to parse INSTALLED version from pip output', ['output' => $buffer]);
-                        }
-                    }
+            if (preg_match('/INSTALLED:\s*(\S+)/', $output, $matches)) {
+                $versions['installed'] = trim($matches[1]);
+            } else {
+                $this->logger->warning('Failed to parse INSTALLED version from pip output', ['output' => $output]);
+            }
 
-                    if (str_contains($buffer, 'LATEST')) {
-                        if (preg_match('/LATEST:\s*(\S+)/', $buffer, $matches)) {
-                            $versions['latest'] = trim($matches[1]);
-                        } else {
-                            $this->logger->warning('Failed to parse LATEST version from pip output', ['output' => $buffer]);
-                        }
-                    }
-                }
-            });
+            if (preg_match('/LATEST:\s*(\S+)/', $output, $matches)) {
+                $versions['latest'] = trim($matches[1]);
+            } else {
+                $this->logger->warning('Failed to parse LATEST version from pip output', ['output' => $output]);
+            }
 
-            if ($process->isSuccessful()) {
-                // Ensure both required keys are present
-                if (isset($versions['installed']) && isset($versions['latest'])) {
-                    $this->logger->debug('Parsed pip versions successfully', ['versions' => $versions]);
-                    return $versions;
-                }
+            if (isset($versions['installed']) && isset($versions['latest'])) {
+                $this->logger->debug('Parsed pip versions successfully', ['versions' => $versions]);
+                return $versions;
             }
 
             return null;
