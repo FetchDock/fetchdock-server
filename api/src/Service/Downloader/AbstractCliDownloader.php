@@ -118,8 +118,8 @@ abstract class AbstractCliDownloader implements DownloaderInterface
     {
         if (!is_dir($this->downloadPath)) {
             $this->logger->debug('Creating download directory', ['path' => $this->downloadPath]);
-            if (!mkdir($concurrentDirectory = $this->downloadPath, 0755, true) && !is_dir($concurrentDirectory)) {
-                throw new \RuntimeException(sprintf('Directory "%s" was not created', $concurrentDirectory));
+            if (!mkdir($this->downloadPath, 0755, true) && !is_dir($this->downloadPath)) {
+                throw new \RuntimeException(sprintf('Directory "%s" was not created', $this->downloadPath));
             }
         }
     }
