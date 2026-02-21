@@ -6,7 +6,7 @@
 parameters:
     locale: 'en'
     app.download_dir: '/downloads'
-    downloader.gallery_dl_web.enabled: true
+    downloader.gallery_dl_web.enabled: false
     downloader.gallery_dl_web.host: 'http://gallery-dl:9080'
 
     downloader.gallery_dl_cli.enabled: true
@@ -38,7 +38,7 @@ services:
     _defaults:
         autowire: true      # Automatically injects dependencies in your services.
         autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
-    
+
     _instanceof:
         App\Service\Downloader\DownloaderInterface:
             tags: ['app.downloader']
