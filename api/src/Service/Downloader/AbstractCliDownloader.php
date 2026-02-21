@@ -167,7 +167,7 @@ abstract class AbstractCliDownloader implements DownloaderInterface
                 if (Process::OUT === $type) {
                     $this->logger->debug('Parsing pip version output', ['output' => $buffer]);
                     if (str_contains($buffer, 'INSTALLED')) {
-                        if(preg_match('/INSTALLED:\s*(\S+)/', $buffer, $matches)) {
+                        if (preg_match('/INSTALLED:\s*(\S+)/', $buffer, $matches)) {
                             $versions['installed'] = trim($matches[1]);
                         } else {
                             $this->logger->warning('Failed to parse INSTALLED version from pip output', ['output' => $buffer]);
