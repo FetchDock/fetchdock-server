@@ -222,7 +222,7 @@ class AbstractCliDownloaderTest extends TestCase
         // Configure cache to return our expected value
         $this->cache->expects($this->once())
             ->method('get')
-            ->with('test-cli-downloader-yt-dlp-version', $this->isType('callable'))
+            ->with('test-cli-downloader-yt-dlp-version', $this->isCallable())
             ->willReturn($expectedVersions);
 
         $downloader = $this->createConcreteDownloader();
@@ -242,7 +242,7 @@ class AbstractCliDownloaderTest extends TestCase
         // Configure cache to return null (cache miss or process failure)
         $this->cache->expects($this->once())
             ->method('get')
-            ->with('test-cli-downloader-gallery-dl-version', $this->isType('callable'))
+            ->with('test-cli-downloader-gallery-dl-version', $this->isCallable())
             ->willReturn(null);
 
         $downloader = $this->createConcreteDownloader();
