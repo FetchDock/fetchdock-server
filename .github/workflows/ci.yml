@@ -95,6 +95,12 @@ jobs:
           IMAGES_PREFIX: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}
         run: docker compose exec -T php bin/phpunit
       -
+        name: Code Coverage Summary
+        uses: irongut/CodeCoverageSummary@v1.3.0
+        with:
+          filename: build/logs/clover.xml
+          badge: 'true'
+      -
         name: Doctrine Schema Validator
         env:
           IMAGES_PREFIX: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}

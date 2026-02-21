@@ -35,6 +35,7 @@
         </include>
         <report>
             <clover outputFile="build/logs/clover.xml"/>
+            <cobertura outputFile="build/logs/cobertura.xml"/>
             <html outputDirectory="build/logs/coverage" lowUpperBound="35" highLowerBound="70"/>
         </report>
     </coverage>
