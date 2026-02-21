@@ -175,7 +175,7 @@ abstract class AbstractCliDownloader implements DownloaderInterface
                     }
 
                     if (str_contains($buffer, 'LATEST')) {
-                        if(preg_match('/LATEST:\s*(\S+)/', $buffer, $matches)) {
+                        if (preg_match('/LATEST:\s*(\S+)/', $buffer, $matches)) {
                             $versions['latest'] = trim($matches[1]);
                         } else {
                             $this->logger->warning('Failed to parse LATEST version from pip output', ['output' => $buffer]);
