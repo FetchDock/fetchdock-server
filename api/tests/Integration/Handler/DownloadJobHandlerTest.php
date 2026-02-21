@@ -64,13 +64,19 @@ class DownloadJobHandlerTest extends TestCase
         $downloadJob->setState(DownloadStateEnum::PENDING);
 
         $mockDownloader = $this->createMock(DownloaderInterface::class);
-        $mockDownloader->method('getIdentifier')->willReturn('mock');
-        $mockDownloader->method('download')->willReturn(true);
+        $mockDownloader->expects($this->atLeastOnce())
+            ->method('getIdentifier')
+            ->willReturn('mock');
+        $mockDownloader->expects($this->once())
+            ->method('download')
+            ->willReturn(true);
 
-        $this->downloadJobRepository->method('find')
+        $this->downloadJobRepository->expects($this->once())
+            ->method('find')
             ->willReturn($downloadJob);
 
-        $this->downloaderFactory->method('getDownloaderByIdentifier')
+        $this->downloaderFactory->expects($this->once())
+            ->method('getDownloaderByIdentifier')
             ->with('mock')
             ->willReturn($mockDownloader);
 
@@ -100,13 +106,19 @@ class DownloadJobHandlerTest extends TestCase
         $downloadJob->setState(DownloadStateEnum::PENDING);
 
         $mockDownloader = $this->createMock(DownloaderInterface::class);
-        $mockDownloader->method('getIdentifier')->willReturn('auto-selected');
-        $mockDownloader->method('download')->willReturn(true);
+        $mockDownloader->expects($this->atLeastOnce())
+            ->method('getIdentifier')
+            ->willReturn('auto-selected');
+        $mockDownloader->expects($this->once())
+            ->method('download')
+            ->willReturn(true);
 
-        $this->downloadJobRepository->method('find')
+        $this->downloadJobRepository->expects($this->once())
+            ->method('find')
             ->willReturn($downloadJob);
 
-        $this->downloaderFactory->method('getDownloadersByUri')
+        $this->downloaderFactory->expects($this->once())
+            ->method('getDownloadersByUri')
             ->willReturn([$mockDownloader]);
 
         $this->entityManager->expects($this->exactly(2))
@@ -150,10 +162,12 @@ class DownloadJobHandlerTest extends TestCase
         $downloadJob->setDownloader('invalid-downloader');
         $downloadJob->setState(DownloadStateEnum::PENDING);
 
-        $this->downloadJobRepository->method('find')
+        $this->downloadJobRepository->expects($this->once())
+            ->method('find')
             ->willReturn($downloadJob);
 
-        $this->downloaderFactory->method('getDownloaderByIdentifier')
+        $this->downloaderFactory->expects($this->once())
+            ->method('getDownloaderByIdentifier')
             ->with('invalid-downloader')
             ->willReturn(null);
 
@@ -181,10 +195,12 @@ class DownloadJobHandlerTest extends TestCase
         $downloadJob->setUri('https://unsupported.com/test.zip');
         $downloadJob->setState(DownloadStateEnum::PENDING);
 
-        $this->downloadJobRepository->method('find')
+        $this->downloadJobRepository->expects($this->once())
+            ->method('find')
             ->willReturn($downloadJob);
 
-        $this->downloaderFactory->method('getDownloadersByUri')
+        $this->downloaderFactory->expects($this->once())
+            ->method('getDownloadersByUri')
             ->willReturn([]);
 
         $this->entityManager->expects($this->exactly(1))
@@ -211,14 +227,19 @@ class DownloadJobHandlerTest extends TestCase
         $downloadJob->setState(DownloadStateEnum::PENDING);
 
         $mockDownloader = $this->createMock(DownloaderInterface::class);
-        $mockDownloader->method('getIdentifier')->willReturn('mock');
-        $mockDownloader->method('download')
+        $mockDownloader->expects($this->atLeastOnce())
+            ->method('getIdentifier')
+            ->willReturn('mock');
+        $mockDownloader->expects($this->once())
+            ->method('download')
             ->willThrowException(new \RuntimeException('Download failed'));
 
-        $this->downloadJobRepository->method('find')
+        $this->downloadJobRepository->expects($this->once())
+            ->method('find')
             ->willReturn($downloadJob);
 
-        $this->downloaderFactory->method('getDownloaderByIdentifier')
+        $this->downloaderFactory->expects($this->once())
+            ->method('getDownloaderByIdentifier')
             ->with('mock')
             ->willReturn($mockDownloader);
 
@@ -255,10 +276,12 @@ class DownloadJobHandlerTest extends TestCase
         $mockDownloader->method('getIdentifier')->willReturn('specified-mock');
         $mockDownloader->method('download')->willReturn(true);
 
-        $this->downloadJobRepository->method('find')
+        $this->downloadJobRepository->expects($this->once())
+            ->method('find')
             ->willReturn($downloadJob);
 
-        $this->downloaderFactory->method('getDownloaderByIdentifier')
+        $this->downloaderFactory->expects($this->once())
+            ->method('getDownloaderByIdentifier')
             ->willReturn($mockDownloader);
 
         $this->entityManager->method('persist');

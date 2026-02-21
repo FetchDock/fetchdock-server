@@ -111,12 +111,20 @@ class DownloaderFactoryIntegrationTest extends TestCase
     public function testLoggingIntegrationWithRealDownloader(): void
     {
         $logger = $this->createMock(LoggerInterface::class);
-        $logger->expects($this->exactly(2))
+        $matcher = $this->exactly(2);
+        $logger->expects($matcher)
             ->method('debug')
-            ->withConsecutive(
-                ['Looking for downloaders supporting URI', $this->anything()],
-                ['Checking downloader for URI support', $this->anything()]
-            );
+            ->willReturnCallback(function(string $key, array $value) use ($matcher) {
+                match ($matcher->numberOfInvocations()) {
+                    1 => $this->assertSame('Looking for downloaders supporting URI', $key),
+                    2 => $this->assertSame('Checking downloader for URI support', $key),
+                    default => throw new \LogicException('Unexpected number of logger calls')
+                };
+            });
+//            ->withConsecutive(
+//                ['Looking for downloaders supporting URI', $this->anything()],
+//                ['Checking downloader for URI support', $this->anything()]
+//            );
 
         $factory = new DownloaderFactory([$this->mockDownloader], $logger);
 
