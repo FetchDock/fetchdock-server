@@ -4,7 +4,8 @@
 
 # Versions
 FROM dunglas/frankenphp:1-php8.5 AS frankenphp_upstream
-ENV APP_VERSION=undefined
+ARG APP_VERSION=undefined
+ENV APP_VERSION=${APP_VERSION}
 
 
 # The different stages of this Dockerfile are meant to be built into separate images
@@ -36,7 +37,8 @@ RUN chmod +x /etc/cron.hourly/*
 
 # Base FrankenPHP image
 FROM frankenphp_upstream AS frankenphp_base
-ENV APP_VERSION=undefined
+ARG APP_VERSION=undefined
+ENV APP_VERSION=${APP_VERSION}
 
 WORKDIR /app
 
@@ -89,7 +91,8 @@ CMD [ "frankenphp", "run", "--config", "/etc/frankenphp/Caddyfile" ]
 
 # Dev FrankenPHP image
 FROM frankenphp_base AS frankenphp_dev
-ENV APP_VERSION=undefined
+ARG APP_VERSION=undefined
+ENV APP_VERSION=${APP_VERSION}
 
 ENV APP_ENV=dev
 ENV XDEBUG_MODE=off
@@ -109,7 +112,8 @@ CMD [ "frankenphp", "run", "--config", "/etc/frankenphp/Caddyfile", "--watch" ]
 
 # Prod FrankenPHP image
 FROM frankenphp_base AS frankenphp_prod
-ENV APP_VERSION=undefined
+ARG APP_VERSION=undefined
+ENV APP_VERSION=${APP_VERSION}
 
 ENV APP_ENV=prod
 

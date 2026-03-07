@@ -2,11 +2,14 @@
 
 # Versions
 FROM node:lts AS node_upstream
-ENV APP_VERSION=undefined
+ARG APP_VERSION=undefined
+ENV APP_VERSION=${APP_VERSION}
 
 
 # Base stage for dev and build
 FROM node_upstream AS base
+ARG APP_VERSION=undefined
+ENV APP_VERSION=${APP_VERSION}
 
 WORKDIR /srv/app
 
@@ -23,7 +26,8 @@ ENV NEXT_TELEMETRY_DISABLED=1
 
 # Development image
 FROM base AS dev
-ENV APP_VERSION=undefined
+ARG APP_VERSION=undefined
+ENV APP_VERSION=${APP_VERSION}
 
 EXPOSE 3000
 ENV PORT=3000
@@ -33,6 +37,8 @@ CMD ["sh", "-c", "pnpm install; pnpm dev"]
 
 
 FROM base AS builder
+ARG APP_VERSION=undefined
+ENV APP_VERSION=${APP_VERSION}
 
 COPY --link pnpm-lock.yaml ./
 COPY --link . .
@@ -43,7 +49,8 @@ RUN	pnpm install --frozen-lockfile --prod && \
 
 # Production image, copy all the files and run next
 FROM node_upstream AS prod
-ENV APP_VERSION=undefined
+ARG APP_VERSION=undefined
+ENV APP_VERSION=${APP_VERSION}
 
 WORKDIR /srv/app
 
