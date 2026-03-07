@@ -1,7 +1,7 @@
 #syntax=docker/dockerfile:1
 
 # Adapted from https://github.com/dunglas/symfony-docker
-
+ENV APP_VERSION=undefined
 
 # Versions
 FROM dunglas/frankenphp:1-php8.5 AS frankenphp_upstream

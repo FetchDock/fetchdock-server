@@ -1,5 +1,5 @@
 #syntax=docker/dockerfile:1
-
+ENV APP_VERSION=undefined
 
 # Versions
 FROM node:lts AS node_upstream

@@ -41,11 +41,6 @@ jobs:
               registry: ${{ env.REGISTRY }}
               username: ${{ github.actor }}
               password: ${{ secrets.GITHUB_TOKEN }}
-        -   name: Create VERSION files
-            run: |
-              echo "${{ steps.meta.outputs.version }}" > VERSION
-              cp VERSION api/VERSION
-              cp VERSION pwa/VERSION
         -
             name: Build and push Docker images
             uses: docker/bake-action@v6
@@ -68,3 +63,5 @@ jobs:
                   pwa.cache-from=type=gha,scope=pwa-${{github.ref}}
                   pwa.cache-from=type=gha,scope=pwa-refs/heads/main
                   pwa.cache-to=type=gha,scope=pwa-${{github.ref}},mode=max
+                  php.args.APP_VERSION=${{ steps.meta.outputs.version }}
+                  pwa.args.APP_VERSION=${{ steps.meta.outputs.version }}
