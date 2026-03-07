@@ -1,31 +1,31 @@
-when@prod:
-    api_platform:
-        oauth:
-            enabled: '%oidc.enabled%'
-            clientId: '%oidc.client_id%'
-            # The OAuth client secret.
-            clientSecret: '%oidc.client_secret%'
-
-            # The OAuth type.
-            type: 'oauth2'
-
-            # The OAuth flow grant type.
-            flow: 'authorizationCode'
-
-            # The OAuth token URL. Make sure to check the specification tokenUrl is not needed for an implicit flow.
-            tokenUrl: '%oidc.token_url%'
-
-            # The OAuth authentication URL.
-            authorizationUrl: '%oidc.authorization_url%'
-
-            # The OAuth scopes.
-            #        scopes: [ 'profile', 'email', 'offline_access', 'openid', 'roles', 'groups' ]
-            scopes:
-                profile: 'Access to your profile information'
-                email: 'Access to your email address'
-                offline_access: 'Access to refresh tokens'
-                openid: 'Authenticate using OpenID Connect'
-                roles: 'Access to your roles'
+#when@prod:
+#    api_platform:
+#        oauth:
+#            enabled: '%oidc.enabled%'
+#            clientId: '%oidc.client_id%'
+#            # The OAuth client secret.
+#            clientSecret: '%oidc.client_secret%'
+#
+#            # The OAuth type.
+#            type: 'oauth2'
+#
+#            # The OAuth flow grant type.
+#            flow: 'authorizationCode'
+#
+#            # The OAuth token URL. Make sure to check the specification tokenUrl is not needed for an implicit flow.
+#            tokenUrl: '%oidc.token_url%'
+#
+#            # The OAuth authentication URL.
+#            authorizationUrl: '%oidc.authorization_url%'
+#
+#            # The OAuth scopes.
+#            #        scopes: [ 'profile', 'email', 'offline_access', 'openid', 'roles', 'groups' ]
+#            scopes:
+#                profile: 'Access to your profile information'
+#                email: 'Access to your email address'
+#                offline_access: 'Access to refresh tokens'
+#                openid: 'Authenticate using OpenID Connect'
+#                roles: 'Access to your roles'
 
 when@test:
     api_platform:
@@ -56,4 +56,9 @@ api_platform:
         json: ["application/json"]
         xml: ["application/xml", "text/xml"]
         yaml: ["application/x-yaml"]
+    swagger:
+        api_keys:
+            JWT:
+                name: Authorization
+                type: header
 
