@@ -190,7 +190,6 @@ final class AuthController extends AbstractController
             $this->logger->debug('Token endpoint response', [
                 'status_code' => $statusCode,
                 'headers' => $response->getHeaders(false),
-                'body' => $content,
             ]);
 
             $tokenData = json_decode($content, true);
