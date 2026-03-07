@@ -307,7 +307,7 @@ final class AuthController extends AbstractController
     #[Route('/auth/token', name: 'app_auth_token', methods: ['POST'])]
     public function tokenProxy(Request $request): Response
     {
-        $refreshToken = $request->attributes->get('refresh_token');
+        $refreshToken = $request->request->get('refresh_token');
 
         if (!$refreshToken) {
             return new Response('Missing refresh_token parameter', Response::HTTP_BAD_REQUEST);
