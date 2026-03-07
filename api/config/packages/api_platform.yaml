@@ -41,14 +41,17 @@ api_platform:
     # Good defaults for REST APIs
     defaults:
         stateless: true
-#        pagination_client_enabled: true
+        pagination_client_enabled: true
 #        pagination_client_partial: true
+        pagination_client_items_per_page: true
+        maximum_items_per_page: 1000
         cache_headers:
             vary: ['Content-Type', 'Authorization', 'Origin']
     collection:
         pagination:
             enabled_parameter_name: 'pagination'
-            partial_parameter_name: 'range'
+#            partial_parameter_name: 'range'
+            items_per_page_parameter_name: 'itemsPerPage'
     messenger:
         enabled: true
     formats:
