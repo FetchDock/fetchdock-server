@@ -250,6 +250,78 @@ final class AuthController extends AbstractController
         }
     }
 
+    #[Route('/auth/code-to-token', name: 'app_auth_code_to_token', methods: ['POST'])]
+    public function codeToToken(Request $request): Response
+    {
+        if(!$request->getContentTypeFormat() === 'json') {
+            return new Response('Invalid content type', Response::HTTP_BAD_REQUEST);
+        }
+
+        $body = json_decode($request->getContent(), true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            return new Response('Invalid JSON body', Response::HTTP_BAD_REQUEST);
+        }
+
+        // get `code` and `code_verifier` from the request
+        $code = $body['code'] ?? null;
+        $codeVerifier = $body['code_verifier'] ?? null;
+        $redirectUri = $body['redirect_uri'] ?? null;
+
+        // Make sure all required parameters are present
+        if (!$code || !$codeVerifier || !$redirectUri) {
+            return new Response('Missing required parameters', Response::HTTP_BAD_REQUEST);
+        }
+
+        // Get the token endpoint from the well-known URL
+        $tokenEndpoint = $this->getTokenEndpoint();
+        if (!$tokenEndpoint) {
+            return new Response('Token endpoint not found', Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+
+        $response = $this->httpClient->request('POST', $tokenEndpoint, [
+            'body' => [
+                'client_id' => $this->clientId,
+                'client_secret' => $this->clientSecret,
+                'code' => $code,
+                'code_verifier' => $codeVerifier,
+                'redirect_uri' => $redirectUri,
+                'grant_type' => 'authorization_code',
+            ],
+        ]);
+
+        $this->logger->debug(
+            'Token endpoint response',
+            [
+                'status_code' => $response->getStatusCode(),
+                'headers' => $response->getHeaders()
+            ]
+        );
+
+        $decodedContent = json_decode($response->getContent(), true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            $this->logger->error('Failed to decode token endpoint response', ['error' => json_last_error_msg()]);
+            return new Response('Failed to decode token endpoint response', Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+
+        return new JsonResponse($decodedContent);
+    }
+
+    private function getTokenEndpoint(): ?string
+    {
+        try {
+            $response = $this->httpClient->request('GET', $this->wellKnownUrl);
+            if ($response->getStatusCode() !== 200) {
+                return null;
+            }
+
+            $data = json_decode($response->getContent(), true);
+            return $data['token_endpoint'] ?? null;
+        } catch (\Exception $e) {
+            // Log the exception or handle it as needed
+            return null;
+        }
+    }
+
     /**
      * Fetches a specific field from the OpenID Connect well-known discovery document.
      */
