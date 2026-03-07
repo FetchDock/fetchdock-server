@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Util\Version;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\Response;
@@ -44,7 +45,7 @@ final class WellKnownController extends AbstractController
                     ),
                     'scopes' => self::SCOPES,
                 ],
-                'version' => '1.0',
+                'version' => Version::getVersion(),
             ]
         );
     }
