@@ -294,6 +294,49 @@ final class AuthController extends AbstractController
         return new JsonResponse($decodedContent);
     }
 
+    /**
+     * Proxies the token request to the token endpoint.
+     * This because the extension can have random ID (referrer)
+     * and the token endpoint is not allowed to have a random ID.
+     *
+     * Therefor the token endpoint is proxied to the server.
+     *
+     * @param Request $request
+     * @return Response
+     */
+    #[Route('/auth/token', name: 'app_auth_token', methods: ['POST'])]
+    public function tokenProxy(Request $request): Response
+    {
+        $refreshToken = $request->get('refresh_token');
+
+        if (!$refreshToken) {
+            return new Response('Missing refresh_token parameter', Response::HTTP_BAD_REQUEST);
+        }
+
+        $tokenEndpoint = $this->getTokenEndpoint();
+        if (!$tokenEndpoint) {
+            return new Response('Token endpoint not found', Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+
+        $response = $this->httpClient->request('POST', $tokenEndpoint, [
+            'body' => [
+                'client_id' => $this->clientId,
+                'client_secret' => $this->clientSecret,
+                'refresh_token' => $refreshToken,
+                'grant_type' => 'refresh_token',
+            ],
+        ]);
+
+        $this->logger->debug(
+            'Token endpoint response',
+            [
+                'status_code' => $response->getStatusCode(),
+            ]
+        );
+
+        return new Response($response->getContent(), $response->getStatusCode(), $response->getHeaders());
+    }
+
     private function getTokenEndpoint(): ?string
     {
         try {

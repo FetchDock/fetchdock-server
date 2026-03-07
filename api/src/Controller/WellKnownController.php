@@ -43,6 +43,10 @@ final class WellKnownController extends AbstractController
                         route: 'app_start_oauth2_flow',
                         referenceType: UrlGeneratorInterface::ABSOLUTE_URL
                     ),
+                    'token_endpoint' => $this->generateUrl(
+                        route: 'app_auth_token',
+                        referenceType: UrlGeneratorInterface::ABSOLUTE_URL
+                    ),
                     'scopes' => self::SCOPES,
                 ],
                 'version' => Version::getVersion(),

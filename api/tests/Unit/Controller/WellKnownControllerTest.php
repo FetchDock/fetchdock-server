@@ -42,7 +42,7 @@ class WellKnownControllerTest extends TestCase
         $oauth2 = $data['oauth2'];
         $this->assertSame(self::CLIENT_ID, $oauth2['client_id']);
         $this->assertSame('https://localhost/auth/start-oauth2-flow', $oauth2['authorization_endpoint']);
-        $this->assertArrayNotHasKey('token_endpoint', $oauth2);
+        $this->assertArrayHasKey('token_endpoint', $oauth2);
         $this->assertArrayHasKey('scopes', $oauth2);
         $this->assertArrayHasKey('openid', $oauth2['scopes']);
         $this->assertArrayHasKey('profile', $oauth2['scopes']);
