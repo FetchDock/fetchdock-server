@@ -233,7 +233,8 @@ final class AuthController extends AbstractController
     #[Route('/auth/code-to-token', name: 'app_auth_code_to_token', methods: ['POST'])]
     public function codeToToken(Request $request): Response
     {
-        if(!$request->getContentTypeFormat() === 'json') {
+        $contentType = (string) $request->headers->get('Content-Type', '');
+        if ('json' !== $request->getContentTypeFormat() || !str_contains($contentType, 'application/json')) {
             return new Response('Invalid content type', Response::HTTP_BAD_REQUEST);
         }
 
