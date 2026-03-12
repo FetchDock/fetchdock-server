@@ -11,10 +11,8 @@ use App\Dto\DownloadJobDTO;
 use App\Dto\JobAcceptedDTO;
 use App\Enum\DownloadStateEnum;
 use App\Model\DownloadJobInterface;
-use App\Model\MetubeDownloadJob;
 use App\Repository\DownloadJobRepository;
 use App\State\DownloadJobQueuedProcessor;
-use App\State\MetubeDownloadJobProcessor;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -35,18 +33,6 @@ use Symfony\Component\Uid\Uuid;
             output: JobAcceptedDTO::class,
             messenger: 'input',
             processor: DownloadJobQueuedProcessor::class
-        ),
-        new Post(
-            uriTemplate: '/add',
-            formats: ['json' => ['application/json']],
-            status: 202,
-            openapi: false,
-            description: 'Endpoint for the Metube browser extension to add download jobs.',
-            security: "is_granted('ROLE_ALLOW_CREATE_DOWNLOAD_JOB')",
-            input: MetubeDownloadJob::class,
-            output: JobAcceptedDTO::class,
-            messenger: 'input',
-            processor: MetubeDownloadJobProcessor::class
         ),
         new Get(
             security: "is_granted('ROLE_ALLOW_GET_DOWNLOAD_JOB')"

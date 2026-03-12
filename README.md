@@ -36,10 +36,6 @@ At the time of writing this, the extension is still in development and not yet p
   - Just create a new class implementing the `App\Service\Downloader\DownloaderInterface` and it's automatically registered
 - Dockerized for easy deployment
 - API documentation with Swagger UI
-- Compatibility tested with the following MeTube browser extensions. [INSTRUCTIONS](https://github.com/PBXg33k/php-download-router/wiki/Browser-Extensions-%E2%80%90-Metube)
-  - [Firefox](https://addons.mozilla.org/en-US/firefox/addon/metube-downloader/) 
-  - [Chrome and Chromium based browsers](https://chromewebstore.google.com/detail/metube-downloader/fbmkmdnlhacefjljljlbhkodfmfkijdh)
-
 
 ### Future Plans (in no particular order)
 - [ ] Add more backends for different platforms
