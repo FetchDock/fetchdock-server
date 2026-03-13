@@ -33,7 +33,7 @@ when@test:
             enabled: false
 
 api_platform:
-    title: Download Router
+    title: FetchDock Server
     version: 0.1.2
     # Mercure integration, remove if unwanted
     mercure:

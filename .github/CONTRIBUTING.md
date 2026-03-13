@@ -1,8 +1,8 @@
-# Contributing to PHP Download Router
+# Contributing to PHP FetchDock Server
 
 First, thank you for contributing, you're awesome!
 
-To have your code integrated in the PHP Download Router project, there are some rules to follow, but don't panic, it's easy!
+To have your code integrated in the PHP FetchDock Server project, there are some rules to follow, but don't panic, it's easy!
 
 ## Reporting Bugs
 
@@ -26,7 +26,7 @@ You should base your changes on the `develop` branch.
 
 ### Matching Coding Standards
 
-The PHP Download Router project follows [Symfony coding standards](https://symfony.com/doc/current/contributing/code/standards.html).
+The PHP FetchDock Server project follows [Symfony coding standards](https://symfony.com/doc/current/contributing/code/standards.html).
 But don't worry, you can fix CS issues automatically using the [PHP CS Fixer](http://cs.sensiolabs.org/) tool:
 
 ```bash
@@ -92,6 +92,6 @@ git push --force
 
 # License and Copyright Attribution
 
-When you open a Pull Request to the PHP Download Router project, you agree to license your code under the [MIT license](../LICENSE).
+When you open a Pull Request to the PHP FetchDock Server project, you agree to license your code under the [MIT license](../LICENSE).
 
 If you include code from another project, please mention it in the Pull Request description and credit the original author.
