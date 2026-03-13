@@ -3,7 +3,7 @@ const { test, expect } = require('@playwright/test');
 
 test('homepage', async ({ page }) => {
   await page.goto('https://localhost/');
-  await expect(page).toHaveTitle('Welcome to API Platform!');
+  await expect(page).toHaveTitle('Welcome to FetchDock!');
 });
 
 // test('swagger', async ({ page }) => {
