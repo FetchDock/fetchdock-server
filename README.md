@@ -24,6 +24,11 @@ It will be released for Firefox and Chrome soon.
 
 At the time of writing this, the extension is still in development and not yet published to the browser stores.
 
+## Authentication
+
+Authentication is currently supported using OAuth2. During development, the API is tested using Authentik as a self hosted authentication server, but it should work with any OAuth2 provider.
+If you're having issues with setting up authentication with your provider, feel free to open an issue and I'll try to help you out.
+
 ## Features
 - Download files from various platforms using a single API
 - Support for multiple backends
