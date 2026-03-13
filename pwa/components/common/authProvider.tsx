@@ -2,6 +2,7 @@ import { AuthProvider } from 'react-admin';
 import { UserManager } from 'oidc-client-ts';
 
 import getProfileFromToken from '../common/getProfileFromToken';
+import {OAuthProvider} from "../../types";
 
 const issuer = process.env.NEXT_PUBLIC_OIDC_ISSUER;
 const clientId = process.env.NEXT_PUBLIC_OIDC_CLIENT_ID;
@@ -27,11 +28,10 @@ const cleanup = () => {
   );
 };
 
-const authProvider: AuthProvider = {
+const authProvider: OAuthProvider = {
   login: async () => {
-    // 1. Redirect to the issuer to ask authentication
     await userManager.signinRedirect();
-    return; // Do not return anything, the login is still loading
+    return;
   },
   logout: () => {
     localStorage.removeItem("token");
@@ -41,25 +41,120 @@ const authProvider: AuthProvider = {
     localStorage.removeItem("token");
     return Promise.resolve();
   },
-  checkAuth: () => {
+  checkAuth: async () => {
     const token = localStorage.getItem("token");
 
     if (!token) {
-      return Promise.reject();
+      return Promise.reject({
+        redirectToLogin: true,
+        reason: "Token not found",
+      });
     }
 
-    // This is specific to the Google authentication implementation
+    console.log("Checking authentication with token:", token);
+
     try {
       const jwt: any = getProfileFromToken(token);
+
+      console.log("Decoded JWT:", jwt);
+
       const exp = jwt?.exp;
-      if (typeof exp !== "number") {
-        return Promise.reject();
-      }
       const now = Date.now();
-      return now > exp * 1000 ? Promise.reject() : Promise.resolve();
+      if (now > exp * 1000) {
+        if (authProvider.refreshToken) {
+          try {
+            await authProvider.refreshToken();
+          } catch (refreshError) {
+            console.error("Failed to refresh token:", refreshError);
+            return Promise.reject({
+              redirectToLogin: true,
+              reason: "Token refresh failed",
+            });
+          }
+        } else {
+          return Promise.reject({
+            redirectToLogin: true,
+            reason: "Refresh token method not available",
+          });
+        }
+      }
+      return Promise.resolve();
     } catch (error) {
       console.error("Failed to decode token in checkAuth:", error);
-      return Promise.reject();
+      return Promise.reject({
+        redirectToLogin: true,
+        reason: "Failed to decode token",
+      });
+    }
+  },
+  refreshToken: async () => {
+    const existingToken = localStorage.getItem("token");
+
+    console.log("Existing token:", existingToken);
+
+    if (!existingToken) {
+      return Promise.reject({
+        redirectToLogin: true,
+        reason: "Token not found",
+      });
+    }
+
+    const parsedToken = JSON.parse(existingToken);
+    if (!parsedToken.refresh_token) {
+      return Promise.reject({
+        redirectToLogin: true,
+        reason: "Refresh token not found",
+      });
+    }
+
+    try {
+      const jwt: any = getProfileFromToken(existingToken);
+      const exp = jwt?.exp;
+      const now = Date.now();
+
+      console.log(
+        `Token expiration: ${new Date(exp * 1000).toLocaleString()}, Current time: ${new Date(now).toLocaleString()}`
+      );
+      console.log([
+        'parsedToken:', parsedToken,
+        'jwt:', jwt,
+        'exp:', exp * 1000,
+        'now:', now,
+        'expired:', now > exp * 1000
+      ]);
+
+      if (now > exp * 1000) {
+        const response = await fetch(`${apiUri}/auth/token`, {
+          method: "POST",
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({
+            grant_type: 'refresh_token',
+            refresh_token: parsedToken.refresh_token
+          }).toString()
+        }).catch(error => {
+          console.error('Failed to exchange code for token:', error);
+          return Promise.reject();
+        });
+
+        if (!response.ok) {
+          console.error('Failed to exchange code for token:', await response.text());
+          cleanup();
+          return Promise.reject();
+        }
+
+        const token = await response.json();
+
+        localStorage.setItem("token", JSON.stringify(token));
+        userManager.clearStaleState();
+        cleanup();
+        return Promise.resolve();
+      }
+    } catch (error) {
+      console.error("Failed to refresh token:", error);
+      return Promise.reject({
+        redirectToLogin: true,
+        reason: "Failed to refresh token",
+      });
     }
   },
   getPermissions: () => Promise.resolve(),
@@ -84,20 +179,15 @@ const authProvider: AuthProvider = {
     }
   },
   handleCallback: async () => {
-    // We came back from the issuer with ?code infos in query params
     const { searchParams } = new URL(window.location.href);
     const code = searchParams.get("code");
     const state = searchParams.get("state");
 
-    // oidc-client uses localStorage to keep a temporary state
-    // between the two redirections. But since we need to send it to the API
-    // we have to retrieve it manually
     const stateKey = `oidc.${state}`;
     const { code_verifier } = JSON.parse(
       localStorage.getItem(stateKey) || "{}"
     );
 
-    // Transform the code to a token via the API
     const response = await fetch(`${apiUri}/auth/code-to-token`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -120,3 +210,4 @@ const authProvider: AuthProvider = {
 };
 
 export default authProvider;
+

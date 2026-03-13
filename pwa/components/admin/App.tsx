@@ -74,6 +74,11 @@ const dataProvider = (setRedirectToLogin: (arg0: boolean) => void) =>
 const App = () => {
   const [redirectToLogin, setRedirectToLogin] = useState(false);
 
+  authProvider.checkAuth(null).catch(() => {
+    localStorage.removeItem("token");
+    setRedirectToLogin(true);
+  });
+
   return (
   <HydraAdmin
     authProvider={authProvider}
