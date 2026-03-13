@@ -8,6 +8,6 @@ test('homepage', async ({ page }) => {
 
 // test('swagger', async ({ page }) => {
 //   await page.goto('https://localhost/docs');
-//   await expect(page).toHaveTitle('Download Router - API Platform');
+//   await expect(page).toHaveTitle('FetchDock Server - API Platform');
 //   await expect(page.locator('.operation-tag-content > span')).toHaveCount(12);
 // });
