@@ -43,7 +43,7 @@ jobs:
               password: ${{ secrets.GITHUB_TOKEN }}
         -
             name: Build and push Docker images
-            uses: docker/bake-action@v6
+            uses: docker/bake-action@v7
             env:
               IMAGES_PREFIX: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}
               TAGS: ${{ join(fromJSON(steps.meta.outputs.json).tags,',') }}
