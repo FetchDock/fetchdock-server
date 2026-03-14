@@ -106,6 +106,13 @@ jobs:
           clover_file: 'build/logs/clover.xml'
           threshold: 25 # Low for now, increase when we have more tests
           show_files: true
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: test-results
+          path: build/logs/*.xml
+        
       -
         name: Doctrine Schema Validator
         env:

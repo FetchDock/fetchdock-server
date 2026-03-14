@@ -1,0 +1,23 @@
+name: 'Reports'
+on:
+  workflow_run: 
+    workflows: ['ci']
+    types:
+      - completed
+
+permissions: 
+  contents: read
+  actions: read
+  checks: write
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: dorny/test-reporter@v2
+        with:
+          artifact: test-results
+          name: PHP Unit Tests
+          path: 'build/logs/junit.xml'
+          reporter: phpunit-junit
+          
