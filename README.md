@@ -44,7 +44,12 @@ If you're having issues with setting up authentication with your provider, feel 
 
 ### Future Plans (in no particular order)
 - [ ] Add more backends for different platforms
+  - [ ] Direct HTTP(S) downloads
+  - [ ] Pass through torrent and magnet links to various Torrent clients
 - [x] Implement authentication and authorization (OAuth2)
+- [ ] Server side user configuration (e.g. sending cookies, user agent, proxy settings)
+  - [ ] Ability to sync user configuration with the companion browser extension (per option, to be decided by extension)
+- [ ] Site/Service specific options (e.g. cookies, user agent, proxy settings, retry settings, etc.)
 - [ ] Add support for scheduling downloads
 - [ ] Add support for monitoring URLS (periodic checks for new content)
 - [ ] Implement retry mechanism for failed downloads
@@ -56,7 +61,12 @@ If you're having issues with setting up authentication with your provider, feel 
 - [ ] Add monitoring and logging features (partially done)
 - [ ] Implement rate limiting to prevent abuse
 - [ ] Implement a frontend for easier interaction with the API
-
+  - [x] [FetchDock browser extension](https://github.com/FetchDock/fetchdock-extension) for Chrome and Firefox
+  - [ ] Web UI for managing downloads
+- [ ] Implement a health check endpoint for monitoring the service status
+- [ ] (LOW PRIO - OPT IN) Anonymous analytics for developers to improve the service[^1] 
+  - [ ] Share domains of (unsupported or unsuccessful) domains (no full URLs)
+    - Will be used to prioritize the development of new backends or support of domains/services
 
 ## Requirements
 - Docker
@@ -91,3 +101,9 @@ Generated code undergoes heavier scrutiny and testing than regular code.
 
 See the following issues and pull requests for reference:
 - [#29 - [Core] Implement event system for worker job lifecycle](https://github.com/PBXg33k/php-download-router/pull/29)
+
+
+
+[^1]: This is a low priority feature, with the main goal of collecting sites/services which are most popular and the developer(s) can test to improve the service.
+Before this feature is picked up, a proper privacy policy will be implemented to protect the user's data and clarify which information is collected and how we use and store it.
+Rest assured, the developer(s) will do anything in their power to protect the user's privacy and not share or sell the data with any third party.
