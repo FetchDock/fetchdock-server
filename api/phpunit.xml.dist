@@ -52,6 +52,10 @@
             <html outputDirectory="build/logs/coverage" lowUpperBound="35" highLowerBound="70"/>
         </report>
     </coverage>
+    <logging>
+        <junit outputFile="build/logs/junit.xml"/>
+        <testdoxHtml outputFile="build/logs/testdox.html"/>
+    </logging>
 
 <!--    <listeners>-->
 <!--        <listener class="Symfony\Bridge\PhpUnit\SymfonyTestsListener" />-->

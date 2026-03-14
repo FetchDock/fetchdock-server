@@ -10,9 +10,9 @@ variable "IMAGES_PREFIX" {
 
 target "docker-metadata-action" {}
 
-target "php" {
+target "api" {
     inherits = ["docker-metadata-action"]
-    tags = [for tag in TAGS: "${IMAGES_PREFIX}-php:${tag}"]
+    tags = [for tag in TAGS: "${IMAGES_PREFIX}-api:${tag}"]
 }
 
 target "pwa" {
