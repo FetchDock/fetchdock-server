@@ -2,7 +2,7 @@
     "type": "project",
     "license": "MIT",
     "require": {
-        "php": ">=8.4",
+        "php": ">=8.5",
         "ext-ctype": "*",
         "ext-iconv": "*",
         "api-platform/doctrine-orm": "^4.1.6",
@@ -41,7 +41,8 @@
         "symfony/validator": "7.4.*",
         "symfony/yaml": "7.4.*",
         "web-token/jwt-bundle": "^4.0",
-        "web-token/jwt-library": "^4.0"
+        "web-token/jwt-library": "^4.0",
+        "ext-uri": "*"
     },
     "require-dev": {
         "api-platform/schema-generator": "^5.0",
