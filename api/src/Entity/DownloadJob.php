@@ -72,7 +72,7 @@ class DownloadJob implements DownloadJobInterface
      * @var CookieDTO[]|null
      */
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['jsonb' => true])]
-    private ?array $cookies = null;
+    private ?array $cookies = [];
 
     #[ORM\Column(enumType: DownloadStateEnum::class)]
     private ?DownloadStateEnum $state = null;
@@ -161,7 +161,7 @@ class DownloadJob implements DownloadJobInterface
                 $this->addCookie($cookie);
             }
         } else {
-            $this->cookies = null;
+            $this->cookies = [];
         }
 
         return $this;
