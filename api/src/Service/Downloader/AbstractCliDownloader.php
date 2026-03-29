@@ -47,12 +47,19 @@ abstract class AbstractCliDownloader implements DownloaderInterface
         $this->createConfigFileIfNotExists();
         $this->createDownloadDirectoryIfNotExists();
 
-        $downloadProcess = new Process([
-            $this->binaryPath,
-            '--config', $this->configPath,
-            '--verbose',
-            $downloadJob->getUrl()->__toString(),
-        ], $this->downloadPath);
+        $processOptions = array_merge(
+            [
+                $this->binaryPath,
+            ],
+            $this->getCommandOptions($downloadJob),
+            [
+                '--config', $this->configPath,
+                '--verbose',
+                $downloadJob->getUrl()->__toString()
+            ]
+        );
+
+        $downloadProcess = new Process($processOptions, $this->downloadPath);
 
         $downloadProcess->setTimeout(self::TIMEOUT);
         $downloadProcess->setIdleTimeout(self::IDLE_TIMEOUT);
@@ -112,6 +119,9 @@ abstract class AbstractCliDownloader implements DownloaderInterface
     }
 
     abstract protected function getConfigFileContents(): string;
+    abstract protected function getCommandOptions(
+        DownloadJobInterface $downloadJob,
+    ): array;
 
     protected function createDownloadDirectoryIfNotExists(): void
     {

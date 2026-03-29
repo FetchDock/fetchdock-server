@@ -2,6 +2,7 @@
 
 namespace App\Tests\Unit\Service\Downloader;
 
+use App\Dto\CookieDTO;
 use App\Entity\DownloadJob;
 use App\Enum\DownloaderTypeEnum;
 use App\Service\Downloader\MockDownloader;
@@ -98,7 +99,7 @@ class MockDownloaderTest extends TestCase
         $downloadJob = new DownloadJob();
         $downloadJob->setUri('https://test.com/video.mp4');
         $downloadJob->setUserAgent('TestAgent/1.0');
-        $downloadJob->setCookies(['session' => 'abc123']);
+        $downloadJob->setCookies([new CookieDTO()]);
 
         $result = $this->downloader->download($downloadJob);
 
