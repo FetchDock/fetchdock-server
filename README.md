@@ -56,6 +56,10 @@ If you're having issues with setting up authentication with your provider, feel 
 - [ ] Add monitoring and logging features (partially done)
 - [ ] Implement rate limiting to prevent abuse
 - [ ] Implement a frontend for easier interaction with the API
+  - [ ] [FetchDock Browser Extension](https://github.com/FetchDock/fetchdock-extension) - (in active development)
+  - [ ] Web UI dashboard - (in active development)
+  - [ ] Desktop app
+  - [ ] Mobile app
 
 
 ## Requirements
