@@ -11,8 +11,8 @@ POST {{ client.host }}/download_jobs
 Content-Type: application/ld+json
 
 {
-  "uri": "https://example.com",
-  "userAgent": "string"
+    "uri": "https://example.com",
+    "userAgent": "string"
 }
 
 ### Create a new download job with cookies
@@ -20,11 +20,27 @@ POST {{ client.host }}/download_jobs
 Content-Type: application/ld+json
 
 {
-  "uri": "https://example.com",
-  "userAgent": "string",
-  "cookies": [
-    "key=value",
-    "key2=value2"
+    "uri": "https://example.com",
+    "userAgent": "string",
+    "cookies": [
+    {
+        "name": "cookie_name",
+        "value": "cookie_value",
+        "domain": "example.com",
+        "path": "/",
+        "expires": 1700000000,
+        "httpOnly": true,
+        "secure": true
+    },
+    {
+        "name": "cookie_name2",
+        "value": "cookie_value2",
+        "domain": ".example.com",
+        "path": "/",
+        "expires": 1700000000,
+        "httpOnly": true,
+        "secure": true
+    }
   ]
 }
 
@@ -33,12 +49,29 @@ POST {{ client.host }}/download_jobs
 Content-Type: application/ld+json
 
 {
-  "uri": "https://example.com",
-  "userAgent": "string",
-  "cookies": [
-    "string"
-  ],
-  "downloader": "mock"
+    "uri": "https://example.com",
+    "userAgent": "string",
+    "cookies": [
+        {
+            "name": "cookie_name",
+            "value": "cookie_value",
+            "domain": "example.com",
+            "path": "/",
+            "expires": 1700000000,
+            "httpOnly": true,
+            "secure": true
+        },
+        {
+            "name": "cookie_name2",
+            "value": "cookie_value2",
+            "domain": ".example.com",
+            "path": "/",
+            "expires": 1700000000,
+            "httpOnly": true,
+            "secure": true
+        }
+    ],
+    "downloader": "mock"
 }
 
 ### Metube example
