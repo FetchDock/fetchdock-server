@@ -15,7 +15,9 @@ final class DownloadJobDTO
     #[Assert\Type('string')]
     public string $userAgent;
 
-    #[Assert\Type('array')]
+    /**
+     * @var CookieDTO[]
+     */
     public array $cookies;
 
     #[Assert\Type('string')]

@@ -2,6 +2,7 @@
 
 namespace App\Tests\Unit\Entity;
 
+use App\Dto\CookieDTO;
 use App\Entity\DownloadJob;
 use App\Entity\DownloadJobEvent;
 use App\Enum\DownloadStateEnum;
@@ -61,7 +62,11 @@ class DownloadJobTest extends TestCase
 
     public function testSetAndGetCookies(): void
     {
-        $cookies = ['session' => 'abc123', 'token' => 'xyz456'];
+        //$cookies = ['session' => 'abc123', 'token' => 'xyz456'];
+        $cookies = [
+            new CookieDTO(),
+            new CookieDTO(),
+        ];
         $result = $this->downloadJob->setCookies($cookies);
 
         $this->assertSame($this->downloadJob, $result);
@@ -70,7 +75,7 @@ class DownloadJobTest extends TestCase
 
     public function testSetCookiesToNull(): void
     {
-        $this->downloadJob->setCookies(['test' => 'value']);
+        $this->downloadJob->setCookies([new CookieDTO()]);
         $result = $this->downloadJob->setCookies(null);
 
         $this->assertSame($this->downloadJob, $result);
@@ -196,11 +201,14 @@ class DownloadJobTest extends TestCase
 
     public function testComplexScenario(): void
     {
+        $cookie = new CookieDTO();
+        $cookie->name = 'auth';
+        $cookie->value = 'token123';
         // Test a complex scenario with multiple operations
         $this->downloadJob
             ->setUri('https://youtube.com/watch?v=test')
             ->setUserAgent('Browser/1.0')
-            ->setCookies(['auth' => 'token123'])
+            ->setCookies([$cookie])
             ->setState(DownloadStateEnum::IN_PROGRESS)
             ->setDownloader('yt-dlp-cli');
 
@@ -214,7 +222,7 @@ class DownloadJobTest extends TestCase
         // Verify all properties are set correctly
         $this->assertSame('https://youtube.com/watch?v=test', $this->downloadJob->getUri());
         $this->assertSame('Browser/1.0', $this->downloadJob->getUserAgent());
-        $this->assertSame(['auth' => 'token123'], $this->downloadJob->getCookies());
+        $this->assertSame([$cookie], $this->downloadJob->getCookies());
         $this->assertSame(DownloadStateEnum::IN_PROGRESS, $this->downloadJob->getState());
         $this->assertSame('yt-dlp-cli', $this->downloadJob->getDownloader());
         $this->assertCount(2, $this->downloadJob->getDownloadJobEvents());

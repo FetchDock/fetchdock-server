@@ -4,6 +4,7 @@ namespace App\Tests\Unit\State;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
+use App\Dto\CookieDTO;
 use App\Dto\DownloadJobDTO;
 use App\Dto\JobAcceptedDTO;
 use App\Entity\DownloadJob;
@@ -61,7 +62,7 @@ class DownloadJobQueuedProcessorTest extends TestCase
         $data->uri = 'https://example.com/test.zip';
         $data->downloader = 'mock';
         $data->userAgent = 'TestAgent/1.0';
-        $data->cookies = ['session' => 'abc123'];
+        $data->cookies = [new CookieDTO()];
 
         $this->downloaderFactory->expects($this->once())
             ->method('isValidDownloader')
@@ -75,7 +76,9 @@ class DownloadJobQueuedProcessorTest extends TestCase
                     return 'https://example.com/test.zip' === $job->getUri()
                         && 'mock' === $job->getDownloader()
                         && 'TestAgent/1.0' === $job->getUserAgent()
-                        && $job->getCookies() === ['session' => 'abc123']
+                        && is_array($job->getCookies())
+                            && count($job->getCookies()) === 1
+                            && $job->getCookies()[0] instanceof CookieDTO
                         && DownloadStateEnum::PENDING === $job->getState();
                 }),
                 $this->operation,
