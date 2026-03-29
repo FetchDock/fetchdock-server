@@ -169,6 +169,11 @@ class DownloadJob implements DownloadJobInterface
 
     public function addCookie(CookieDTO $cookie): static
     {
+        // Initialize cookies array if it's null
+        if (empty($this->cookies) && !is_array($this->cookies)) {
+            $this->cookies = [];
+        }
+
         // Do not add cookie if it already exists
         if (!in_array($cookie, $this->cookies ?? [], true)) {
             $this->cookies[] = $cookie;

@@ -289,7 +289,7 @@ class DownloadJobQueuedProcessorTest extends TestCase
                     return 'https://example.com/minimal.zip' === $job->getUri()
                         && 'mock' === $job->getDownloader()
                         && null === $job->getUserAgent()
-                        && null === $job->getCookies()
+                        && [] === $job->getCookies()
                         && DownloadStateEnum::PENDING === $job->getState();
                 })
             )
