@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE coverage SYSTEM "http://cobertura.sourceforge.net/xml/coverage-04.dtd">
-<coverage line-rate="0.39593301435407" branch-rate="0" lines-covered="662" lines-valid="1672" branches-covered="0" branches-valid="0" complexity="469" version="0.4" timestamp="1774811243">
+<coverage line-rate="0.39855508729681" branch-rate="0" lines-covered="662" lines-valid="1661" branches-covered="0" branches-valid="0" complexity="459" version="0.4" timestamp="1774811413">
   <sources>
     <source>/app/src</source>
   </sources>
@@ -1017,74 +1017,6 @@
             <line number="14" hits="1"/>
             <line number="15" hits="1"/>
             <line number="19" hits="1"/>
-          </lines>
-        </class>
-      </classes>
-    </package>
-    <package name="Dto/CookieCollectionDTO.php" line-rate="0" branch-rate="0" complexity="10">
-      <classes>
-        <class name="App\Dto\CookieCollectionDTO" filename="Dto/CookieCollectionDTO.php" line-rate="0" branch-rate="0" complexity="10">
-          <methods>
-            <method name="current" signature="" line-rate="0" branch-rate="0" complexity="1">
-              <lines>
-                <line number="19" hits="0"/>
-              </lines>
-            </method>
-            <method name="next" signature="" line-rate="0" branch-rate="0" complexity="1">
-              <lines>
-                <line number="24" hits="0"/>
-              </lines>
-            </method>
-            <method name="key" signature="" line-rate="0" branch-rate="0" complexity="1">
-              <lines>
-                <line number="29" hits="0"/>
-              </lines>
-            </method>
-            <method name="valid" signature="" line-rate="0" branch-rate="0" complexity="1">
-              <lines>
-                <line number="34" hits="0"/>
-              </lines>
-            </method>
-            <method name="rewind" signature="" line-rate="0" branch-rate="0" complexity="1">
-              <lines>
-                <line number="39" hits="0"/>
-              </lines>
-            </method>
-            <method name="offsetExists" signature="mixed $offset" line-rate="0" branch-rate="0" complexity="1">
-              <lines>
-                <line number="44" hits="0"/>
-              </lines>
-            </method>
-            <method name="offsetGet" signature="mixed $offset" line-rate="0" branch-rate="0" complexity="1">
-              <lines>
-                <line number="49" hits="0"/>
-              </lines>
-            </method>
-            <method name="offsetSet" signature="mixed $offset, mixed $value" line-rate="0" branch-rate="0" complexity="2">
-              <lines>
-                <line number="54" hits="0"/>
-                <line number="55" hits="0"/>
-                <line number="57" hits="0"/>
-              </lines>
-            </method>
-            <method name="offsetUnset" signature="mixed $offset" line-rate="0" branch-rate="0" complexity="1">
-              <lines>
-                <line number="63" hits="0"/>
-              </lines>
-            </method>
-          </methods>
-          <lines>
-            <line number="19" hits="0"/>
-            <line number="24" hits="0"/>
-            <line number="29" hits="0"/>
-            <line number="34" hits="0"/>
-            <line number="39" hits="0"/>
-            <line number="44" hits="0"/>
-            <line number="49" hits="0"/>
-            <line number="54" hits="0"/>
-            <line number="55" hits="0"/>
-            <line number="57" hits="0"/>
-            <line number="63" hits="0"/>
           </lines>
         </class>
       </classes>
