@@ -1,5 +1,5 @@
 services:
-  php:
+  api:
     image: ${IMAGES_PREFIX:-}-api
     depends_on:
       - database
@@ -42,7 +42,7 @@ services:
   worker:
     image: ${IMAGES_PREFIX:-}-api # Actually worker, but it uses the same image as php
     depends_on:
-      - php
+      - api
       - database
     restart: unless-stopped
     environment:
