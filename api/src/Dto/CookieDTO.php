@@ -13,7 +13,7 @@ final class CookieDTO
     public string $name;
     public string $path;
     public bool $sameSite;
-    public bool $secure;
+    public bool $secure = true;
     public string $value;
     public bool $session;
 
@@ -30,7 +30,7 @@ final class CookieDTO
         return sprintf(
             "%s\t%s\t%s\t%s\t%s\t%s\t%s",
             $this->domain,
-            $this->hostOnly ? 'FALSE' : 'TRUE',
+            (!empty($this->hostOnly)) ? 'FALSE' : 'TRUE',
             $this->path,
             $this->secure ? 'TRUE' : 'FALSE',
             $this->expirationDate ? $this->expirationDate->getTimestamp() : '0',
