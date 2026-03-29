@@ -2,6 +2,8 @@
 
 namespace App\Tests\Unit\Entity;
 
+use App\Dto\CookieDTO;
+use App\Entity\DownloadedFile;
 use App\Entity\DownloadJob;
 use App\Entity\DownloadJobEvent;
 use App\Enum\DownloadStateEnum;
@@ -26,7 +28,7 @@ class DownloadJobTest extends TestCase
         $this->assertSame(64, strlen($this->downloadJob->getToken())); // 32 bytes = 64 hex chars
         $this->assertNull($this->downloadJob->getUri());
         $this->assertNull($this->downloadJob->getUserAgent());
-        $this->assertNull($this->downloadJob->getCookies());
+        $this->assertSame([],$this->downloadJob->getCookies());
         $this->assertNull($this->downloadJob->getState());
         $this->assertNull($this->downloadJob->getDownloader());
         $this->assertCount(0, $this->downloadJob->getDownloadJobEvents());
@@ -61,20 +63,24 @@ class DownloadJobTest extends TestCase
 
     public function testSetAndGetCookies(): void
     {
-        $cookies = ['session' => 'abc123', 'token' => 'xyz456'];
+        //$cookies = ['session' => 'abc123', 'token' => 'xyz456'];
+        $cookies = [
+            new CookieDTO(),
+            new CookieDTO(),
+        ];
         $result = $this->downloadJob->setCookies($cookies);
 
         $this->assertSame($this->downloadJob, $result);
         $this->assertSame($cookies, $this->downloadJob->getCookies());
     }
 
-    public function testSetCookiesToNull(): void
+    public function testSetCookiesToNullReturnsEmptyArray(): void
     {
-        $this->downloadJob->setCookies(['test' => 'value']);
+        $this->downloadJob->setCookies([new CookieDTO()]);
         $result = $this->downloadJob->setCookies(null);
 
         $this->assertSame($this->downloadJob, $result);
-        $this->assertNull($this->downloadJob->getCookies());
+        $this->assertSame([], $this->downloadJob->getCookies());
     }
 
     public function testSetAndGetState(): void
@@ -196,11 +202,14 @@ class DownloadJobTest extends TestCase
 
     public function testComplexScenario(): void
     {
+        $cookie = new CookieDTO();
+        $cookie->name = 'auth';
+        $cookie->value = 'token123';
         // Test a complex scenario with multiple operations
         $this->downloadJob
             ->setUri('https://youtube.com/watch?v=test')
             ->setUserAgent('Browser/1.0')
-            ->setCookies(['auth' => 'token123'])
+            ->setCookies([$cookie])
             ->setState(DownloadStateEnum::IN_PROGRESS)
             ->setDownloader('yt-dlp-cli');
 
@@ -214,7 +223,7 @@ class DownloadJobTest extends TestCase
         // Verify all properties are set correctly
         $this->assertSame('https://youtube.com/watch?v=test', $this->downloadJob->getUri());
         $this->assertSame('Browser/1.0', $this->downloadJob->getUserAgent());
-        $this->assertSame(['auth' => 'token123'], $this->downloadJob->getCookies());
+        $this->assertSame([$cookie], $this->downloadJob->getCookies());
         $this->assertSame(DownloadStateEnum::IN_PROGRESS, $this->downloadJob->getState());
         $this->assertSame('yt-dlp-cli', $this->downloadJob->getDownloader());
         $this->assertCount(2, $this->downloadJob->getDownloadJobEvents());
@@ -224,5 +233,86 @@ class DownloadJobTest extends TestCase
         $this->assertSame('youtube.com', $url->getHost());
         $this->assertSame('/watch', $url->getPath());
         $this->assertSame('v=test', $url->getQuery());
+    }
+
+    public function testAddCookie(): void
+    {
+        $cookie = new CookieDTO();
+        $cookie->name = 'auth';
+        $cookie->value = 'token123';
+        $this->downloadJob->addCookie($cookie);
+        $this->assertIsArray($this->downloadJob->getCookies());
+        $this->assertCount(1, $this->downloadJob->getCookies());
+        $this->assertContains($cookie, $this->downloadJob->getCookies());
+    }
+
+    public function testAddCookieWithSameName(): void
+    {
+        $cookie1 = new CookieDTO();
+        $cookie1->name = 'auth';
+        $cookie1->value = 'token123';
+        $cookie2 = new CookieDTO();
+        $cookie2->name = 'auth';
+        $cookie2->value = 'token456';
+        $this->downloadJob->addCookie($cookie1);
+        $this->downloadJob->addCookie($cookie2);
+
+        $this->assertIsArray($this->downloadJob->getCookies());
+        $this->assertCount(2, $this->downloadJob->getCookies());
+        $this->assertContains($cookie1, $this->downloadJob->getCookies());
+        $this->assertContains($cookie2, $this->downloadJob->getCookies());
+    }
+
+    public function testRemoveCookie(): void
+    {
+        $cookie = new CookieDTO();
+        $cookie->name = 'auth';
+        $cookie->value = 'token123';
+        $this->downloadJob->addCookie($cookie);
+        $this->assertIsArray($this->downloadJob->getCookies());
+        $this->assertContains($cookie, $this->downloadJob->getCookies());
+        $this->downloadJob->removeCookie($cookie);
+        $this->assertIsArray($this->downloadJob->getCookies());
+        $this->assertNotContains($cookie, $this->downloadJob->getCookies());
+        $this->assertCount(0, $this->downloadJob->getCookies());
+    }
+
+    public function testSetCookiesWithValuesOtherThanCookieDTOThrowsInvalidArgumentException(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->downloadJob->setCookies(['invalid_cookie']);
+    }
+
+    public function testSetCookiesWithNullThrowsInvalidArgumentException(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->downloadJob->setCookies(
+            [
+                new CookieDTO(),
+                "string"
+            ]
+        );
+    }
+
+    public function testAddFile(): void
+    {
+        $file = new DownloadedFile();
+        $this->downloadJob->addFile($file);
+        $this->assertIsArray($this->downloadJob->getFiles()->toArray());
+        $this->assertCount(1, $this->downloadJob->getFiles()->toArray());
+        $this->assertContains($file, $this->downloadJob->getFiles()->toArray());
+    }
+
+    public function testRemoveFile(): void
+    {
+        $file = new DownloadedFile();
+        $this->downloadJob->addFile($file);
+        $this->assertIsArray($this->downloadJob->getFiles()->toArray());
+        $this->assertCount(1, $this->downloadJob->getFiles()->toArray());
+        $this->assertContains($file, $this->downloadJob->getFiles()->toArray());
+        $this->downloadJob->removeFile($file);
+        $this->assertIsArray($this->downloadJob->getFiles()->toArray());
+        $this->assertCount(0, $this->downloadJob->getFiles()->toArray());
+        $this->assertNotContains($file, $this->downloadJob->getFiles()->toArray());
     }
 }

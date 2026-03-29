@@ -291,16 +291,16 @@ final class AuthController extends AbstractController
             ]
         );
 
-        $decodedContent = json_decode($response->getContent(), true);
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            $this->logger->error('Failed to decode token endpoint response', ['error' => json_last_error_msg()]);
+        try {
+            $decodedContent = json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR);
+            return new JsonResponse($decodedContent, $response->getStatusCode());
+        } catch (\JsonException $e) {
+            $this->logger->error('Failed to decode token endpoint response', ['error' => $e->getMessage()]);
             return new JsonResponse(
                 new ErrorResponse('Failed to decode token endpoint response'),
                 Response::HTTP_INTERNAL_SERVER_ERROR
             );
         }
-
-        return new JsonResponse($decodedContent, $response->getStatusCode());
     }
 
     /**

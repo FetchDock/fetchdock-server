@@ -2,8 +2,10 @@
 
 namespace App\Service\Downloader;
 
+use App\Dto\CookieDTO;
 use App\Entity\DownloadedFile;
 use App\Entity\DownloadJob;
+use App\Model\DownloadJobInterface;
 use App\Repository\DownloadedFileRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
@@ -136,6 +138,32 @@ class GalleryDlCliDownloader extends AbstractCliDownloader implements CliDownloa
                 $this->logger->warning('File listed in command output does not exist: '.$filePath);
             }
         }
+    }
+
+    protected function getCommandOptions(DownloadJobInterface $downloadJob): array
+    {
+        $commandOptions = [];
+
+        // Check if the downloadJob contains cookies
+        if($downloadJob->getCookies()) {
+            // Gallery-dl expects a cookie file in the Netscape cookies.txt format
+            // So we'll create a temporary file with the cookies, pass it to the command, and delete it afterwards
+            $cookieFilePath = tempnam(sys_get_temp_dir(), 'gallery_dl_cookies_');
+            foreach ($downloadJob->getCookies() as $cookie) {
+                if($cookie instanceof CookieDTO) {
+                    file_put_contents($cookieFilePath, $cookie->toNetscapeCookieLine(), FILE_APPEND);
+                } else {
+                    throw new \InvalidArgumentException('Cookies must be instances of CookieDTO');
+                }
+            }
+            $commandOptions = ['--cookies', $cookieFilePath];
+        }
+
+        if($downloadJob->getUserAgent()) {
+            $commandOptions = array_merge($commandOptions, ['--user-agent', $downloadJob->getUserAgent()]);
+        }
+
+        return $commandOptions;
     }
 
     protected function getConfigFileContents(): string

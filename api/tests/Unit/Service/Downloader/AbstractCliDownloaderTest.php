@@ -4,6 +4,7 @@ namespace App\Tests\Unit\Service\Downloader;
 
 use App\Entity\DownloadJob;
 use App\Enum\DownloaderTypeEnum;
+use App\Model\DownloadJobInterface;
 use App\Service\Downloader\AbstractCliDownloader;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -336,6 +337,12 @@ class AbstractCliDownloaderTest extends TestCase
             public function addFilesToDownloadJobFromCommandOutput(DownloadJob $downloadJob, string $commandOutput): void
             {
                 // TODO: Implement addFilesToDownloadJobFromCommandOutput() method.
+            }
+
+            protected function getCommandOptions(DownloadJobInterface $downloadJob): array
+            {
+                // TODO: Implement getCommandOptions() method.
+                return [];
             }
         };
     }

@@ -7,6 +7,7 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Post;
+use App\Dto\CookieDTO;
 use App\Dto\DownloadJobDTO;
 use App\Dto\JobAcceptedDTO;
 use App\Enum\DownloadStateEnum;
@@ -67,8 +68,11 @@ class DownloadJob implements DownloadJobInterface
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $userAgent = null;
 
-    #[ORM\Column(nullable: true)]
-    private ?array $cookies = null;
+    /**
+     * @var CookieDTO[]|null
+     */
+    #[ORM\Column(type: Types::JSON, nullable: true, options: ['jsonb' => true])]
+    private ?array $cookies = [];
 
     #[ORM\Column(enumType: DownloadStateEnum::class)]
     private ?DownloadStateEnum $state = null;
@@ -95,7 +99,7 @@ class DownloadJob implements DownloadJobInterface
     {
         $this->downloadJobEvents = new ArrayCollection();
         $this->uuid = Uuid::v4();
-        $this->token = bin2hex(random_bytes(32)); // 64 character hex string
+        $this->token = bin2hex(random_bytes(32));
         $this->files = new ArrayCollection();
     }
 
@@ -138,6 +142,9 @@ class DownloadJob implements DownloadJobInterface
         return $this;
     }
 
+    /**
+     * @return CookieDTO[]|null
+     */
     public function getCookies(): ?array
     {
         return $this->cookies;
@@ -145,7 +152,39 @@ class DownloadJob implements DownloadJobInterface
 
     public function setCookies(?array $cookies): static
     {
-        $this->cookies = $cookies;
+        if(!empty($cookies)) {
+            foreach ($cookies as $cookie) {
+                if (!$cookie instanceof CookieDTO) {
+                    throw new \InvalidArgumentException('Cookies must be instances of CookieDTO');
+                }
+
+                $this->addCookie($cookie);
+            }
+        } else {
+            $this->cookies = [];
+        }
+
+        return $this;
+    }
+
+    public function addCookie(CookieDTO $cookie): static
+    {
+        // Initialize cookies array if it's null
+        if (empty($this->cookies) && !is_array($this->cookies)) {
+            $this->cookies = [];
+        }
+
+        // Do not add cookie if it already exists
+        if (!in_array($cookie, $this->cookies ?? [], true)) {
+            $this->cookies[] = $cookie;
+        };
+
+        return $this;
+    }
+
+    public function removeCookie(CookieDTO $cookie): static
+    {
+        $this->cookies = array_filter($this->cookies, fn($c) => $c !== $cookie);
 
         return $this;
     }

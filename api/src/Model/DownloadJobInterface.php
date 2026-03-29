@@ -2,6 +2,7 @@
 
 namespace App\Model;
 
+use App\Dto\CookieDTO;
 use Psr\Http\Message\UriInterface;
 
 interface DownloadJobInterface
@@ -12,5 +13,8 @@ interface DownloadJobInterface
 
     public function getUserAgent(): ?string;
 
+    /**
+     * @return CookieDTO[]|null
+     */
     public function getCookies(): ?array;
 }
