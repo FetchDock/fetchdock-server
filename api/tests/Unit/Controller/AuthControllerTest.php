@@ -529,6 +529,20 @@ class AuthControllerTest extends TestCase
         $this->assertSame('new-refresh-token', $data['refresh_token']);
     }
 
+    public function testCodeToTokenReturnsBadRequestWhenNoContentTypeIsSpecified(): void
+    {
+        $request = Request::create('/auth/code-to-token', 'POST', [], [], [], [], json_encode([
+            'code' => 'auth-code',
+            'code_verifier' => 'pkce-verifier',
+            'redirect_uri' => 'https://extension/callback',
+        ]));
+
+        $response = $this->controller->codeToToken($request);
+
+        $this->assertInstanceOf(JsonResponse::class, $response);
+        $this->assertSame(Response::HTTP_BAD_REQUEST, $response->getStatusCode());
+    }
+
     public function testCodeToTokenReturnsBadRequestWhenCodeIsMissing(): void
     {
         $request = Request::create('/auth/code-to-token', 'POST', [], [], [], [
@@ -598,6 +612,41 @@ class AuthControllerTest extends TestCase
         $this->assertSame(Response::HTTP_BAD_REQUEST, $response->getStatusCode());
     }
 
+//    public function testCodeToTokenReturnsBadRequestWhenResponseContainsMalformedJson(): void
+//    {
+//        $wellKnownResponse = $this->createMock(ResponseInterface::class);
+//        $wellKnownResponse->method('getStatusCode')->willReturn(500);
+//        $wellKnownResponse->method('getContent')->willReturn('{"token_endpoint": "https://idp.example.com/token"}');
+//        $this->httpClient->method('request')->willReturn($wellKnownResponse);
+//
+//        $this->httpClient->method('request')
+//            ->willReturnCallback(function (string $method, string $url, array $options = []) {
+//                $response = $this->createMock(ResponseInterface::class);
+//                $response->method('getStatusCode')->willReturn(200);
+//                $response->method('getContent')->willReturn('404 Not Found'); // JSON expected, but plain text returned
+//                $response->method('getHeaders')->willReturn([]);
+//                return $response;
+//            });
+//
+//        $request = Request::create('/auth/code-to-token', 'POST', [], [], [], [
+//            'CONTENT_TYPE' => 'application/json',
+//        ], json_encode([
+//            'code' => 'auth-code',
+//            'code_verifier' => 'pkce-verifier',
+//            'redirect_uri' => 'https://extension/callback',
+//        ])); // Missing closing brace
+//
+//        $response = $this->controller->codeToToken($request);
+//
+//        $this->assertInstanceOf(JsonResponse::class, $response);
+//        $this->assertSame(Response::HTTP_INTERNAL_SERVER_ERROR, $response->getStatusCode());
+//        $this->assertJson($response->getContent());
+//        $data = json_decode($response->getContent(), true);
+//        $this->assertFalse($data['success']);
+//        $this->assertSame('Failed to decode token endpoint response', $data['message']);
+//
+//    }
+
     public function testCodeToTokenReturnsErrorWhenTokenEndpointNotFound(): void
     {
         $wellKnownResponse = $this->createMock(ResponseInterface::class);
@@ -616,7 +665,7 @@ class AuthControllerTest extends TestCase
         $response = $this->controller->codeToToken($request);
 
         $this->assertInstanceOf(JsonResponse::class, $response);
-        $this->assertGreaterThanOrEqual(400, $response->getStatusCode());
+        $this->assertSame(Response::HTTP_INTERNAL_SERVER_ERROR, $response->getStatusCode());
     }
 
     public function testCodeToTokenReturnsErrorWhenIdpRejectsCode(): void
