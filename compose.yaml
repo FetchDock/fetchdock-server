@@ -6,12 +6,12 @@ services:
     restart: unless-stopped
     environment:
       PWA_UPSTREAM: pwa:3000
-      SERVER_NAME: ${SERVER_NAME:-localhost}, php:80
+      SERVER_NAME: ${SERVER_NAME:-localhost}, api:80
       MERCURE_PUBLISHER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET:-!ChangeThisMercureHubJWTSecretKey!}
       MERCURE_SUBSCRIBER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET:-!ChangeThisMercureHubJWTSecretKey!}
       TRUSTED_PROXIES: ${TRUSTED_PROXIES:-127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16}
-      TRUSTED_HOSTS: ${TRUSTED_HOSTS:-^${SERVER_NAME:-example\.com|localhost}|php$$}
-      MERCURE_URL: ${CADDY_MERCURE_URL:-http://php/.well-known/mercure}
+      TRUSTED_HOSTS: ${TRUSTED_HOSTS:-^${SERVER_NAME:-example\.com|localhost}|api}
+      MERCURE_URL: ${CADDY_MERCURE_URL:-http://api/.well-known/mercure}
       MERCURE_PUBLIC_URL: ${CADDY_MERCURE_PUBLIC_URL:-https://${SERVER_NAME:-localhost}:${HTTPS_PORT:-443}/.well-known/mercure}
       MERCURE_JWT_SECRET: ${CADDY_MERCURE_JWT_SECRET:-!ChangeThisMercureHubJWTSecretKey!}
       CORS_ALLOW_ORIGIN: ^(https?:\/\/(pwa|localhost|127\.0\.0\.1)(:[0-9]+)?|chrome-extension:\/\/fbmkmdnlhacefjljljlbhkodfmfkijdh|moz-extension:\/\/(774f040e-d814-4323-902a-dc0d33480bf7|7b7889d2-3187-4203-9272-f0dcc74dd61b))$
@@ -49,8 +49,8 @@ services:
       MERCURE_PUBLISHER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET:-!ChangeThisMercureHubJWTSecretKey!}
       MERCURE_SUBSCRIBER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET:-!ChangeThisMercureHubJWTSecretKey!}
       TRUSTED_PROXIES: ${TRUSTED_PROXIES:-127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16}
-      TRUSTED_HOSTS: ${TRUSTED_HOSTS:-^${SERVER_NAME:-example\.com|localhost}|php$$}
-      MERCURE_URL: ${CADDY_MERCURE_URL:-http://php/.well-known/mercure}
+      TRUSTED_HOSTS: ${TRUSTED_HOSTS:-^${SERVER_NAME:-example\.com|localhost}|api}
+      MERCURE_URL: ${CADDY_MERCURE_URL:-http://api/.well-known/mercure}
       MERCURE_PUBLIC_URL: ${CADDY_MERCURE_PUBLIC_URL:-https://${SERVER_NAME:-localhost}:${HTTPS_PORT:-443}/.well-known/mercure}
       MERCURE_JWT_SECRET: ${CADDY_MERCURE_JWT_SECRET:-!ChangeThisMercureHubJWTSecretKey!}
       NODE_MODE: worker
@@ -66,7 +66,7 @@ services:
   pwa:
     image: ${IMAGES_PREFIX:-}-pwa
     environment:
-      NEXT_PUBLIC_ENTRYPOINT: http://php
+      NEXT_PUBLIC_ENTRYPOINT: http://api
     healthcheck:
       test: curl -f http://localhost:3000 || exit 1
       timeout: 5s

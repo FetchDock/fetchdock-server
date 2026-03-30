@@ -42,9 +42,12 @@ jobs:
             compose.yaml
             compose.override.yaml
           set: |
-            php.cache-from=type=gha,scope=php-${{github.ref}}
-            php.cache-from=type=gha,scope=php-refs/heads/main
-            php.cache-to=type=gha,scope=php-${{github.ref}},mode=max
+            api.cache-from=type=gha,scope=api-${{github.ref}}
+            api.cache-from=type=gha,scope=api-refs/heads/main
+            api.cache-to=type=gha,scope=api-${{github.ref}},mode=max
+            worker.cache-from=type=gha,scope=api-${{github.ref}}
+            worker.cache-from=type=gha,scope=api-refs/heads/main
+            worker.cache-to=type=gha,scope=api-${{github.ref}},mode=max
             pwa.cache-from=type=gha,scope=pwa-${{github.ref}}
             pwa.cache-from=type=gha,scope=pwa-refs/heads/main
             pwa.cache-to=type=gha,scope=pwa-${{github.ref}},mode=max

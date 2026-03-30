@@ -43,12 +43,12 @@ jobs:
             compose.yaml
             compose.override.yaml
           set: |
-            php.cache-from=type=gha,scope=php-${{github.ref}}
-            php.cache-from=type=gha,scope=php-refs/heads/main
-            php.cache-to=type=gha,scope=php-${{github.ref}},mode=max
-            worker.cache-from=type=gha,scope=php-${{github.ref}}
-            worker.cache-from=type=gha,scope=php-refs/heads/main
-            worker.cache-to=type=gha,scope=php-${{github.ref}},mode=max
+            api.cache-from=type=gha,scope=api-${{github.ref}}
+            api.cache-from=type=gha,scope=api-refs/heads/main
+            api.cache-to=type=gha,scope=api-${{github.ref}},mode=max
+            worker.cache-from=type=gha,scope=api-${{github.ref}}
+            worker.cache-from=type=gha,scope=api-refs/heads/main
+            worker.cache-to=type=gha,scope=api-${{github.ref}},mode=max
             pwa.cache-from=type=gha,scope=pwa-${{github.ref}}
             pwa.cache-from=type=gha,scope=pwa-refs/heads/main
             pwa.cache-to=type=gha,scope=pwa-${{github.ref}},mode=max
@@ -64,7 +64,7 @@ jobs:
         run: docker compose logs --no-color
       -
         name: Install composer dependencies
-        run: docker compose exec -T php composer install --prefer-dist --no-progress --optimize-autoloader
+        run: docker compose exec -T api composer install --prefer-dist --no-progress --optimize-autoloader
       -
         name: Check HTTP reachability
         run: curl -v --fail-with-body http://localhost
