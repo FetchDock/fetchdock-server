@@ -12,7 +12,7 @@ final class CookieDTO
     public bool $httpOnly;
     public string $name;
     public string $path;
-    public bool $sameSite;
+    public string $sameSite;
     public bool $secure = true;
     public string $value;
     public bool $session;
