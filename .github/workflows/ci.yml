@@ -125,7 +125,7 @@ jobs:
         name: Doctrine Schema Validator
         env:
           IMAGES_PREFIX: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}
-        run: docker compose exec -T php bin/console -e test doctrine:schema:validate
+        run: docker compose exec -T api bin/console -e test doctrine:schema:validate
       -
         name: Stop services
         if: always()
