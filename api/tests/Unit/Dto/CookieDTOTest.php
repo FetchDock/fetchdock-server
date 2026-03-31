@@ -68,7 +68,7 @@ class CookieDTOTest extends TestCase
         $this->dto->path = '/';
         $this->dto->expirationDate = new \DateTime('+1 hour');
 
-        $expectedLine = "example.com\tTRUE\t/\tTRUE\t{$this->dto->expirationDate->format('U')}\ttest_cookie\ttest_value";
+        $expectedLine = "example.com\tTRUE\t/\tTRUE\t{$this->dto->expirationDate->format('U')}\ttest_cookie\ttest_value\n";
         $this->assertSame($expectedLine, $this->dto->toNetscapeCookieLine());
     }
 }

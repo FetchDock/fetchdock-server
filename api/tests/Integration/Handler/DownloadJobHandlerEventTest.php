@@ -170,13 +170,13 @@ class DownloadJobHandlerEventTest extends TestCase
         $mockDownloader = $this->createMockDownloaderThatThrows($exception);
 
         $this->entityManager
-            ->expects($this->once())
+            ->expects($this->exactly(2))
             ->method('getRepository')
             ->with(DownloadJob::class)
             ->willReturn($this->downloadJobRepository);
 
         $this->downloadJobRepository
-            ->expects($this->once())
+            ->expects($this->exactly(2))
             ->method('find')
             ->with($downloadJob->getId())
             ->willReturn($downloadJob);

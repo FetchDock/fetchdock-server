@@ -162,7 +162,7 @@ class DownloadJobHandlerTest extends TestCase
         $downloadJob->setDownloader('invalid-downloader');
         $downloadJob->setState(DownloadStateEnum::PENDING);
 
-        $this->downloadJobRepository->expects($this->once())
+        $this->downloadJobRepository->expects($this->exactly(2))
             ->method('find')
             ->willReturn($downloadJob);
 
@@ -195,7 +195,7 @@ class DownloadJobHandlerTest extends TestCase
         $downloadJob->setUri('https://unsupported.com/test.zip');
         $downloadJob->setState(DownloadStateEnum::PENDING);
 
-        $this->downloadJobRepository->expects($this->once())
+        $this->downloadJobRepository->expects($this->exactly(2))
             ->method('find')
             ->willReturn($downloadJob);
 
@@ -234,7 +234,7 @@ class DownloadJobHandlerTest extends TestCase
             ->method('download')
             ->willThrowException(new \RuntimeException('Download failed'));
 
-        $this->downloadJobRepository->expects($this->once())
+        $this->downloadJobRepository->expects($this->exactly(2))
             ->method('find')
             ->willReturn($downloadJob);
 

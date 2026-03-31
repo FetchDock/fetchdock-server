@@ -98,6 +98,8 @@ class DownloadJobHandler
             throw $e; // Re-throw to ensure the message is not lost
         } catch (\Throwable $exception) {
             if ($downloadJobEntity instanceof DownloadJob) {
+                // Make sure we get an instance from the database
+                $downloadJobEntity = $this->entityManager->getRepository(DownloadJob::class)->find($downloadJobEntity->getId());
                 // Update job state to failed
                 $downloadJobEntity->setState(DownloadStateEnum::FAILED);
                 $this->entityManager->persist($downloadJobEntity);
