@@ -92,7 +92,7 @@ class DownloadJob implements DownloadJobInterface
     #[ORM\ManyToMany(targetEntity: DownloadedFile::class, mappedBy: 'downloadJob')]
     private Collection $files;
 
-    #[ORM\ManyToOne(inversedBy: 'downloadJobs')]
+    #[ORM\ManyToOne(cascade: ['persist'], inversedBy: 'downloadJobs')]
     private ?OidcSubjectIdentifier $owner = null;
 
     public function __construct()
@@ -147,6 +147,17 @@ class DownloadJob implements DownloadJobInterface
      */
     public function getCookies(): ?array
     {
+        if (!empty($this->cookies)) {
+            // Check if the cookies are instances of CookieDTO
+            // if not try to convert them
+            foreach ($this->cookies as $key => $cookie) {
+                if (!$cookie instanceof CookieDTO) {
+                    $this->cookies[$key] = CookieDTO::fromArray($cookie);
+                }
+            }
+        }
+
+
         return $this->cookies;
     }
 

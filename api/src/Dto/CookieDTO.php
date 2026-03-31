@@ -17,6 +17,37 @@ final class CookieDTO
     public string $value;
     public bool $session;
 
+    public static function fromArray(array $data): self
+    {
+        $dto = new self();
+        $dto->domain = $data['domain'];
+
+        if (is_int($data['expirationDate'])) {
+            $dto->expirationDate = (new \DateTimeImmutable())->setTimestamp($data['expirationDate']);
+        } elseif (is_array($data['expirationDate']) && array_key_exists("timezone_type", $data['expirationDate'])) {
+            // $data is most likely a serialized DateTime object
+            // Which contains a "date", "timezone" and "timezone_type" key
+            // Where "timezone" is the timezone name ("z") and "timezone_type" is the type of timezone (3 = PHP_INT_MAX)
+            $dto->expirationDate = new \DateTimeImmutable($data['expirationDate']['date'], new \DateTimeZone($data['expirationDate']['timezone']));
+        } else {
+            $dto->expirationDate = null;
+        }
+
+        if(isset($data['hostOnly'])) {
+            $dto->hostOnly = $data['hostOnly'];
+        }
+        $dto->httpOnly = $data['httpOnly'];
+        $dto->name = $data['name'];
+        $dto->path = $data['path'];
+        $dto->sameSite = $data['sameSite'];
+        $dto->secure = $data['secure'];
+        if(isset($data['value'])) {
+            $dto->value = $data['value'];
+        }
+
+        return $dto;
+    }
+
     /**
      * Return the cookie as a string representation in the Netscape cookie file format.
      *
@@ -28,7 +59,7 @@ final class CookieDTO
     public function toNetscapeCookieLine(): string
     {
         return sprintf(
-            "%s\t%s\t%s\t%s\t%s\t%s\t%s",
+            "%s\t%s\t%s\t%s\t%s\t%s\t%s\n",
             $this->domain,
             (!empty($this->hostOnly)) ? 'FALSE' : 'TRUE',
             $this->path,

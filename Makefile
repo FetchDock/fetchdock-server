@@ -35,12 +35,12 @@ build:
 rebuild: clean-images build up
 
 prep-test:
-	$(DOCKER_COMPOSE_PREFIX) docker compose exec -T php bin/console -e test doctrine:database:create
-	$(DOCKER_COMPOSE_PREFIX) docker compose exec -T php bin/console -e test doctrine:migrations:migrate --no-interaction
-	$(DOCKER_COMPOSE_PREFIX) docker compose exec -T php bin/console -e test doctrine:fixtures:load --no-interaction
+	$(DOCKER_COMPOSE_PREFIX) docker compose exec -T api bin/console -e test doctrine:database:create
+	$(DOCKER_COMPOSE_PREFIX) docker compose exec -T api bin/console -e test doctrine:migrations:migrate --no-interaction
+	$(DOCKER_COMPOSE_PREFIX) docker compose exec -T api bin/console -e test doctrine:fixtures:load --no-interaction
 
 test:
-	$(DOCKER_COMPOSE_PREFIX) docker compose exec --env XDEBUG_MODE=coverage -it php ./bin/phpunit --colors=always --testdox
+	$(DOCKER_COMPOSE_PREFIX) docker compose exec --env XDEBUG_MODE=coverage -it api ./bin/phpunit --colors=always --testdox
 
 integration:
 	docker run --network host -w /app -v ./e2e:/app --rm --ipc=host mcr.microsoft.com/playwright:v1.50.0-noble /bin/sh -c 'npm i; npx playwright test;'
@@ -48,8 +48,13 @@ integration:
 bake:
 	$(DOCKER_COMPOSE_PREFIX) docker buildx bake --file compose.yaml --file compose.prod.yaml --file ./docker-bake.hcl
 
-# Run command in the php container (ie: bin/console doctrine:migrations:migrate)
+# Run command in the api container (ie: bin/console doctrine:migrations:migrate)
 Arguments := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
 
-php:
-	$(DOCKER_COMPOSE_PREFIX) docker compose run --entrypoint="" --rm -it php $(Arguments)
+.PHONY: api
+api:
+	$(DOCKER_COMPOSE_PREFIX) docker compose run --entrypoint="" --rm -it api $(Arguments)
+
+.PHONY: worker
+worker:
+	$(DOCKER_COMPOSE_PREFIX) docker compose run --entrypoint="" --rm -it worker $(Arguments)
