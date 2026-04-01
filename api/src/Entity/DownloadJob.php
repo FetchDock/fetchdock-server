@@ -36,11 +36,9 @@ use Symfony\Component\Uid\Uuid;
             processor: DownloadJobQueuedProcessor::class
         ),
         new Get(
-            security: "is_granted('ROLE_ALLOW_GET_DOWNLOAD_JOB')"
         ),
         new GetCollection(
             order: ['createdAt' => 'DESC'],
-            security: "is_granted('ROLE_ALLOW_LIST_DOWNLOAD_JOBS')"
         ),
     ],
     mercure: true
