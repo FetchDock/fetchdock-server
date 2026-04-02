@@ -11,6 +11,7 @@ use App\Dto\CookieDTO;
 use App\Dto\DownloadJobDTO;
 use App\Dto\JobAcceptedDTO;
 use App\Enum\DownloadStateEnum;
+use App\Interface\OwnerFilterableInterface;
 use App\Model\DownloadJobInterface;
 use App\Repository\DownloadJobRepository;
 use App\State\DownloadJobQueuedProcessor;
@@ -18,6 +19,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\ORM\QueryBuilder;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
 use GuzzleHttp\Psr7\Uri;
 use Psr\Http\Message\UriInterface;
@@ -43,7 +45,7 @@ use Symfony\Component\Uid\Uuid;
     ],
     mercure: true
 )]
-class DownloadJob implements DownloadJobInterface
+class DownloadJob implements DownloadJobInterface, OwnerFilterableInterface
 {
     use TimestampableEntity;
 
@@ -294,5 +296,12 @@ class DownloadJob implements DownloadJobInterface
         $this->owner = $owner;
 
         return $this;
+    }
+
+    public static function getOwnerQueryBuilder(QueryBuilder $queryBuilder, string $ownerIdentifier): QueryBuilder
+    {
+        $rootAlias = $queryBuilder->getRootAliases()[0];
+        return $queryBuilder->andWhere(sprintf('%s.owner = :owner', $rootAlias))
+            ->setParameter('owner', $ownerIdentifier);
     }
 }
