@@ -6,6 +6,7 @@ use ApiPlatform\Doctrine\Orm\Extension\QueryCollectionExtensionInterface;
 use ApiPlatform\Doctrine\Orm\Extension\QueryItemExtensionInterface;
 use ApiPlatform\Doctrine\Orm\Util\QueryNameGeneratorInterface;
 use ApiPlatform\Metadata\Operation;
+use App\Interface\OwnerFilterableInterface;
 use App\Repository\OidcSubjectIdentifierRepository;
 use Doctrine\ORM\QueryBuilder;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -24,9 +25,13 @@ final class CurrentUserExtension implements QueryCollectionExtensionInterface, Q
         if (!$this->security->isGranted('ROLE_ADMIN') && null !== $this->security->getUser()) {
             $oidcUser = $this->oidcSubjectIdentifierRepository->findOneBy(['subject' => $this->security->getUser()->getUserIdentifier()]);
 
-            $rootAlias = $queryBuilder->getRootAliases()[0];
-            $queryBuilder->andWhere(sprintf('%s.owner = :user', $rootAlias))
-                ->setParameter('user', $oidcUser);
+            // Check if the $resourceClass implements the OwnerFilterableInterface
+            if (!in_array(OwnerFilterableInterface::class, class_implements($resourceClass), true)) {
+                return;
+            }
+
+            /** @var OwnerFilterableInterface $resourceClass */
+            $resourceClass::getOwnerQueryBuilder($queryBuilder, $oidcUser->getId());
         }
     }
 
@@ -35,9 +40,13 @@ final class CurrentUserExtension implements QueryCollectionExtensionInterface, Q
         if (!$this->security->isGranted('ROLE_ADMIN') && null !== $this->security->getUser()) {
             $oidcUser = $this->oidcSubjectIdentifierRepository->findOneBy(['subject' => $this->security->getUser()->getUserIdentifier()]);
 
-            $rootAlias = $queryBuilder->getRootAliases()[0];
-            $queryBuilder->andWhere(sprintf('%s.owner = :user', $rootAlias))
-                ->setParameter('user', $oidcUser);
+            // Check if the $resourceClass implements the OwnerFilterableInterface
+            if (!in_array(OwnerFilterableInterface::class, class_implements($resourceClass), true)) {
+                return;
+            }
+
+            /** @var OwnerFilterableInterface $resourceClass */
+            $resourceClass::getOwnerQueryBuilder($queryBuilder, $oidcUser->getId());
         }
     }
 }

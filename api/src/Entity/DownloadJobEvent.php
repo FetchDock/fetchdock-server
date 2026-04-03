@@ -7,6 +7,7 @@ use ApiPlatform\Doctrine\Orm\Util\QueryNameGeneratorInterface;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Link;
+use App\Interface\OwnerFilterableInterface;
 use App\Repository\DownloadJobEventRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\ORM\QueryBuilder;
@@ -27,7 +28,7 @@ use Gedmo\Timestampable\Traits\TimestampableEntity;
         handleLinks: [self::class, 'handleLinks'],
     )
 )]
-class DownloadJobEvent
+class DownloadJobEvent implements OwnerFilterableInterface
 {
     use TimestampableEntity;
 
@@ -168,5 +169,13 @@ class DownloadJobEvent
         $this->exceptionMessage = $exceptionMessage;
 
         return $this;
+    }
+
+    public static function getOwnerQueryBuilder(QueryBuilder $queryBuilder, string $ownerIdentifier): QueryBuilder
+    {
+        $rootAlias = $queryBuilder->getRootAliases()[0];
+        return $queryBuilder
+            ->andWhere('download_job.owner = :owner')
+            ->setParameter('owner', $ownerIdentifier);
     }
 }
