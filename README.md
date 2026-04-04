@@ -1,5 +1,7 @@
+![FetchDock Logo](./pwa/public/logo-v1-full.svg)
+> **In active development** — features and APIs may change without notice.
+
 # FetchDock Server
-## WIP - Do not use in production!
 
 ## Description
 
@@ -16,13 +18,10 @@ More to be added in the future.
 
 ## Companion Extensions
 
-I'm working on a companion (browser) extension for this API.
-This extension allows you to interact with the API directly from your browser,
-making it easier to manage the downloads and send links to the API.
+[FetchDock Extension](https://github.com/fetchdock/fetchdock-extension) has been released and is available for Firefox and Chrome.
+This extension is actively developed and targeted when working on this project.
 
-It will be released for Firefox and Chrome soon.
-
-At the time of writing this, the extension is still in development and not yet published to the browser stores.
+The extension and server follows the same MAJOR and MINOR version numbering to indicate compatibility.
 
 ## Authentication
 
@@ -56,7 +55,7 @@ If you're having issues with setting up authentication with your provider, feel 
 - [ ] Add monitoring and logging features (partially done)
 - [ ] Implement rate limiting to prevent abuse
 - [ ] Implement a frontend for easier interaction with the API
-  - [ ] [FetchDock Browser Extension](https://github.com/FetchDock/fetchdock-extension) - (in active development)
+  - [x] [FetchDock Browser Extension](https://github.com/FetchDock/fetchdock-extension) - (in active development)
   - [ ] Web UI dashboard - (in active development)
   - [ ] Desktop app
   - [ ] Mobile app
@@ -68,6 +67,15 @@ If you're having issues with setting up authentication with your provider, feel 
 
 
 ## Footnotes
+
+### Working with sensitive data (e.g. cookies)
+
+The server supports storing cookies in the database.
+This is useful for download jobs that require authentication, ie: resources requiring a login.
+To provide this feature it is necessary to store the cookie somewhere until the job is completed.
+
+The cookies are never shared with any third party, send to any client or stored in any log.
+The cookies are also permanently deleted after the job is completed.
 
 ### Usage of AI assisted code generation
 
