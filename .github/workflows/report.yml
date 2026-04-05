@@ -14,6 +14,10 @@ jobs:
   report:
     runs-on: ubuntu-latest
     steps:
+      - name: Download test results artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: test-results
       - uses: dorny/test-reporter@v2
         with:
           artifact: test-results
