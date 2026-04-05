@@ -52,6 +52,7 @@ security:
         - { path: ^/docs, roles: PUBLIC_ACCESS } # Allows accessing the Swagger UI docs
         - { path: ^/contexts, roles: PUBLIC_ACCESS } # Allows accessing the Swagger UI contexts
         - { path: ^/versions, roles: PUBLIC_ACCESS } # Allows accessing the versions endpoint
+        - { path: ^/download/, roles: PUBLIC_ACCESS } # Allows accessing the download endpoint
         - { path: ^/, roles: IS_AUTHENTICATED_FULLY }
         # - { path: ^/admin, roles: ROLE_ADMIN }
         # - { path: ^/profile, roles: ROLE_USER }
