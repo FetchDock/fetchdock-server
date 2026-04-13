@@ -79,6 +79,43 @@ class CliProcessListenerTest extends TestCase
 
     public function testSendStdOutputToLogger(): void
     {
+        $this->downloadJob->expects($this->once())
+            ->method('getId')
+            ->willReturn(123);
 
+        $this->logger->expects($this->once())
+            ->method('info')
+            ->with('CLI Process STDOUT', [
+                'job_id' => 123,
+                'output' => 'Test output',
+            ]);
+
+        $event = new CliProcessStdOutputEvent(
+            output: 'Test output',
+            downloadJob: $this->downloadJob,
+            process: $this->process,
+        );
+        $this->listener->sendStdOutputToLogger($event);
+    }
+
+    public function testSendErrOutputToLogger(): void
+    {
+        $this->downloadJob->expects($this->once())
+            ->method('getId')
+            ->willReturn(123);
+
+        $this->logger->expects($this->once())
+            ->method('error')
+            ->with('CLI Process STDERR', [
+                'job_id' => 123,
+                'output' => 'Test output',
+            ]);
+
+        $event = new CliProcessErrOutputEvent(
+            output: 'Test output',
+            downloadJob: $this->downloadJob,
+            process: $this->process,
+        );
+        $this->listener->sendErrOutputToLogger($event);
     }
 }
