@@ -9,10 +9,10 @@ use App\Event\JobFailedEvent;
 use App\Event\JobPickedUpEvent;
 use App\Event\JobUpdateEvent;
 use App\Factory\DownloaderFactory;
+use App\Model\DownloadJobInterface;
 use App\Service\Downloader\DownloaderInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityNotFoundException;
-use GuzzleHttp\Psr7\Uri;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
@@ -54,7 +54,7 @@ class DownloadJobHandler
                 ));
             } else {
                 // Get downloader by URI
-                $downloaders = $this->getDownloaderByUri($downloadJobEntity->getUri());
+                $downloaders = $this->getDownloaderByDownloadJob($downloadJobEntity);
                 $downloader = null;
                 foreach ($downloaders as $d) {
                     $downloader = $d;
@@ -119,8 +119,8 @@ class DownloadJobHandler
         return $this->downloaderFactory->getDownloaderByIdentifier($identifier);
     }
 
-    private function getDownloaderByUri(string $uri): iterable
+    private function getDownloaderByDownloadJob(DownloadJobInterface $downloadJob): iterable
     {
-        return $this->downloaderFactory->getDownloadersByUri(new Uri($uri));
+        return $this->downloaderFactory->getDownloadersByDownloadJob($downloadJob);
     }
 }

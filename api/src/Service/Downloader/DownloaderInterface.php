@@ -32,9 +32,16 @@ interface DownloaderInterface
     /**
      * Check if the given URI is supported by this downloader.
      *
+     * @deprecated use supportsDownloadJob(DownloadJobInterface)
      * @return bool true if the URI is supported, false otherwise
      */
     public function supportsUri(UriInterface $uri): bool;
+
+    /**
+     * @param DownloadJobInterface $downloadJob
+     * @return bool
+     */
+    public function supportsDownloadJob(DownloadJobInterface $downloadJob): bool;
 
     /**
      * Get the currently installed version of the downloader service.

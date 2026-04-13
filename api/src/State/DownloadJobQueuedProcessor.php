@@ -88,7 +88,7 @@ class DownloadJobQueuedProcessor implements ProcessorInterface
                 ]);
                 // Try to determine the downloader by URI
                 // This will for example run "yt-dlp --simulate <uri>" to see if yt-dlp supports the given URI
-                $downloaders = $this->downloaderFactory->getDownloadersByUri($downloadJob->getUrl());
+                $downloaders = $this->downloaderFactory->getDownloadersByDownloadJob($downloadJob);
                 foreach ($downloaders as $downloader) {
                     $this->logger->debug('Downloader supports URI', [
                         'uri' => $downloadJob->getUri(),

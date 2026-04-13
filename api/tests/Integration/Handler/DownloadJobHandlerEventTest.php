@@ -123,7 +123,7 @@ class DownloadJobHandlerEventTest extends TestCase
         $mockDownloader = $this->createMockDownloader();
         $this->downloaderFactory
             ->expects($this->once())
-            ->method('getDownloadersByUri')
+            ->method('getDownloadersByDownloadJob')
             ->willReturn([$mockDownloader]);
 
         $this->entityManager
@@ -183,7 +183,7 @@ class DownloadJobHandlerEventTest extends TestCase
 
         $this->downloaderFactory
             ->expects($this->once())
-            ->method('getDownloadersByUri')
+            ->method('getDownloadersByDownloadJob')
             ->willReturn([$mockDownloader]);
 
         $this->entityManager

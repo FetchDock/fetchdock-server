@@ -49,7 +49,7 @@ class ScanDownloadedFilesCommand extends Command
             }
 
             if (null === $downloadJob->getDownloader()) {
-                $downloader = $this->downloaderFactory->getDownloadersByUri($downloadJob->getUri());
+                $downloader = $this->downloaderFactory->getDownloadersByDownloadJob($downloadJob);
             } else {
                 $downloader = $this->downloaderFactory->getDownloaderByIdentifier($downloadJob->getDownloader());
             }

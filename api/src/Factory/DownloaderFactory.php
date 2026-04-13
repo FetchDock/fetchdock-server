@@ -2,6 +2,7 @@
 
 namespace App\Factory;
 
+use App\Model\DownloadJobInterface;
 use App\Service\Downloader\CliDownloaderInterface;
 use App\Service\Downloader\DownloaderInterface;
 use Psr\Http\Message\UriInterface;
@@ -59,6 +60,7 @@ class DownloaderFactory
     }
 
     /**
+     * @deprecated Use getDownloadersByDownloadJob instead.
      * @return iterable<DownloaderInterface>
      */
     public function getDownloadersByUri(UriInterface $uri): iterable
@@ -71,6 +73,23 @@ class DownloaderFactory
             ]);
             /** @var DownloaderInterface $downloader */
             if ($downloader->supportsUri($uri)) {
+                yield $downloader;
+            }
+        }
+    }
+
+    public function getDownloadersByDownloadJob(DownloadJobInterface $downloadJob): iterable
+    {
+        $this->logger->debug('Looking for download jobs supporting download job', [
+            'uri' => $downloadJob->getUrl()
+        ]);
+        /** @var DownloaderInterface $downloader */
+        foreach ($this->downloaders as $downloader) {
+            $this->logger->debug('Checking download job for URI support', [
+                'downloader' => $downloader->getIdentifier(),
+                'uri' => $downloadJob->getUrl(),
+            ]);
+            if ($downloader->supportsDownloadJob($downloadJob)) {
                 yield $downloader;
             }
         }
