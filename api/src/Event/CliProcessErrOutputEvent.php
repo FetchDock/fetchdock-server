@@ -2,14 +2,14 @@
 
 namespace App\Event;
 
-use App\Entity\DownloadJob;
+use App\Model\DownloadJobInterface;
 use Symfony\Component\Process\Process;
 
 class CliProcessErrOutputEvent extends CliProcessOutputEvent
 {
     public function __construct(
         string $output,
-        ?DownloadJob $downloadJob,
+        ?DownloadJobInterface $downloadJob,
         Process $process,
     ) {
         parent::__construct($output, $downloadJob, $process, true);

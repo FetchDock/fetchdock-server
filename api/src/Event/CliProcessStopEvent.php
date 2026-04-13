@@ -2,13 +2,13 @@
 
 namespace App\Event;
 
-use App\Entity\DownloadJob;
+use App\Model\DownloadJobInterface;
 use Symfony\Component\Process\Process;
 
 class CliProcessStopEvent extends ProcessStopEvent
 {
     public function __construct(
-        DownloadJob $downloadJob,
+        DownloadJobInterface $downloadJob,
         bool $wasSuccessful,
         public private(set) readonly Process $process,
         public private(set) readonly int $exitCode,

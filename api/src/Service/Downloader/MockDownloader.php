@@ -31,6 +31,13 @@ class MockDownloader implements DownloaderInterface
         return in_array($host, $this->getSupportedDomains(), true);
     }
 
+    public function supportsDownloadJob(DownloadJobInterface $downloadJob): bool
+    {
+        $host = $downloadJob->getUrl()->getHost();
+
+        return in_array($host, $this->getSupportedDomains(), true);
+    }
+
     public function getSupportedDomains(): array
     {
         return ['example.com', 'test.com'];
