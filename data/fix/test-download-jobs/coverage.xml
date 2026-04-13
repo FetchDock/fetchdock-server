@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE coverage SYSTEM "http://cobertura.sourceforge.net/xml/coverage-04.dtd">
-<coverage line-rate="0.4992774566474" branch-rate="0" lines-covered="691" lines-valid="1384" branches-covered="0" branches-valid="0" complexity="474" version="0.4" timestamp="1776108039">
+<coverage line-rate="0.51040918880115" branch-rate="0" lines-covered="711" lines-valid="1393" branches-covered="0" branches-valid="0" complexity="476" version="0.4" timestamp="1776109117">
   <sources>
     <source>/app/src</source>
   </sources>
@@ -1981,12 +1981,12 @@
           <methods>
             <method name="__construct" signature="string $output, ?DownloadJobInterface $downloadJob, Process $process" line-rate="1" branch-rate="0" complexity="1">
               <lines>
-                <line number="15" hits="1"/>
+                <line number="15" hits="2"/>
               </lines>
             </method>
           </methods>
           <lines>
-            <line number="15" hits="1"/>
+            <line number="15" hits="2"/>
           </lines>
         </class>
       </classes>
@@ -1997,7 +1997,7 @@
           <methods>
             <method name="__construct" signature="string $output, ?DownloadJobInterface $downloadJob, Process $process, bool $isError" line-rate="1" branch-rate="0" complexity="1">
               <lines>
-                <line number="17" hits="2"/>
+                <line number="17" hits="4"/>
               </lines>
             </method>
             <method name="hasDownloadJobEvent" signature="" line-rate="0" branch-rate="0" complexity="1">
@@ -2007,7 +2007,7 @@
             </method>
           </methods>
           <lines>
-            <line number="17" hits="2"/>
+            <line number="17" hits="4"/>
             <line number="21" hits="0"/>
           </lines>
         </class>
@@ -2035,12 +2035,12 @@
           <methods>
             <method name="__construct" signature="string $output, ?DownloadJobInterface $downloadJob, Process $process" line-rate="1" branch-rate="0" complexity="1">
               <lines>
-                <line number="15" hits="1"/>
+                <line number="15" hits="2"/>
               </lines>
             </method>
           </methods>
           <lines>
-            <line number="15" hits="1"/>
+            <line number="15" hits="2"/>
           </lines>
         </class>
       </classes>
@@ -2241,13 +2241,49 @@
         </class>
       </classes>
     </package>
-    <package name="EventListener/CliProcessListener.php" line-rate="0.58620689655172" branch-rate="0" complexity="11">
+    <package name="EventListener/CleanupListener.php" line-rate="1" branch-rate="0" complexity="2">
       <classes>
-        <class name="App\EventListener\CliProcessListener" filename="EventListener/CliProcessListener.php" line-rate="0.58620689655172" branch-rate="0" complexity="11">
+        <class name="App\EventListener\CleanupListener" filename="EventListener/CleanupListener.php" line-rate="1" branch-rate="0" complexity="2">
+          <methods>
+            <method name="__construct" signature="EntityManagerInterface $entityManager, LoggerInterface $logger" line-rate="1" branch-rate="0" complexity="1">
+              <lines>
+                <line number="17" hits="1"/>
+              </lines>
+            </method>
+            <method name="onJobCompleted" signature="JobCompletedEvent $event" line-rate="1" branch-rate="0" complexity="1">
+              <lines>
+                <line number="25" hits="1"/>
+                <line number="26" hits="1"/>
+                <line number="27" hits="1"/>
+                <line number="28" hits="1"/>
+                <line number="29" hits="1"/>
+                <line number="30" hits="1"/>
+                <line number="31" hits="1"/>
+                <line number="32" hits="1"/>
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="17" hits="1"/>
+            <line number="25" hits="1"/>
+            <line number="26" hits="1"/>
+            <line number="27" hits="1"/>
+            <line number="28" hits="1"/>
+            <line number="29" hits="1"/>
+            <line number="30" hits="1"/>
+            <line number="31" hits="1"/>
+            <line number="32" hits="1"/>
+          </lines>
+        </class>
+      </classes>
+    </package>
+    <package name="EventListener/CliProcessListener.php" line-rate="0.96551724137931" branch-rate="0" complexity="11">
+      <classes>
+        <class name="App\EventListener\CliProcessListener" filename="EventListener/CliProcessListener.php" line-rate="0.96551724137931" branch-rate="0" complexity="11">
           <methods>
             <method name="__construct" signature="HubInterface $hub, LoggerInterface $logger" line-rate="1" branch-rate="0" complexity="1">
               <lines>
-                <line number="20" hits="2"/>
+                <line number="20" hits="4"/>
               </lines>
             </method>
             <method name="onCliProcessOutputEvent" signature="CliProcessStdOutputEvent $event" line-rate="1" branch-rate="0" complexity="1">
@@ -2268,14 +2304,14 @@
                 <line number="39" hits="1"/>
               </lines>
             </method>
-            <method name="sendStdOutputToLogger" signature="CliProcessStdOutputEvent $event" line-rate="0" branch-rate="0" complexity="1">
+            <method name="sendStdOutputToLogger" signature="CliProcessStdOutputEvent $event" line-rate="1" branch-rate="0" complexity="1">
               <lines>
-                <line number="45" hits="0"/>
+                <line number="45" hits="1"/>
               </lines>
             </method>
-            <method name="sendErrOutputToLogger" signature="CliProcessErrOutputEvent $event" line-rate="0" branch-rate="0" complexity="1">
+            <method name="sendErrOutputToLogger" signature="CliProcessErrOutputEvent $event" line-rate="1" branch-rate="0" complexity="1">
               <lines>
-                <line number="51" hits="0"/>
+                <line number="51" hits="1"/>
               </lines>
             </method>
             <method name="sendToHub" signature="array $data" line-rate="1" branch-rate="0" complexity="1">
@@ -2288,23 +2324,23 @@
                 <line number="62" hits="2"/>
               </lines>
             </method>
-            <method name="logOutput" signature="string $level, CliProcessStdOutputEvent|CliProcessErrOutputEvent $event" line-rate="0" branch-rate="0" complexity="5">
+            <method name="logOutput" signature="string $level, CliProcessStdOutputEvent|CliProcessErrOutputEvent $event" line-rate="0.9" branch-rate="0" complexity="5">
               <lines>
-                <line number="67" hits="0"/>
-                <line number="68" hits="0"/>
-                <line number="69" hits="0"/>
-                <line number="70" hits="0"/>
-                <line number="71" hits="0"/>
-                <line number="73" hits="0"/>
-                <line number="74" hits="0"/>
-                <line number="75" hits="0"/>
+                <line number="67" hits="2"/>
+                <line number="68" hits="2"/>
+                <line number="69" hits="2"/>
+                <line number="70" hits="2"/>
+                <line number="71" hits="2"/>
+                <line number="73" hits="2"/>
+                <line number="74" hits="1"/>
+                <line number="75" hits="1"/>
                 <line number="76" hits="0"/>
-                <line number="77" hits="0"/>
+                <line number="77" hits="2"/>
               </lines>
             </method>
           </methods>
           <lines>
-            <line number="20" hits="2"/>
+            <line number="20" hits="4"/>
             <line number="25" hits="1"/>
             <line number="26" hits="1"/>
             <line number="27" hits="1"/>
@@ -2315,24 +2351,24 @@
             <line number="37" hits="1"/>
             <line number="38" hits="1"/>
             <line number="39" hits="1"/>
-            <line number="45" hits="0"/>
-            <line number="51" hits="0"/>
+            <line number="45" hits="1"/>
+            <line number="51" hits="1"/>
             <line number="56" hits="2"/>
             <line number="57" hits="2"/>
             <line number="58" hits="2"/>
             <line number="59" hits="2"/>
             <line number="60" hits="2"/>
             <line number="62" hits="2"/>
-            <line number="67" hits="0"/>
-            <line number="68" hits="0"/>
-            <line number="69" hits="0"/>
-            <line number="70" hits="0"/>
-            <line number="71" hits="0"/>
-            <line number="73" hits="0"/>
-            <line number="74" hits="0"/>
-            <line number="75" hits="0"/>
+            <line number="67" hits="2"/>
+            <line number="68" hits="2"/>
+            <line number="69" hits="2"/>
+            <line number="70" hits="2"/>
+            <line number="71" hits="2"/>
+            <line number="73" hits="2"/>
+            <line number="74" hits="1"/>
+            <line number="75" hits="1"/>
             <line number="76" hits="0"/>
-            <line number="77" hits="0"/>
+            <line number="77" hits="2"/>
           </lines>
         </class>
       </classes>
