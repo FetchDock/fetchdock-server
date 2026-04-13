@@ -11,10 +11,10 @@ use App\Entity\DownloadJob;
 use App\Enum\DownloadStateEnum;
 use App\Enum\JobTypeEnum;
 use App\Factory\DownloaderFactory;
+use App\Model\DownloadJobInterface;
 use App\Repository\OidcSubjectIdentifierRepository;
 use App\Service\Downloader\DownloaderInterface;
 use App\State\DownloadJobQueuedProcessor;
-use GuzzleHttp\Psr7\Uri;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -186,9 +186,9 @@ class DownloadJobQueuedProcessorTest extends TestCase
                 ]);
 
                 $this->downloaderFactory->expects($this->once())
-                    ->method('getDownloadersByUri')
-                    ->with($this->callback(function (Uri $uri) {
-                        return 'example.com' === $uri->getHost();
+                    ->method('getDownloadersByDownloadJob')
+                    ->with($this->callback(function (DownloadJobInterface $downloadJob) {
+                        return 'example.com' === $downloadJob->getUrl()->getHost();
                     }))
                     ->willReturn([$mockDownloader]);
 
@@ -235,7 +235,7 @@ class DownloadJobQueuedProcessorTest extends TestCase
                 $item->expects($this->once())->method('tag');
 
                 $this->downloaderFactory->expects($this->once())
-                    ->method('getDownloadersByUri')
+                    ->method('getDownloadersByDownloadJob')
                     ->willReturn([]); // No downloaders found
 
                 return $callback($item);

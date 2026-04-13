@@ -2,7 +2,7 @@
 
 namespace App\Event;
 
-use App\Entity\DownloadJob;
+use App\Model\DownloadJobInterface;
 use Symfony\Contracts\EventDispatcher\Event;
 
 /**
@@ -11,12 +11,12 @@ use Symfony\Contracts\EventDispatcher\Event;
 class JobCompletedEvent extends Event
 {
     public function __construct(
-        private DownloadJob $downloadJob,
+        private DownloadJobInterface $downloadJob,
         private ?array $metadata = null,
     ) {
     }
 
-    public function getDownloadJob(): DownloadJob
+    public function getDownloadJob(): DownloadJobInterface
     {
         return $this->downloadJob;
     }

@@ -8,7 +8,6 @@ use App\Model\DownloadJobInterface;
 use App\Service\Downloader\AbstractCliDownloader;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\Process\Process;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
@@ -312,6 +311,11 @@ class AbstractCliDownloaderTest extends TestCase
             public function supportsUri(\Psr\Http\Message\UriInterface $uri): bool
             {
                 return 'test.com' === $uri->getHost();
+            }
+
+            public function supportsDownloadJob(DownloadJobInterface $downloadJob): bool
+            {
+                return 'test.com' === $downloadJob->getUrl()->getHost();
             }
 
             public function getSupportedDomains(): array

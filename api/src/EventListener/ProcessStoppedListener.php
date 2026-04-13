@@ -76,7 +76,7 @@ class ProcessStoppedListener
         }
 
         if (null === $downloadJob->getDownloader()) {
-            $downloader = $this->downloaderFactory->getDownloadersByUri($downloadJob->getUrl());
+            $downloader = $this->downloaderFactory->getDownloadersByDownloadJob($downloadJob);
         } else {
             $downloader = $this->downloaderFactory->getDownloaderByIdentifier($downloadJob->getDownloader());
         }

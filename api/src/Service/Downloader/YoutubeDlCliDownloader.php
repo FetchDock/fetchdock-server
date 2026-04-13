@@ -60,6 +60,27 @@ class YoutubeDlCliDownloader extends AbstractCliDownloader implements CliDownloa
         }
     }
 
+    public function supportsDownloadJob(DownloadJobInterface $downloadJob): bool
+    {
+        $process = new Process(array_merge(
+            [
+                $this->binaryPath,
+            ],
+            $this->getCommandOptions($downloadJob),
+            [
+                '--simulate',
+                (string) $downloadJob->getUrl(),
+            ]
+        ));
+        try {
+            $process->mustRun();
+
+            return $process->isSuccessful();
+        } catch (ProcessFailedException $e) {
+            return false;
+        }
+    }
+
     public function addFilesToDownloadJobFromCommandOutput(DownloadJob $downloadJob, string $commandOutput): void
     {
         // Convert \n to actual new lines

@@ -7,6 +7,7 @@ use Psr\Http\Message\UriInterface;
 
 interface DownloadJobInterface
 {
+    public function getId(): ?int;
     public function getUri(): ?string;
 
     public function getUrl(): UriInterface;

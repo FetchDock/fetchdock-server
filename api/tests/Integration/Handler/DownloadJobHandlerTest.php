@@ -118,7 +118,7 @@ class DownloadJobHandlerTest extends TestCase
             ->willReturn($downloadJob);
 
         $this->downloaderFactory->expects($this->once())
-            ->method('getDownloadersByUri')
+            ->method('getDownloadersByDownloadJob')
             ->willReturn([$mockDownloader]);
 
         $this->entityManager->expects($this->exactly(2))
@@ -200,7 +200,7 @@ class DownloadJobHandlerTest extends TestCase
             ->willReturn($downloadJob);
 
         $this->downloaderFactory->expects($this->once())
-            ->method('getDownloadersByUri')
+            ->method('getDownloadersByDownloadJob')
             ->willReturn([]);
 
         $this->entityManager->expects($this->exactly(1))
@@ -311,7 +311,7 @@ class DownloadJobHandlerTest extends TestCase
         $this->downloadJobRepository->method('find')
             ->willReturn($downloadJob);
 
-        $this->downloaderFactory->method('getDownloadersByUri')
+        $this->downloaderFactory->method('getDownloadersByDownloadJob')
             ->willReturn([$mockDownloader]);
 
         $this->entityManager->method('persist');

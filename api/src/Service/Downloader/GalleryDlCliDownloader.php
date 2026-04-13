@@ -42,11 +42,36 @@ class GalleryDlCliDownloader extends AbstractCliDownloader implements CliDownloa
 
     public function supportsUri(UriInterface $uri): bool
     {
-        $process = new Process([
-            $this->binaryPath,
-            '--simulate',
-            (string) $uri,
-        ]);
+        $process = new Process(array_merge(
+            [
+                $this->binaryPath,
+            ],
+            [
+                '--simulate',
+                (string) $uri,
+            ]
+        ));
+        try {
+            $process->mustRun();
+
+            return $process->isSuccessful();
+        } catch (ProcessFailedException $e) {
+            return false;
+        }
+    }
+
+    public function supportsDownloadJob(DownloadJobInterface $downloadJob): bool
+    {
+        $process = new Process(array_merge(
+            [
+                $this->binaryPath,
+            ],
+            $this->getCommandOptions($downloadJob),
+            [
+                '--simulate',
+                (string) $downloadJob->getUrl(),
+            ]
+        ));
         try {
             $process->mustRun();
 
