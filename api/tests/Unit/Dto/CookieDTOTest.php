@@ -68,7 +68,7 @@ class CookieDTOTest extends TestCase
         $this->dto->path = '/';
         $this->dto->expirationDate = new \DateTime('+1 hour');
 
-        $expectedLine = "example.com\tTRUE\t/\tTRUE\t{$this->dto->expirationDate->format('U')}\ttest_cookie\ttest_value\n";
+        $expectedLine = "example.com\tFALSE\t/\tTRUE\t{$this->dto->expirationDate->format('U')}\ttest_cookie\ttest_value\n";
         $this->assertSame($expectedLine, $this->dto->toNetscapeCookieLine());
     }
 
@@ -94,7 +94,7 @@ class CookieDTOTest extends TestCase
         $this->assertFalse($this->dto->secure);
 
 
-        $expectedNetscapeLine = "example.com\tTRUE\t/\tFALSE\t1776643200\ttest_cookie\ttest_value\n";
+        $expectedNetscapeLine = "example.com\tFALSE\t/\tFALSE\t1776643200\ttest_cookie\ttest_value\n";
         $this->assertSame($expectedNetscapeLine, $this->dto->toNetscapeCookieLine());
     }
 
@@ -118,7 +118,7 @@ class CookieDTOTest extends TestCase
         $this->assertFalse($this->dto->secure);
 
 
-        $expectedNetscapeLine = "example.com\tTRUE\t/\tFALSE\t0\ttest_cookie\ttest_value\n";
+        $expectedNetscapeLine = "example.com\tFALSE\t/\tFALSE\t0\ttest_cookie\ttest_value\n";
         $this->assertSame($expectedNetscapeLine, $this->dto->toNetscapeCookieLine());
     }
 }
