@@ -7,7 +7,7 @@ use Uri\Rfc3986\Uri;
 final class CookieDTO
 {
     public string $domain;
-    public ?\DateTimeInterface $expirationDate;
+    public ?\DateTimeInterface $expirationDate = null;
     public bool $hostOnly;
     public bool $httpOnly;
     public string $name;
@@ -22,23 +22,20 @@ final class CookieDTO
         $dto = new self();
         $dto->domain = $data['domain'];
 
-        if (is_int($data['expirationDate'])) {
-            $dto->expirationDate = (new \DateTimeImmutable())->setTimestamp($data['expirationDate']);
-        } elseif (is_string($data['expirationDate'])) {
-            // Try to parse the expirationDate string as a date string
-            try {
-                $dto->expirationDate = new \DateTimeImmutable($data['expirationDate']);
-            } catch (\Exception $e) {
-                // If parsing fails, set expirationDate to null
-                $dto->expirationDate = null;
+        if (!empty($data['expirationDate'])) {
+            if (is_int($data['expirationDate'])) {
+                $dto->expirationDate = (new \DateTimeImmutable())->setTimestamp($data['expirationDate']);
+            } elseif (is_string($data['expirationDate'])) {
+                // Try to parse the expirationDate string as a date string
+                try {
+                    $dto->expirationDate = new \DateTimeImmutable($data['expirationDate']);
+                } catch (\Exception $e) {}
+            } elseif (is_array($data['expirationDate']) && array_key_exists("timezone_type", $data['expirationDate'])) {
+                // $data is most likely a serialized DateTime object
+                // Which contains a "date", "timezone" and "timezone_type" key
+                // Where "timezone" is the timezone name ("z") and "timezone_type" is the type of timezone (3 = PHP_INT_MAX)
+                $dto->expirationDate = new \DateTimeImmutable($data['expirationDate']['date'], new \DateTimeZone($data['expirationDate']['timezone']));
             }
-        } elseif (is_array($data['expirationDate']) && array_key_exists("timezone_type", $data['expirationDate'])) {
-            // $data is most likely a serialized DateTime object
-            // Which contains a "date", "timezone" and "timezone_type" key
-            // Where "timezone" is the timezone name ("z") and "timezone_type" is the type of timezone (3 = PHP_INT_MAX)
-            $dto->expirationDate = new \DateTimeImmutable($data['expirationDate']['date'], new \DateTimeZone($data['expirationDate']['timezone']));
-        } else {
-            $dto->expirationDate = null;
         }
 
         if(isset($data['hostOnly'])) {
@@ -72,7 +69,7 @@ final class CookieDTO
             (!empty($this->hostOnly)) ? 'FALSE' : 'TRUE',
             $this->path,
             $this->secure ? 'TRUE' : 'FALSE',
-            $this->expirationDate ? $this->expirationDate->getTimestamp() : '0',
+            !empty($this->expirationDate) ? $this->expirationDate->getTimestamp() : '0',
             $this->name,
             $this->value,
         );

@@ -97,4 +97,28 @@ class CookieDTOTest extends TestCase
         $expectedNetscapeLine = "example.com\tTRUE\t/\tFALSE\t1776643200\ttest_cookie\ttest_value\n";
         $this->assertSame($expectedNetscapeLine, $this->dto->toNetscapeCookieLine());
     }
+
+    public function testCookieDTOFromPayloadExample2(): void
+    {
+        $this->dto = CookieDTO::fromArray([
+            'name' => 'test_cookie',
+            'value' => 'test_value',
+            'domain' => 'example.com',
+            'path' => '/',
+            'secure' => false,
+            'httpOnly' => true,
+            'sameSite' => 'unspecified',
+        ]);
+
+        $this->assertSame('test_cookie', $this->dto->name);
+        $this->assertSame('test_value', $this->dto->value);
+        $this->assertSame('example.com', $this->dto->domain);
+        $this->assertSame('/', $this->dto->path);
+        $this->assertNull($this->dto->expirationDate);
+        $this->assertFalse($this->dto->secure);
+
+
+        $expectedNetscapeLine = "example.com\tTRUE\t/\tFALSE\t0\ttest_cookie\ttest_value\n";
+        $this->assertSame($expectedNetscapeLine, $this->dto->toNetscapeCookieLine());
+    }
 }
