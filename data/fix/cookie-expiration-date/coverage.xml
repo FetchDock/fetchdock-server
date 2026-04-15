@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE coverage SYSTEM "http://cobertura.sourceforge.net/xml/coverage-04.dtd">
-<coverage line-rate="0.51896921975662" branch-rate="0" lines-covered="725" lines-valid="1397" branches-covered="0" branches-valid="0" complexity="478" version="0.4" timestamp="1776246891">
+<coverage line-rate="0.52005730659026" branch-rate="0" lines-covered="726" lines-valid="1396" branches-covered="0" branches-valid="0" complexity="479" version="0.4" timestamp="1776252957">
   <sources>
     <source>/app/src</source>
   </sources>
@@ -1065,82 +1065,80 @@
         </class>
       </classes>
     </package>
-    <package name="Dto/CookieDTO.php" line-rate="0.7741935483871" branch-rate="0" complexity="12">
+    <package name="Dto/CookieDTO.php" line-rate="0.83333333333333" branch-rate="0" complexity="13">
       <classes>
-        <class name="App\Dto\CookieDTO" filename="Dto/CookieDTO.php" line-rate="0.7741935483871" branch-rate="0" complexity="12">
+        <class name="App\Dto\CookieDTO" filename="Dto/CookieDTO.php" line-rate="0.83333333333333" branch-rate="0" complexity="13">
           <methods>
-            <method name="fromArray" signature="array $data" line-rate="0.66666666666667" branch-rate="0" complexity="8">
+            <method name="fromArray" signature="array $data" line-rate="0.75" branch-rate="0" complexity="9">
               <lines>
-                <line number="22" hits="1"/>
-                <line number="23" hits="1"/>
-                <line number="25" hits="1"/>
-                <line number="26" hits="0"/>
-                <line number="27" hits="1"/>
-                <line number="30" hits="1"/>
-                <line number="31" hits="0"/>
+                <line number="22" hits="2"/>
+                <line number="23" hits="2"/>
+                <line number="25" hits="2"/>
+                <line number="26" hits="1"/>
+                <line number="27" hits="0"/>
+                <line number="28" hits="1"/>
+                <line number="31" hits="1"/>
+                <line number="32" hits="0"/>
                 <line number="33" hits="0"/>
-                <line number="35" hits="0"/>
-                <line number="39" hits="0"/>
-                <line number="41" hits="0"/>
-                <line number="44" hits="1"/>
-                <line number="45" hits="0"/>
-                <line number="47" hits="1"/>
-                <line number="48" hits="1"/>
-                <line number="49" hits="1"/>
-                <line number="50" hits="1"/>
-                <line number="51" hits="1"/>
-                <line number="52" hits="1"/>
-                <line number="53" hits="1"/>
-                <line number="56" hits="1"/>
+                <line number="37" hits="0"/>
+                <line number="41" hits="2"/>
+                <line number="42" hits="0"/>
+                <line number="44" hits="2"/>
+                <line number="45" hits="2"/>
+                <line number="46" hits="2"/>
+                <line number="47" hits="2"/>
+                <line number="48" hits="2"/>
+                <line number="49" hits="2"/>
+                <line number="50" hits="2"/>
+                <line number="53" hits="2"/>
               </lines>
             </method>
             <method name="toNetscapeCookieLine" signature="" line-rate="1" branch-rate="0" complexity="4">
               <lines>
-                <line number="69" hits="2"/>
-                <line number="70" hits="2"/>
-                <line number="71" hits="2"/>
-                <line number="72" hits="2"/>
-                <line number="73" hits="2"/>
-                <line number="74" hits="2"/>
-                <line number="75" hits="2"/>
-                <line number="76" hits="2"/>
-                <line number="77" hits="2"/>
-                <line number="78" hits="2"/>
+                <line number="66" hits="3"/>
+                <line number="67" hits="3"/>
+                <line number="68" hits="3"/>
+                <line number="69" hits="3"/>
+                <line number="70" hits="3"/>
+                <line number="71" hits="3"/>
+                <line number="72" hits="3"/>
+                <line number="73" hits="3"/>
+                <line number="74" hits="3"/>
+                <line number="75" hits="3"/>
               </lines>
             </method>
           </methods>
           <lines>
-            <line number="22" hits="1"/>
-            <line number="23" hits="1"/>
-            <line number="25" hits="1"/>
-            <line number="26" hits="0"/>
-            <line number="27" hits="1"/>
-            <line number="30" hits="1"/>
-            <line number="31" hits="0"/>
+            <line number="22" hits="2"/>
+            <line number="23" hits="2"/>
+            <line number="25" hits="2"/>
+            <line number="26" hits="1"/>
+            <line number="27" hits="0"/>
+            <line number="28" hits="1"/>
+            <line number="31" hits="1"/>
+            <line number="32" hits="0"/>
             <line number="33" hits="0"/>
-            <line number="35" hits="0"/>
-            <line number="39" hits="0"/>
-            <line number="41" hits="0"/>
-            <line number="44" hits="1"/>
-            <line number="45" hits="0"/>
-            <line number="47" hits="1"/>
-            <line number="48" hits="1"/>
-            <line number="49" hits="1"/>
-            <line number="50" hits="1"/>
-            <line number="51" hits="1"/>
-            <line number="52" hits="1"/>
-            <line number="53" hits="1"/>
-            <line number="56" hits="1"/>
-            <line number="69" hits="2"/>
-            <line number="70" hits="2"/>
-            <line number="71" hits="2"/>
-            <line number="72" hits="2"/>
-            <line number="73" hits="2"/>
-            <line number="74" hits="2"/>
-            <line number="75" hits="2"/>
-            <line number="76" hits="2"/>
-            <line number="77" hits="2"/>
-            <line number="78" hits="2"/>
+            <line number="37" hits="0"/>
+            <line number="41" hits="2"/>
+            <line number="42" hits="0"/>
+            <line number="44" hits="2"/>
+            <line number="45" hits="2"/>
+            <line number="46" hits="2"/>
+            <line number="47" hits="2"/>
+            <line number="48" hits="2"/>
+            <line number="49" hits="2"/>
+            <line number="50" hits="2"/>
+            <line number="53" hits="2"/>
+            <line number="66" hits="3"/>
+            <line number="67" hits="3"/>
+            <line number="68" hits="3"/>
+            <line number="69" hits="3"/>
+            <line number="70" hits="3"/>
+            <line number="71" hits="3"/>
+            <line number="72" hits="3"/>
+            <line number="73" hits="3"/>
+            <line number="74" hits="3"/>
+            <line number="75" hits="3"/>
           </lines>
         </class>
       </classes>
