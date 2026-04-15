@@ -7,7 +7,7 @@ use Uri\Rfc3986\Uri;
 final class CookieDTO
 {
     public string $domain;
-    public ?\DateTimeInterface $expirationDate;
+    public ?\DateTimeInterface $expirationDate = null;
     public bool $hostOnly;
     public bool $httpOnly;
     public string $name;
