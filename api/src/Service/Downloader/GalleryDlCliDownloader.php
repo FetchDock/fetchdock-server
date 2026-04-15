@@ -174,13 +174,7 @@ class GalleryDlCliDownloader extends AbstractCliDownloader implements CliDownloa
             // Gallery-dl expects a cookie file in the Netscape cookies.txt format
             // So we'll create a temporary file with the cookies, pass it to the command, and delete it afterwards
             $cookieFilePath = tempnam(sys_get_temp_dir(), 'gallery_dl_cookies_');
-            foreach ($downloadJob->getCookies() as $cookie) {
-                if($cookie instanceof CookieDTO) {
-                    file_put_contents($cookieFilePath, $cookie->toNetscapeCookieLine(), FILE_APPEND);
-                } else {
-                    throw new \InvalidArgumentException('Cookies must be instances of CookieDTO');
-                }
-            }
+            file_put_contents($cookieFilePath, $downloadJob->getCookiesNetscapeFileContent());
             $commandOptions = ['--cookies', $cookieFilePath];
         }
 
