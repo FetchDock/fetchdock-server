@@ -24,6 +24,14 @@ final class CookieDTO
 
         if (is_int($data['expirationDate'])) {
             $dto->expirationDate = (new \DateTimeImmutable())->setTimestamp($data['expirationDate']);
+        } elseif (is_string($data['expirationDate'])) {
+            // Try to parse the expirationDate string as a date string
+            try {
+                $dto->expirationDate = new \DateTimeImmutable($data['expirationDate']);
+            } catch (\Exception $e) {
+                // If parsing fails, set expirationDate to null
+                $dto->expirationDate = null;
+            }
         } elseif (is_array($data['expirationDate']) && array_key_exists("timezone_type", $data['expirationDate'])) {
             // $data is most likely a serialized DateTime object
             // Which contains a "date", "timezone" and "timezone_type" key
