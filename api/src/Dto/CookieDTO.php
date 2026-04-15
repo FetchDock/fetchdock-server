@@ -63,15 +63,25 @@ final class CookieDTO
      */
     public function toNetscapeCookieLine(): string
     {
-        return sprintf(
-            "%s\t%s\t%s\t%s\t%s\t%s\t%s\n",
+        $includeSubDomains = str_starts_with($this->domain, '.');
+
+        $lineArray = [
             $this->domain,
-            (!empty($this->hostOnly)) ? 'FALSE' : 'TRUE',
+            $includeSubDomains,
             $this->path,
-            $this->secure ? 'TRUE' : 'FALSE',
+            $this->secure,
             !empty($this->expirationDate) ? $this->expirationDate->getTimestamp() : '0',
             $this->name,
             $this->value,
-        );
+        ];
+
+        $lineString = implode("\t", array_map(static function($item) {
+            if (is_bool($item)) {
+                return $item ? 'TRUE' : 'FALSE';
+            }
+            return (string)$item;
+        }, $lineArray)) . "\n";
+
+        return $lineString;
     }
 }
