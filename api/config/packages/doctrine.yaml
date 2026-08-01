@@ -11,8 +11,6 @@ doctrine:
         # Will be removed when commenting doesn't break anything
         #use_savepoints: true
     orm:
-        auto_generate_proxy_classes: true
-        enable_lazy_ghost_objects: true
         enable_native_lazy_objects: true
         # Deprecated when using DBAL 4 and will be removed in DoctrineBundle 3.0
         # Will be removed when commenting doesn't break anything
