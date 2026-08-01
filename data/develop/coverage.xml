@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE coverage SYSTEM "http://cobertura.sourceforge.net/xml/coverage-04.dtd">
-<coverage line-rate="0.52492877492877" branch-rate="0" lines-covered="737" lines-valid="1404" branches-covered="0" branches-valid="0" complexity="480" version="0.4" timestamp="1776282786">
+<coverage line-rate="0.52560455192034" branch-rate="0" lines-covered="739" lines-valid="1406" branches-covered="0" branches-valid="0" complexity="480" version="0.4" timestamp="1785575389">
   <sources>
     <source>/app/src</source>
   </sources>
@@ -349,9 +349,9 @@
         </class>
       </classes>
     </package>
-    <package name="Controller/AuthController.php" line-rate="0.94915254237288" branch-rate="0" complexity="37">
+    <package name="Controller/AuthController.php" line-rate="0.94957983193277" branch-rate="0" complexity="37">
       <classes>
-        <class name="App\Controller\AuthController" filename="Controller/AuthController.php" line-rate="0.94915254237288" branch-rate="0" complexity="37">
+        <class name="App\Controller\AuthController" filename="Controller/AuthController.php" line-rate="0.94957983193277" branch-rate="0" complexity="37">
           <methods>
             <method name="__construct" signature="string $clientId, string $clientSecret, string $wellKnownUrl, HttpClientInterface $httpClient, CacheItemPoolInterface $cache, LoggerInterface $logger" line-rate="1" branch-rate="0" complexity="1">
               <lines>
@@ -539,7 +539,7 @@
                 <line number="302" hits="0"/>
               </lines>
             </method>
-            <method name="tokenProxy" signature="Request $request" line-rate="0.82857142857143" branch-rate="0" complexity="5">
+            <method name="tokenProxy" signature="Request $request" line-rate="0.83783783783784" branch-rate="0" complexity="5">
               <lines>
                 <line number="319" hits="7"/>
                 <line number="321" hits="7"/>
@@ -571,62 +571,64 @@
                 <line number="356" hits="0"/>
                 <line number="360" hits="3"/>
                 <line number="361" hits="3"/>
-                <line number="362" hits="0"/>
-                <line number="363" hits="0"/>
-                <line number="364" hits="0"/>
-                <line number="365" hits="0"/>
-                <line number="366" hits="0"/>
+                <line number="365" hits="3"/>
+                <line number="367" hits="3"/>
+                <line number="368" hits="0"/>
+                <line number="369" hits="0"/>
+                <line number="370" hits="0"/>
+                <line number="371" hits="0"/>
+                <line number="372" hits="0"/>
               </lines>
             </method>
             <method name="getTokenEndpoint" signature="" line-rate="1" branch-rate="0" complexity="3">
               <lines>
-                <line number="373" hits="11"/>
-                <line number="374" hits="9"/>
-                <line number="375" hits="1"/>
-                <line number="378" hits="8"/>
-                <line number="379" hits="8"/>
-                <line number="380" hits="2"/>
-                <line number="382" hits="2"/>
+                <line number="379" hits="11"/>
+                <line number="380" hits="9"/>
+                <line number="381" hits="1"/>
+                <line number="384" hits="8"/>
+                <line number="385" hits="8"/>
+                <line number="386" hits="2"/>
+                <line number="388" hits="2"/>
               </lines>
             </method>
             <method name="getWellKnownField" signature="string $field" line-rate="1" branch-rate="0" complexity="4">
               <lines>
-                <line number="392" hits="17"/>
-                <line number="393" hits="16"/>
-                <line number="394" hits="2"/>
-                <line number="395" hits="2"/>
-                <line number="396" hits="2"/>
-                <line number="397" hits="2"/>
-                <line number="399" hits="2"/>
-                <line number="402" hits="14"/>
-                <line number="403" hits="14"/>
-                <line number="404" hits="1"/>
-                <line number="405" hits="1"/>
-                <line number="406" hits="1"/>
-                <line number="407" hits="1"/>
-                <line number="409" hits="1"/>
-                <line number="412" hits="13"/>
+                <line number="398" hits="17"/>
+                <line number="399" hits="16"/>
+                <line number="400" hits="2"/>
+                <line number="401" hits="2"/>
+                <line number="402" hits="2"/>
+                <line number="403" hits="2"/>
+                <line number="405" hits="2"/>
+                <line number="408" hits="14"/>
+                <line number="409" hits="14"/>
+                <line number="410" hits="1"/>
+                <line number="411" hits="1"/>
+                <line number="412" hits="1"/>
                 <line number="413" hits="1"/>
-                <line number="414" hits="1"/>
                 <line number="415" hits="1"/>
-                <line number="416" hits="1"/>
-                <line number="417" hits="1"/>
+                <line number="418" hits="13"/>
                 <line number="419" hits="1"/>
+                <line number="420" hits="1"/>
+                <line number="421" hits="1"/>
+                <line number="422" hits="1"/>
+                <line number="423" hits="1"/>
+                <line number="425" hits="1"/>
               </lines>
             </method>
             <method name="generateCodeVerifier" signature="" line-rate="1" branch-rate="0" complexity="1">
               <lines>
-                <line number="428" hits="5"/>
+                <line number="434" hits="5"/>
               </lines>
             </method>
             <method name="generateCodeChallenge" signature="string $codeVerifier" line-rate="1" branch-rate="0" complexity="1">
               <lines>
-                <line number="436" hits="5"/>
+                <line number="442" hits="5"/>
               </lines>
             </method>
             <method name="getStateCacheKey" signature="string $state" line-rate="1" branch-rate="0" complexity="1">
               <lines>
-                <line number="444" hits="14"/>
+                <line number="450" hits="14"/>
               </lines>
             </method>
           </methods>
@@ -831,42 +833,44 @@
             <line number="356" hits="0"/>
             <line number="360" hits="3"/>
             <line number="361" hits="3"/>
-            <line number="362" hits="0"/>
-            <line number="363" hits="0"/>
-            <line number="364" hits="0"/>
-            <line number="365" hits="0"/>
-            <line number="366" hits="0"/>
-            <line number="373" hits="11"/>
-            <line number="374" hits="9"/>
-            <line number="375" hits="1"/>
-            <line number="378" hits="8"/>
-            <line number="379" hits="8"/>
-            <line number="380" hits="2"/>
-            <line number="382" hits="2"/>
-            <line number="392" hits="17"/>
-            <line number="393" hits="16"/>
-            <line number="394" hits="2"/>
-            <line number="395" hits="2"/>
-            <line number="396" hits="2"/>
-            <line number="397" hits="2"/>
-            <line number="399" hits="2"/>
-            <line number="402" hits="14"/>
-            <line number="403" hits="14"/>
-            <line number="404" hits="1"/>
-            <line number="405" hits="1"/>
-            <line number="406" hits="1"/>
-            <line number="407" hits="1"/>
-            <line number="409" hits="1"/>
-            <line number="412" hits="13"/>
+            <line number="365" hits="3"/>
+            <line number="367" hits="3"/>
+            <line number="368" hits="0"/>
+            <line number="369" hits="0"/>
+            <line number="370" hits="0"/>
+            <line number="371" hits="0"/>
+            <line number="372" hits="0"/>
+            <line number="379" hits="11"/>
+            <line number="380" hits="9"/>
+            <line number="381" hits="1"/>
+            <line number="384" hits="8"/>
+            <line number="385" hits="8"/>
+            <line number="386" hits="2"/>
+            <line number="388" hits="2"/>
+            <line number="398" hits="17"/>
+            <line number="399" hits="16"/>
+            <line number="400" hits="2"/>
+            <line number="401" hits="2"/>
+            <line number="402" hits="2"/>
+            <line number="403" hits="2"/>
+            <line number="405" hits="2"/>
+            <line number="408" hits="14"/>
+            <line number="409" hits="14"/>
+            <line number="410" hits="1"/>
+            <line number="411" hits="1"/>
+            <line number="412" hits="1"/>
             <line number="413" hits="1"/>
-            <line number="414" hits="1"/>
             <line number="415" hits="1"/>
-            <line number="416" hits="1"/>
-            <line number="417" hits="1"/>
+            <line number="418" hits="13"/>
             <line number="419" hits="1"/>
-            <line number="428" hits="5"/>
-            <line number="436" hits="5"/>
-            <line number="444" hits="14"/>
+            <line number="420" hits="1"/>
+            <line number="421" hits="1"/>
+            <line number="422" hits="1"/>
+            <line number="423" hits="1"/>
+            <line number="425" hits="1"/>
+            <line number="434" hits="5"/>
+            <line number="442" hits="5"/>
+            <line number="450" hits="14"/>
           </lines>
         </class>
       </classes>
