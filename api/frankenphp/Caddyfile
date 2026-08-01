@@ -18,6 +18,10 @@
 {$CADDY_EXTRA_CONFIG}
 
 {$SERVER_NAME:localhost} {
+    @not-auth {
+        not path /auth/*
+    }
+
 	log {
 		# Redact the authorization query parameter that can be set by Mercure
 		format filter {
@@ -28,7 +32,7 @@
 	}
 
 	root /app/public
-	encode zstd br gzip
+	encode @not-auth zstd br gzip
 
 	mercure {
 		# Transport to use (default to Bolt)
