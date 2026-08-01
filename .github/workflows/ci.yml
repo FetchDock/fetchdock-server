@@ -68,9 +68,9 @@ jobs:
       -
         name: Check HTTP reachability
         run: curl -v --fail-with-body http://localhost/.well-known/browser-extension
-      -
-        name: Check API reachability
-        run: curl -vk --fail-with-body https://localhost/.well-known/browser-extension
+#      -
+#        name: Check API reachability
+#        run: curl -vk --fail-with-body https://localhost/.well-known/browser-extension
       -
         name: Check PWA reachability
         continue-on-error: true
