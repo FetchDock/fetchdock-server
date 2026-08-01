@@ -9,8 +9,8 @@ make build
 #docker compose build --no-cache --pull
 
 # Update deps
-make api "/bin/sh -c 'composer update; composer outdated'"
-make pwa "/bin/sh -c 'pnpm install; pnpm update; pnpm outdated'"
+make api Arguments="/bin/sh -c 'composer update; composer outdated'"
+make pwa Arguments="/bin/sh -c 'pnpm install; pnpm update; pnpm outdated'"
 
 # Update Symfony recipes
 cd api
