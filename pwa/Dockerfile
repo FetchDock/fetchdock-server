@@ -10,13 +10,20 @@ ENV APP_VERSION=${APP_VERSION}
 FROM node_upstream AS base
 ARG APP_VERSION=undefined
 ENV APP_VERSION=${APP_VERSION}
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
 
 WORKDIR /srv/app
 
-RUN npm install -g corepack@latest && \
-    corepack enable && \
-	corepack prepare --activate pnpm@latest && \
-	pnpm config -g set store-dir /.pnpm-store
+RUN corepack enable && \
+	corepack prepare pnpm@latest --activate && \
+	mkdir -p /pnpm && \
+	pnpm config set store-dir /.pnpm-store
+
+#RUN npm install -g corepack@latest && \
+#    corepack enable && \
+#	corepack prepare --activate pnpm@latest && \
+#	pnpm config -g set store-dir /.pnpm-store
 
 # Next.js collects completely anonymous telemetry data about general usage.
 # Learn more here: https://nextjs.org/telemetry

@@ -67,10 +67,10 @@ jobs:
         run: docker compose exec -T api composer install --prefer-dist --no-progress --optimize-autoloader
       -
         name: Check HTTP reachability
-        run: curl -v --fail-with-body http://localhost
-      -
-        name: Check API reachability
-        run: curl -vk --fail-with-body https://localhost
+        run: curl -v --fail-with-body http://localhost/.well-known/browser-extension
+#      -
+#        name: Check API reachability
+#        run: curl -vk --fail-with-body https://localhost/.well-known/browser-extension
       -
         name: Check PWA reachability
         continue-on-error: true

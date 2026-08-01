@@ -358,7 +358,13 @@ final class AuthController extends AbstractController
 
         try {
             $decodedContent = json_decode($response->getContent(false), true);
-            return new JsonResponse($decodedContent, $response->getStatusCode(), $headers);
+            $response = new JsonResponse($decodedContent, $response->getStatusCode(), $headers);
+
+            // Disable gzip compression to address issue when refreshing tokens
+            // Chromium throwing "net::ERR_CONTENT_DECODING_FAILED" errors
+            $response->headers->set('Content-Encoding', 'identity', true);
+
+            return $response;
         } catch (\Exception $e) {
             return new JsonResponse(
                 new ErrorResponse('Failed to decode JSON response'),
