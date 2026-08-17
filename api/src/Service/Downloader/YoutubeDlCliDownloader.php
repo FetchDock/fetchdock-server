@@ -62,6 +62,8 @@ class YoutubeDlCliDownloader extends AbstractCliDownloader implements CliDownloa
 
     public function supportsDownloadJob(DownloadJobInterface $downloadJob): bool
     {
+        // Create a inline variable with the content of the
+
         $process = new Process(array_merge(
             [
                 $this->binaryPath,
@@ -69,14 +71,39 @@ class YoutubeDlCliDownloader extends AbstractCliDownloader implements CliDownloa
             $this->getCommandOptions($downloadJob),
             [
                 '--simulate',
+                '--verbose',
                 (string) $downloadJob->getUrl(),
             ]
         ));
         try {
             $process->mustRun();
 
-            return $process->isSuccessful();
+            $success = $process->isSuccessful();
+
+            if(!$success) {
+                $this->logger->debug('yt-dlp-cli failed.', [
+                    'cli' => [
+                        'cmd' => $process->getCommandLine(),
+                        'output' => $process->getOutput(),
+                        'error' => $process->getErrorOutput(),
+                        'exit_code' => $process->getExitCode(),
+
+                    ],
+                    'uri' => $downloadJob->getUrl(),
+                ]);
+            }
+
+            return $success;
         } catch (ProcessFailedException $e) {
+            $this->logger->error('yt-dlp-cli failed.', [
+                'cli' => [
+                    'cmd' => $process->getCommandLine(),
+                    'output' => $e->getProcess()->getOutput(),
+                    'error' => $e->getProcess()->getErrorOutput(),
+                    'exit_code' => $e->getProcess()->getExitCode(),
+                ],
+                'uri' => $downloadJob->getUrl(),
+            ]);
             return false;
         }
     }
@@ -181,13 +208,7 @@ class YoutubeDlCliDownloader extends AbstractCliDownloader implements CliDownloa
             // Gallery-dl expects a cookie file in the Netscape cookies.txt format
             // So we'll create a temporary file with the cookies, pass it to the command, and delete it afterwards
             $cookieFilePath = tempnam(sys_get_temp_dir(), 'gallery_dl_cookies_');
-            foreach ($downloadJob->getCookies() as $cookie) {
-                if($cookie instanceof CookieDTO) {
-                    file_put_contents($cookieFilePath, $cookie->toNetscapeCookieLine(), FILE_APPEND);
-                } else {
-                    throw new \InvalidArgumentException('Cookies must be instances of CookieDTO');
-                }
-            }
+            file_put_contents($cookieFilePath, $downloadJob->getCookiesNetscapeFileContent());
             $commandOptions = ['--cookies', $cookieFilePath];
         }
 

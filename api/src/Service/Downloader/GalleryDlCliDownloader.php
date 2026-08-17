@@ -75,8 +75,31 @@ class GalleryDlCliDownloader extends AbstractCliDownloader implements CliDownloa
         try {
             $process->mustRun();
 
-            return $process->isSuccessful();
+            $success = $process->isSuccessful();
+
+            if(!$success) {
+                $this->logger->debug('gallery-dl-cli failed.', [
+                    'cli' => [
+                        'cmd' => $process->getCommandLine(),
+                        'output' => $process->getOutput(),
+                        'error' => $process->getErrorOutput(),
+                        'exit_code' => $process->getExitCode(),
+                    ],
+                    'uri' => $downloadJob->getUrl(),
+                ]);
+            }
+
+            return $success;
         } catch (ProcessFailedException $e) {
+            $this->logger->error('gallery-dl-cli failed.', [
+                'cli' => [
+                    'cmd' => $process->getCommandLine(),
+                    'output' => $e->getProcess()->getOutput(),
+                    'error' => $e->getProcess()->getErrorOutput(),
+                    'exit_code' => $e->getProcess()->getExitCode(),
+                ],
+                'uri' => $downloadJob->getUrl(),
+            ]);
             return false;
         }
     }

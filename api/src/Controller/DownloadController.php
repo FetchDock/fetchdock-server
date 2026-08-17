@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\DownloadedFile;
 use App\Repository\DownloadJobRepository;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -14,6 +15,7 @@ final class DownloadController extends AbstractController
 {
     public function __construct(
         private readonly DownloadJobRepository $downloadJobRepository,
+        private readonly LoggerInterface $logger,
     ) {
     }
 
@@ -41,6 +43,10 @@ final class DownloadController extends AbstractController
 
         // Check if file exists on disk
         if (!file_exists($file->getPath() ?: '')) {
+            $this->logger->error('File not found', [
+                'file' => $file->getPath(),
+                'downloadJob' => $downloadJob
+            ]);
             throw new NotFoundHttpException('File not found on server.');
         }
 
