@@ -69,8 +69,7 @@ RUN set -eux; \
 		opcache \
 		redis \
 		yaml \
-		zip \
-		http
+		zip
 
 ###> recipes ###
 ###> doctrine/doctrine-bundle ###
