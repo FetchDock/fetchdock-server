@@ -63,6 +63,8 @@ services:
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
 
+    # Allow the API to filter results which belong to the authenticated user
+    # and not belonging to other users
     'App\Doctrine\CurrentUserExtension':
         tags:
             - { name: api_platform.doctrine.orm.query_extension.collection }

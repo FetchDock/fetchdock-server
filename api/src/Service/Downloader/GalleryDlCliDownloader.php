@@ -40,26 +40,6 @@ class GalleryDlCliDownloader extends AbstractCliDownloader implements CliDownloa
         return 'gallery-dl-cli';
     }
 
-    public function supportsUri(UriInterface $uri): bool
-    {
-        $process = new Process(array_merge(
-            [
-                $this->binaryPath,
-            ],
-            [
-                '--simulate',
-                (string) $uri,
-            ]
-        ));
-        try {
-            $process->mustRun();
-
-            return $process->isSuccessful();
-        } catch (ProcessFailedException $e) {
-            return false;
-        }
-    }
-
     public function supportsDownloadJob(DownloadJobInterface $downloadJob): bool
     {
         $process = new Process(array_merge(

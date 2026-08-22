@@ -2,6 +2,7 @@
 
 namespace App\Command;
 
+use App\Entity\DownloadJob;
 use App\Factory\DownloaderFactory;
 use App\Service\Downloader\DownloaderInterface;
 use GuzzleHttp\Psr7\Utils;
@@ -57,6 +58,12 @@ class UrlDownloadCommand extends Command
 
         $url = $input->getArgument('url');
 
+        /**
+         * Minimal downloadJob since plain string url has been removed
+         */
+        $downloadJob = new DownloadJob();
+        $downloadJob->setUri(Utils::uriFor($url));
+
         $selectedDownloader = $input->getOption('downloader');
         if ($selectedDownloader) {
             $this->downloader = $this->downloaderCollection->getDownloaderByIdentifier($selectedDownloader);
@@ -65,14 +72,13 @@ class UrlDownloadCommand extends Command
 
                 return Command::FAILURE;
             }
-            if (!$this->downloader->supportsUri(Utils::uriFor($url))) {
+            if (!$this->downloader->supportsDownloadJob($downloadJob)) {
                 $io->error(sprintf('Downloader with identifier "%s" does not support the given URL!', $selectedDownloader));
 
                 return Command::FAILURE;
             }
         } else {
-            // No downloader selected, try to find one that supports the URL
-            $downloaders = $this->downloaderCollection->getDownloadersByUri(Utils::uriFor($url));
+            $downloaders = $this->downloaderCollection->getDownloadersByDownloadJob($downloadJob);
 
             // Just take the first one for now, later we can add a choice if multiple are found
             foreach ($downloaders as $downloader) {

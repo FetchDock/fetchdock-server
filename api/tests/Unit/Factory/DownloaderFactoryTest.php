@@ -2,7 +2,9 @@
 
 namespace App\Tests\Unit\Factory;
 
+use App\Entity\DownloadJob;
 use App\Factory\DownloaderFactory;
+use App\Model\DownloadJobInterface;
 use App\Service\Downloader\CliDownloaderInterface;
 use App\Service\Downloader\DownloaderInterface;
 use GuzzleHttp\Psr7\Uri;
@@ -57,16 +59,17 @@ class DownloaderFactoryTest extends TestCase
         $downloader1 = $this->createMockDownloader('youtube-dl', ['youtube.com', 'youtu.be']);
         $downloader2 = $this->createMockDownloader('gallery-dl', ['instagram.com', 'twitter.com']);
 
-        $downloader1->method('supportsUri')
-            ->willReturnCallback(fn ($uri) => in_array($uri->getHost(), ['youtube.com', 'youtu.be']));
+        $downloader1->method('supportsDownloadJob')
+            ->willReturnCallback(fn (DownloadJobInterface $downloadJob) => in_array($downloadJob->getUrl()->getHost(), ['youtube.com', 'youtu.be']));
 
-        $downloader2->method('supportsUri')
-            ->willReturnCallback(fn ($uri) => in_array($uri->getHost(), ['instagram.com', 'twitter.com']));
+        $downloader2->method('supportsDownloadJob')
+            ->willReturnCallback(fn (DownloadJobInterface $downloadJob) => in_array($downloadJob->getUrl()->getHost(), ['instagram.com', 'twitter.com']));
 
         $this->factory = new DownloaderFactory([$downloader1, $downloader2], $this->logger);
 
         $youtubeUri = new Uri('https://youtube.com/watch?v=test');
-        $supportedDownloaders = iterator_to_array($this->factory->getDownloadersByUri($youtubeUri));
+        $downloadJob = new DownloadJob()->setUri($youtubeUri);
+        $supportedDownloaders = iterator_to_array($this->factory->getDownloadersByDownloadJob($downloadJob));
 
         $this->assertCount(1, $supportedDownloaders);
         $this->assertSame($downloader1, $supportedDownloaders[0]);
@@ -77,16 +80,17 @@ class DownloaderFactoryTest extends TestCase
         $downloader1 = $this->createMockDownloader('universal1', ['example.com']);
         $downloader2 = $this->createMockDownloader('universal2', ['example.com']);
 
-        $downloader1->method('supportsUri')
-            ->willReturnCallback(fn ($uri) => 'example.com' === $uri->getHost());
+        $downloader1->method('supportsDownloadJob')
+            ->willReturnCallback(fn (DownloadJobInterface $downloadJob) => 'example.com' === $downloadJob->getUrl()->getHost());
 
-        $downloader2->method('supportsUri')
-            ->willReturnCallback(fn ($uri) => 'example.com' === $uri->getHost());
+        $downloader2->method('supportsDownloadJob')
+            ->willReturnCallback(fn (DownloadJobInterface $downloadJob) => 'example.com' === $downloadJob->getUrl()->getHost());
 
         $this->factory = new DownloaderFactory([$downloader1, $downloader2], $this->logger);
 
         $uri = new Uri('https://example.com/file.zip');
-        $supportedDownloaders = iterator_to_array($this->factory->getDownloadersByUri($uri));
+        $downloadJob = new DownloadJob()->setUri($uri);
+        $supportedDownloaders = iterator_to_array($this->factory->getDownloadersByDownloadJob($downloadJob));
 
         $this->assertCount(2, $supportedDownloaders);
         $this->assertContains($downloader1, $supportedDownloaders);
@@ -96,13 +100,14 @@ class DownloaderFactoryTest extends TestCase
     public function testGetDownloadersByUriWithNoSupportedDownloaders(): void
     {
         $downloader = $this->createMockDownloader('specific', ['youtube.com']);
-        $downloader->method('supportsUri')
+        $downloader->method('supportsDownloadJob')
             ->willReturn(false);
 
         $this->factory = new DownloaderFactory([$downloader], $this->logger);
 
         $uri = new Uri('https://unsupported.com/file.zip');
-        $supportedDownloaders = iterator_to_array($this->factory->getDownloadersByUri($uri));
+        $downloadJob = new DownloadJob()->setUri($uri);
+        $supportedDownloaders = iterator_to_array($this->factory->getDownloadersByDownloadJob($downloadJob));
 
         $this->assertCount(0, $supportedDownloaders);
     }
@@ -110,19 +115,20 @@ class DownloaderFactoryTest extends TestCase
     public function testGetDownloadersByUriLogsDebugMessages(): void
     {
         $downloader = $this->createMockDownloader('test', ['example.com']);
-        $downloader->method('supportsUri')->willReturn(true);
+        $downloader->method('supportsDownloadJob')->willReturn(true);
 
         $this->logger->expects($this->atLeastOnce())
             ->method('debug')
             ->with($this->logicalOr(
-                $this->equalTo('Looking for downloaders supporting URI'),
-                $this->equalTo('Checking downloader for URI support')
+                $this->equalTo('Looking for download jobs supporting download job'),
+                $this->equalTo('Checking download job for URI support')
             ));
 
         $this->factory = new DownloaderFactory([$downloader], $this->logger);
 
         $uri = new Uri('https://example.com/test.zip');
-        iterator_to_array($this->factory->getDownloadersByUri($uri));
+        $downloadJob = new DownloadJob()->setUri($uri);
+        iterator_to_array($this->factory->getDownloadersByDownloadJob($downloadJob));
     }
 
     public function testConstructorHandlesDuplicateIdentifiers(): void

@@ -30,14 +30,6 @@ interface DownloaderInterface
     public function getSupportedDomains(): array;
 
     /**
-     * Check if the given URI is supported by this downloader.
-     *
-     * @deprecated use supportsDownloadJob(DownloadJobInterface)
-     * @return bool true if the URI is supported, false otherwise
-     */
-    public function supportsUri(UriInterface $uri): bool;
-
-    /**
      * @param DownloadJobInterface $downloadJob
      * @return bool
      */

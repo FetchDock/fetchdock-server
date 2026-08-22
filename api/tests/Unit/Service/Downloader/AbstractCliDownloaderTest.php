@@ -308,11 +308,6 @@ class AbstractCliDownloaderTest extends TestCase
                 return 'test-cli-downloader';
             }
 
-            public function supportsUri(\Psr\Http\Message\UriInterface $uri): bool
-            {
-                return 'test.com' === $uri->getHost();
-            }
-
             public function supportsDownloadJob(DownloadJobInterface $downloadJob): bool
             {
                 return 'test.com' === $downloadJob->getUrl()->getHost();
