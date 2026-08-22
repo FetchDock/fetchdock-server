@@ -43,6 +43,34 @@ final class SupportedSite
     #[ORM\Column]
     private array $metadata = [];
 
+    #[ORM\OneToOne(mappedBy: 'site', cascade: ['persist', 'remove'])]
+    private ?SiteSetting $defaultSiteSetting = null;
+
+    #[ORM\Column(length: 255)]
+    private ?string $downloader = null;
+
+    /**
+     * IE:
+     * * youtube (for yt-dlp) for youtube links
+     * * pixiv (for gallery-dl) for pixiv links
+     *
+     * @var string|null
+     */
+    #[ORM\Column(length: 255)]
+    private ?string $downloader_specific_identifier = null;
+
+    /**
+     * IE:
+     * * work for pixiv (for gallery-dl) for pixiv links to artwork pages
+     *
+     * @var string|null
+     */
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $downloader_specific_sub_identifier = null;
+
+    #[ORM\Column]
+    private ?array $downloader_metadata = [];
+
     public function getId(): ?int
     {
         return $this->id;
@@ -104,6 +132,71 @@ final class SupportedSite
     public function setMetadata(array $metadata): static
     {
         $this->metadata = $metadata;
+
+        return $this;
+    }
+
+    public function getDefaultSiteSetting(): ?SiteSetting
+    {
+        return $this->defaultSiteSetting;
+    }
+
+    public function setDefaultSiteSetting(SiteSetting $defaultSiteSetting): static
+    {
+        // set the owning side of the relation if necessary
+        if ($defaultSiteSetting->getSite() !== $this) {
+            $defaultSiteSetting->setSite($this);
+        }
+
+        $this->defaultSiteSetting = $defaultSiteSetting;
+
+        return $this;
+    }
+
+    public function getDownloader(): ?string
+    {
+        return $this->downloader;
+    }
+
+    public function setDownloader(string $downloader): static
+    {
+        $this->downloader = $downloader;
+
+        return $this;
+    }
+
+    public function getDownloaderSpecificIdentifier(): ?string
+    {
+        return $this->downloader_specific_identifier;
+    }
+
+    public function setDownloaderSpecificIdentifier(string $downloader_specific_identifier): static
+    {
+        $this->downloader_specific_identifier = $downloader_specific_identifier;
+
+        return $this;
+    }
+
+    public function getDownloaderSpecificSubIdentifier(): ?string
+    {
+        return $this->downloader_specific_sub_identifier;
+    }
+
+    public function setDownloaderSpecificSubIdentifier(?string $downloader_specific_sub_identifier): static
+    {
+        $this->downloader_specific_sub_identifier = $downloader_specific_sub_identifier;
+
+        return $this;
+    }
+
+    public function getDownloaderMetadata(): ?array
+    {
+        return $this->downloader_metadata;
+    }
+
+    public function setDownloaderMetadata(?array $downloader_metadata): static
+    {
+        $this->downloader_metadata = $downloader_metadata;
 
         return $this;
     }

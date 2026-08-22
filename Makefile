@@ -35,9 +35,10 @@ build:
 rebuild: clean-images build up
 
 prep-test:
-	$(DOCKER_COMPOSE_PREFIX) docker compose exec -T api bin/console -e test doctrine:database:create
-	$(DOCKER_COMPOSE_PREFIX) docker compose exec -T api bin/console -e test doctrine:migrations:migrate --no-interaction
-	$(DOCKER_COMPOSE_PREFIX) docker compose exec -T api bin/console -e test doctrine:fixtures:load --no-interaction
+	$(DOCKER_COMPOSE_PREFIX) docker compose exec -T api bin/console -e test doctrine:database:drop --force --if-exists -v
+	$(DOCKER_COMPOSE_PREFIX) docker compose exec -T api bin/console -e test doctrine:database:create -v
+	$(DOCKER_COMPOSE_PREFIX) docker compose exec -T api bin/console -e test doctrine:migrations:migrate --no-interaction -v
+	$(DOCKER_COMPOSE_PREFIX) docker compose exec -T api bin/console -e test doctrine:fixtures:load --no-interaction -v
 
 test:
 	$(DOCKER_COMPOSE_PREFIX) docker compose exec --env XDEBUG_MODE=coverage -it api ./bin/phpunit --colors=always --testdox

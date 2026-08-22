@@ -13,8 +13,6 @@ class TestUserFixtures extends Fixture
         $oidcSubjectIdentifier = new OidcSubjectIdentifier();
         $oidcSubjectIdentifier->setSubject('admin');
         $manager->persist($oidcSubjectIdentifier);
-        // $product = new Product();
-        // $manager->persist($product);
 
         $manager->flush();
     }

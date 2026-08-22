@@ -15,10 +15,11 @@ class DownloadStateEnumTest extends TestCase
             'COMPLETED' => 2,
             'FAILED' => 3,
             'CANCELED' => 4,
+            'ALREADY_EXISTS' => 5
         ];
 
         $cases = DownloadStateEnum::cases();
-        $this->assertCount(5, $cases);
+        $this->assertCount(count($expectedCases), $cases);
 
         foreach ($cases as $case) {
             $this->assertArrayHasKey($case->name, $expectedCases);
@@ -33,6 +34,7 @@ class DownloadStateEnumTest extends TestCase
         $this->assertSame(2, DownloadStateEnum::COMPLETED->value);
         $this->assertSame(3, DownloadStateEnum::FAILED->value);
         $this->assertSame(4, DownloadStateEnum::CANCELED->value);
+        $this->assertSame(5, DownloadStateEnum::ALREADY_EXISTS->value);
     }
 
     public function testEnumNames(): void
@@ -42,6 +44,7 @@ class DownloadStateEnumTest extends TestCase
         $this->assertSame('COMPLETED', DownloadStateEnum::COMPLETED->name);
         $this->assertSame('FAILED', DownloadStateEnum::FAILED->name);
         $this->assertSame('CANCELED', DownloadStateEnum::CANCELED->name);
+        $this->assertSame('ALREADY_EXISTS', DownloadStateEnum::ALREADY_EXISTS->name);
     }
 
     public function testFromValue(): void
@@ -51,6 +54,7 @@ class DownloadStateEnumTest extends TestCase
         $this->assertSame(DownloadStateEnum::COMPLETED, DownloadStateEnum::from(2));
         $this->assertSame(DownloadStateEnum::FAILED, DownloadStateEnum::from(3));
         $this->assertSame(DownloadStateEnum::CANCELED, DownloadStateEnum::from(4));
+        $this->assertSame(DownloadStateEnum::ALREADY_EXISTS, DownloadStateEnum::from(5));
     }
 
     public function testTryFromValue(): void
@@ -60,6 +64,7 @@ class DownloadStateEnumTest extends TestCase
         $this->assertSame(DownloadStateEnum::COMPLETED, DownloadStateEnum::tryFrom(2));
         $this->assertSame(DownloadStateEnum::FAILED, DownloadStateEnum::tryFrom(3));
         $this->assertSame(DownloadStateEnum::CANCELED, DownloadStateEnum::tryFrom(4));
+        $this->assertSame(DownloadStateEnum::ALREADY_EXISTS, DownloadStateEnum::tryFrom(5));
         $this->assertNull(DownloadStateEnum::tryFrom(999));
     }
 

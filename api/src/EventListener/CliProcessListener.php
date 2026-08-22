@@ -11,8 +11,6 @@ use Symfony\Component\Mercure\Update;
 
 class CliProcessListener
 {
-    private const TOPIC = 'https://example.com/downloadjobs/{id}/process';
-
     public function __construct(
         private readonly HubInterface $hub,
         private readonly LoggerInterface $logger,
@@ -25,6 +23,7 @@ class CliProcessListener
         $this->sendToHub([
             'is_error' => $event->isError,
             'job_id' => $event->downloadJob->getId(),
+            'job' => $event->downloadJob,
             'output' => $event->output,
         ]);
     }
@@ -35,6 +34,7 @@ class CliProcessListener
         $this->sendToHub([
             'is_error' => $event->isError,
             'job_id' => $event->downloadJob->getId(),
+            'job' => $event->downloadJob,
             'output' => $event->output,
         ]);
     }
@@ -54,7 +54,7 @@ class CliProcessListener
     private function sendToHub(array $data): void
     {
         $update = new Update(
-            topics: 'https://example.com/downloadjobs/process',
+            topics: "/download_jobs/{$data['job']->getToken()}",
             data: json_encode($data),
             private: false
         );

@@ -4,14 +4,14 @@
 FROM node:lts AS node_upstream
 ARG APP_VERSION=undefined
 ENV APP_VERSION=${APP_VERSION}
+ENV PATH=${PATH}:/root/.local/share/pnpm/bin
 
 
 # Base stage for dev and build
 FROM node_upstream AS base
 ARG APP_VERSION=undefined
 ENV APP_VERSION=${APP_VERSION}
-ENV PNPM_HOME="/pnpm"
-ENV PATH="$PNPM_HOME:$PATH"
+ENV PATH=${PATH}:/root/.local/share/pnpm/bin
 
 WORKDIR /srv/app
 

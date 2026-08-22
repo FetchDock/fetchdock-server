@@ -40,26 +40,6 @@ class GalleryDlCliDownloader extends AbstractCliDownloader implements CliDownloa
         return 'gallery-dl-cli';
     }
 
-    public function supportsUri(UriInterface $uri): bool
-    {
-        $process = new Process(array_merge(
-            [
-                $this->binaryPath,
-            ],
-            [
-                '--simulate',
-                (string) $uri,
-            ]
-        ));
-        try {
-            $process->mustRun();
-
-            return $process->isSuccessful();
-        } catch (ProcessFailedException $e) {
-            return false;
-        }
-    }
-
     public function supportsDownloadJob(DownloadJobInterface $downloadJob): bool
     {
         $process = new Process(array_merge(
@@ -75,8 +55,31 @@ class GalleryDlCliDownloader extends AbstractCliDownloader implements CliDownloa
         try {
             $process->mustRun();
 
-            return $process->isSuccessful();
+            $success = $process->isSuccessful();
+
+            if(!$success) {
+                $this->logger->debug('gallery-dl-cli failed.', [
+                    'cli' => [
+                        'cmd' => $process->getCommandLine(),
+                        'output' => $process->getOutput(),
+                        'error' => $process->getErrorOutput(),
+                        'exit_code' => $process->getExitCode(),
+                    ],
+                    'uri' => $downloadJob->getUrl(),
+                ]);
+            }
+
+            return $success;
         } catch (ProcessFailedException $e) {
+            $this->logger->error('gallery-dl-cli failed.', [
+                'cli' => [
+                    'cmd' => $process->getCommandLine(),
+                    'output' => $e->getProcess()->getOutput(),
+                    'error' => $e->getProcess()->getErrorOutput(),
+                    'exit_code' => $e->getProcess()->getExitCode(),
+                ],
+                'uri' => $downloadJob->getUrl(),
+            ]);
             return false;
         }
     }

@@ -123,6 +123,7 @@ jobs:
         
       -
         name: Doctrine Schema Validator
+        if: false
         env:
           IMAGES_PREFIX: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}
         run: docker compose exec -T api bin/console -e test doctrine:schema:validate

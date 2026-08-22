@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Entity;
+namespace App\Resource;
 
 use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
@@ -9,6 +9,8 @@ use ApiPlatform\Metadata\GetCollection;
 use App\State\VersionProvider;
 
 #[ApiResource(
+    shortName: 'Downloader versions',
+    description: 'Information about the current and latest versions of available downloaders.',
     operations: [
         new Get(
             uriTemplate: '/versions/{id}',

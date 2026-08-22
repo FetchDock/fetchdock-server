@@ -11,7 +11,7 @@ use App\Repository\OidcSubjectIdentifierRepository;
 use Doctrine\ORM\QueryBuilder;
 use Symfony\Bundle\SecurityBundle\Security;
 
-final class CurrentUserExtension implements QueryCollectionExtensionInterface, QueryItemExtensionInterface
+class CurrentUserExtension implements QueryCollectionExtensionInterface, QueryItemExtensionInterface
 {
     public function __construct(
         private Security $security,
@@ -22,23 +22,19 @@ final class CurrentUserExtension implements QueryCollectionExtensionInterface, Q
 
     public function applyToCollection(QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass, ?Operation $operation = null, array $context = []): void
     {
-        if (!$this->security->isGranted('ROLE_ADMIN') && null !== $this->security->getUser()) {
-            $oidcUser = $this->oidcSubjectIdentifierRepository->findOneBy(['subject' => $this->security->getUser()->getUserIdentifier()]);
-
-            // Check if the $resourceClass implements the OwnerFilterableInterface
-            if (!in_array(OwnerFilterableInterface::class, class_implements($resourceClass), true)) {
-                return;
-            }
-
-            /** @var OwnerFilterableInterface $resourceClass */
-            $resourceClass::getOwnerQueryBuilder($queryBuilder, $oidcUser->getId());
-        }
+        $this->addWhere($queryBuilder, $resourceClass);
     }
 
     public function applyToItem(QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass, array $identifiers, ?Operation $operation = null, array $context = []): void
     {
-        if (!$this->security->isGranted('ROLE_ADMIN') && null !== $this->security->getUser()) {
-            $oidcUser = $this->oidcSubjectIdentifierRepository->findOneBy(['subject' => $this->security->getUser()->getUserIdentifier()]);
+        $this->addWhere($queryBuilder, $resourceClass);
+    }
+
+    public function addWhere(QueryBuilder $queryBuilder, string $resourceClass): void
+    {
+        $securityUser = $this->security->getUser();
+        if (null !== $securityUser) {
+            $oidcUser = $this->oidcSubjectIdentifierRepository->findOneBy(['subject' => $securityUser->getUserIdentifier()]);
 
             // Check if the $resourceClass implements the OwnerFilterableInterface
             if (!in_array(OwnerFilterableInterface::class, class_implements($resourceClass), true)) {

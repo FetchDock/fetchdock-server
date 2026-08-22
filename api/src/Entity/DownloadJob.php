@@ -38,6 +38,7 @@ use Symfony\Component\Uid\Uuid;
             processor: DownloadJobQueuedProcessor::class
         ),
         new Get(
+            security: "object.owner == user"
         ),
         new GetCollection(
             order: ['createdAt' => 'DESC'],

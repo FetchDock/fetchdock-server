@@ -2,7 +2,9 @@
 
 namespace App\Tests\Integration\Factory;
 
+use App\Entity\DownloadJob;
 use App\Factory\DownloaderFactory;
+use App\Model\DownloadJobInterface;
 use App\Service\Downloader\MockDownloader;
 use GuzzleHttp\Psr7\Uri;
 use PHPUnit\Framework\TestCase;
@@ -49,7 +51,8 @@ class DownloaderFactoryIntegrationTest extends TestCase
     public function testGetDownloadersByUriWithRealDownloaderSupport(): void
     {
         $supportedUri = new Uri('https://example.com/video.mp4');
-        $supportedDownloaders = iterator_to_array($this->factory->getDownloadersByUri($supportedUri));
+        $downloadJob = new DownloadJob()->setUri($supportedUri);
+        $supportedDownloaders = iterator_to_array($this->factory->getDownloadersByDownloadJob($downloadJob));
 
         $this->assertCount(1, $supportedDownloaders);
         $this->assertSame($this->mockDownloader, $supportedDownloaders[0]);
@@ -58,7 +61,8 @@ class DownloaderFactoryIntegrationTest extends TestCase
     public function testGetDownloadersByUriWithUnsupportedDomain(): void
     {
         $unsupportedUri = new Uri('https://notsupported.com/video.mp4');
-        $supportedDownloaders = iterator_to_array($this->factory->getDownloadersByUri($unsupportedUri));
+        $downloadJob = new DownloadJob()->setUri($unsupportedUri);
+        $supportedDownloaders = iterator_to_array($this->factory->getDownloadersByDownloadJob($downloadJob));
 
         $this->assertCount(0, $supportedDownloaders);
     }
@@ -98,12 +102,14 @@ class DownloaderFactoryIntegrationTest extends TestCase
 
         // Test URI resolution with different downloaders
         $uri1 = new Uri('https://example.com/test.zip');
-        $downloaders1 = iterator_to_array($factory->getDownloadersByUri($uri1));
+        $downloadJob1 = new DownloadJob()->setUri($uri1);
+        $downloaders1 = iterator_to_array($factory->getDownloadersByDownloadJob($downloadJob1));
         $this->assertCount(1, $downloaders1);
         $this->assertSame('mock', $downloaders1[0]->getIdentifier());
 
         $uri2 = new Uri('https://domain2.com/test.zip');
-        $downloaders2 = iterator_to_array($factory->getDownloadersByUri($uri2));
+        $downloadJob2 = new DownloadJob()->setUri($uri2);
+        $downloaders2 = iterator_to_array($factory->getDownloadersByDownloadJob($downloadJob2));
         $this->assertCount(1, $downloaders2);
         $this->assertSame('mock-2', $downloaders2[0]->getIdentifier());
     }
@@ -116,8 +122,8 @@ class DownloaderFactoryIntegrationTest extends TestCase
             ->method('debug')
             ->willReturnCallback(function (string $key, array $value) use ($matcher) {
                 match ($matcher->numberOfInvocations()) {
-                    1 => $this->assertSame('Looking for downloaders supporting URI', $key),
-                    2 => $this->assertSame('Checking downloader for URI support', $key),
+                    1 => $this->assertSame('Looking for download jobs supporting download job', $key),
+                    2 => $this->assertSame('Checking download job for URI support', $key),
                     default => throw new \LogicException('Unexpected number of logger calls'),
                 };
             });
@@ -125,7 +131,8 @@ class DownloaderFactoryIntegrationTest extends TestCase
         $factory = new DownloaderFactory([$this->mockDownloader], $logger);
 
         $uri = new Uri('https://example.com/test.zip');
-        iterator_to_array($factory->getDownloadersByUri($uri));
+        $downloadJob = new DownloadJob()->setUri($uri);
+        iterator_to_array($factory->getDownloadersByDownloadJob($downloadJob));
     }
 
     public function testValidDownloaderCheckWithRealDownloader(): void
@@ -144,8 +151,9 @@ class DownloaderFactoryIntegrationTest extends TestCase
         $this->assertSame($downloader1, $downloader2);
 
         $uri = new Uri('https://example.com/consistency-test.zip');
-        $downloaders1 = iterator_to_array($this->factory->getDownloadersByUri($uri));
-        $downloaders2 = iterator_to_array($this->factory->getDownloadersByUri($uri));
+        $downloadJob = new DownloadJob()->setUri($uri);
+        $downloaders1 = iterator_to_array($this->factory->getDownloadersByDownloadJob($downloadJob));
+        $downloaders2 = iterator_to_array($this->factory->getDownloadersByDownloadJob($downloadJob));
 
         $this->assertCount(1, $downloaders1);
         $this->assertCount(1, $downloaders2);
@@ -161,7 +169,7 @@ class DownloaderFactoryIntegrationTest extends TestCase
                 return 'problematic';
             }
 
-            public function supportsUri(\Psr\Http\Message\UriInterface $uri): bool
+            public function supportsDownloadJob(DownloadJobInterface $downloadJob): bool
             {
                 throw new \RuntimeException('Downloader error');
             }
@@ -174,8 +182,9 @@ class DownloaderFactoryIntegrationTest extends TestCase
 
         // The factory should handle the exception gracefully and continue with other downloaders
         $uri = new Uri('https://example.com/test.zip');
+        $downloadJob = new DownloadJob()->setUri($uri);
 
         $this->expectException(\RuntimeException::class);
-        iterator_to_array($factory->getDownloadersByUri($uri));
+        iterator_to_array($factory->getDownloadersByDownloadJob($downloadJob));
     }
 }

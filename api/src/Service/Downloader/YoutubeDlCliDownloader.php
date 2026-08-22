@@ -2,14 +2,11 @@
 
 namespace App\Service\Downloader;
 
-use App\Dto\CookieDTO;
 use App\Entity\DownloadedFile;
-use App\Entity\DownloadJob;
 use App\Model\DownloadJobInterface;
 use App\Repository\DownloadedFileRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
-use Psr\Http\Message\UriInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Process\Exception\ProcessFailedException;
@@ -44,24 +41,63 @@ class YoutubeDlCliDownloader extends AbstractCliDownloader implements CliDownloa
         return [];
     }
 
-    public function supportsUri(UriInterface $uri): bool
+    /**
+     * Runs YT-DLPs --dump-json command to get metadata for a given URL.
+     * Returns the metadata as an associative array, or null if the command fails or the output is not valid JSON.
+     *
+     * @param DownloadJobInterface $downloadJob
+     * @return array|null
+     * @throws \JsonException
+     */
+    public function getMetadata(DownloadJobInterface $downloadJob): ?array
     {
+        $uri = $downloadJob->getUrl();
+
         $process = new Process([
             $this->binaryPath,
-            '--simulate',
+            '-J',
             (string) $uri,
         ]);
+
         try {
             $process->mustRun();
 
-            return $process->isSuccessful();
+            if ($process->isSuccessful()) {
+                $output = $process->getOutput();
+                $metadata = json_decode($output, true, 512, JSON_THROW_ON_ERROR);
+                if (JSON_ERROR_NONE === json_last_error()) {
+                    return $metadata;
+                }
+
+                $this->logger->error('Failed to decode JSON metadata from yt-dlp output.', [
+                    'uri' => (string) $uri,
+                    'output' => $output,
+                    'error' => json_last_error_msg(),
+                ]);
+            } else {
+                $this->logger->error('yt-dlp failed to get metadata.', [
+                    'uri' => (string) $uri,
+                    'output' => $process->getOutput(),
+                    'error' => $process->getErrorOutput(),
+                    'exit_code' => $process->getExitCode(),
+                ]);
+            }
         } catch (ProcessFailedException $e) {
-            return false;
+            $this->logger->error('yt-dlp failed to get metadata.', [
+                'uri' => (string) $uri,
+                'output' => $e->getProcess()->getOutput(),
+                'error' => $e->getProcess()->getErrorOutput(),
+                'exit_code' => $e->getProcess()->getExitCode(),
+            ]);
         }
+
+        return null;
     }
 
     public function supportsDownloadJob(DownloadJobInterface $downloadJob): bool
     {
+        // Create a inline variable with the content of the
+
         $process = new Process(array_merge(
             [
                 $this->binaryPath,
@@ -69,19 +105,44 @@ class YoutubeDlCliDownloader extends AbstractCliDownloader implements CliDownloa
             $this->getCommandOptions($downloadJob),
             [
                 '--simulate',
+                '--verbose',
                 (string) $downloadJob->getUrl(),
             ]
         ));
         try {
             $process->mustRun();
 
-            return $process->isSuccessful();
+            $success = $process->isSuccessful();
+
+            if(!$success) {
+                $this->logger->debug('yt-dlp-cli failed.', [
+                    'cli' => [
+                        'cmd' => $process->getCommandLine(),
+                        'output' => $process->getOutput(),
+                        'error' => $process->getErrorOutput(),
+                        'exit_code' => $process->getExitCode(),
+
+                    ],
+                    'uri' => $downloadJob->getUrl(),
+                ]);
+            }
+
+            return $success;
         } catch (ProcessFailedException $e) {
+            $this->logger->error('yt-dlp-cli failed.', [
+                'cli' => [
+                    'cmd' => $process->getCommandLine(),
+                    'output' => $e->getProcess()->getOutput(),
+                    'error' => $e->getProcess()->getErrorOutput(),
+                    'exit_code' => $e->getProcess()->getExitCode(),
+                ],
+                'uri' => $downloadJob->getUrl(),
+            ]);
             return false;
         }
     }
 
-    public function addFilesToDownloadJobFromCommandOutput(DownloadJob $downloadJob, string $commandOutput): void
+    public function addFilesToDownloadJobFromCommandOutput(DownloadJobInterface $downloadJob, string $commandOutput): void
     {
         // Convert \n to actual new lines
         $lines = explode("\n", $commandOutput);
@@ -148,7 +209,7 @@ class YoutubeDlCliDownloader extends AbstractCliDownloader implements CliDownloa
         return $versions['latest'];
     }
 
-    private function addFileToDownloadJobFromCommandOutput(DownloadJob $downloadJob, string $filePath): void
+    private function addFileToDownloadJobFromCommandOutput(DownloadJobInterface $downloadJob, string $filePath): void
     {
         if (file_exists($filePath) && is_file($filePath)) {
             $downloadedFile = $this->downloadedFileRepository->findOneBy(['path' => $filePath]);
@@ -181,13 +242,7 @@ class YoutubeDlCliDownloader extends AbstractCliDownloader implements CliDownloa
             // Gallery-dl expects a cookie file in the Netscape cookies.txt format
             // So we'll create a temporary file with the cookies, pass it to the command, and delete it afterwards
             $cookieFilePath = tempnam(sys_get_temp_dir(), 'gallery_dl_cookies_');
-            foreach ($downloadJob->getCookies() as $cookie) {
-                if($cookie instanceof CookieDTO) {
-                    file_put_contents($cookieFilePath, $cookie->toNetscapeCookieLine(), FILE_APPEND);
-                } else {
-                    throw new \InvalidArgumentException('Cookies must be instances of CookieDTO');
-                }
-            }
+            file_put_contents($cookieFilePath, $downloadJob->getCookiesNetscapeFileContent());
             $commandOptions = ['--cookies', $cookieFilePath];
         }
 

@@ -5,7 +5,6 @@ namespace App\Factory;
 use App\Model\DownloadJobInterface;
 use App\Service\Downloader\CliDownloaderInterface;
 use App\Service\Downloader\DownloaderInterface;
-use Psr\Http\Message\UriInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
 
@@ -57,25 +56,6 @@ class DownloaderFactory
     public function isValidDownloader(string $identifier): bool
     {
         return isset($this->downloaders[$identifier]);
-    }
-
-    /**
-     * @deprecated Use getDownloadersByDownloadJob instead.
-     * @return iterable<DownloaderInterface>
-     */
-    public function getDownloadersByUri(UriInterface $uri): iterable
-    {
-        $this->logger->debug('Looking for downloaders supporting URI', ['uri' => $uri]);
-        foreach ($this->downloaders as $downloader) {
-            $this->logger->debug('Checking downloader for URI support', [
-                'downloader' => $downloader->getIdentifier(),
-                'uri' => $uri,
-            ]);
-            /** @var DownloaderInterface $downloader */
-            if ($downloader->supportsUri($uri)) {
-                yield $downloader;
-            }
-        }
     }
 
     public function getDownloadersByDownloadJob(DownloadJobInterface $downloadJob): iterable

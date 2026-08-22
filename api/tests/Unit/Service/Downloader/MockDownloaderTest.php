@@ -51,37 +51,43 @@ class MockDownloaderTest extends TestCase
     public function testSupportsUriWithSupportedDomain(): void
     {
         $uri = new Uri('https://example.com/file.zip');
-        $this->assertTrue($this->downloader->supportsUri($uri));
+        $downloadJob = new DownloadJob()->setUri($uri);
+        $this->assertTrue($this->downloader->supportsDownloadJob($downloadJob));
     }
 
     public function testSupportsUriWithAnotherSupportedDomain(): void
     {
         $uri = new Uri('https://test.com/video.mp4');
-        $this->assertTrue($this->downloader->supportsUri($uri));
+        $downloadJob = new DownloadJob()->setUri($uri);
+        $this->assertTrue($this->downloader->supportsDownloadJob($downloadJob));
     }
 
     public function testSupportsUriWithUnsupportedDomain(): void
     {
         $uri = new Uri('https://unsupported.com/file.zip');
-        $this->assertFalse($this->downloader->supportsUri($uri));
+        $downloadJob = new DownloadJob()->setUri($uri);
+        $this->assertFalse($this->downloader->supportsDownloadJob($downloadJob));
     }
 
     public function testSupportsUriWithSubdomain(): void
     {
         $uri = new Uri('https://subdomain.example.com/file.zip');
-        $this->assertFalse($this->downloader->supportsUri($uri));
+        $downloadJob = new DownloadJob()->setUri($uri);
+        $this->assertFalse($this->downloader->supportsDownloadJob($downloadJob));
     }
 
     public function testSupportsUriWithDifferentScheme(): void
     {
         $uri = new Uri('http://example.com/file.zip');
-        $this->assertTrue($this->downloader->supportsUri($uri));
+        $downloadJob = new DownloadJob()->setUri($uri);
+        $this->assertTrue($this->downloader->supportsDownloadJob($downloadJob));
     }
 
     public function testSupportsUriWithPort(): void
     {
         $uri = new Uri('https://example.com:8080/file.zip');
-        $this->assertTrue($this->downloader->supportsUri($uri));
+        $downloadJob = new DownloadJob()->setUri($uri);
+        $this->assertTrue($this->downloader->supportsDownloadJob($downloadJob));
     }
 
     public function testDownload(): void
@@ -157,9 +163,10 @@ class MockDownloaderTest extends TestCase
 
         foreach ($testCases as $uriString => $expected) {
             $uri = new Uri($uriString);
+            $downloadJob = new DownloadJob()->setUri($uri);
             $this->assertSame(
                 $expected,
-                $this->downloader->supportsUri($uri),
+                $this->downloader->supportsDownloadJob($downloadJob),
                 "Failed for URI: $uriString"
             );
         }
