@@ -144,7 +144,7 @@ class DownloadJobQueuedProcessor implements ProcessorInterface
             ->setJobType(JobTypeEnum::DOWNLOAD);
     }
 
-    private function checkForExistingDownloadJobs(DownloadJob $downloadJob): bool
+    private function checkForExistingDownloadJobs(DownloadJob $downloadJob): void
     {
         $result = $this->downloadJobRepository->findByUrlAndOwner(
             $downloadJob->getUri(),
