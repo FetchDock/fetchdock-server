@@ -12,11 +12,14 @@ use App\Entity\DownloadJob;
 use App\Enum\DownloadStateEnum;
 use App\Enum\JobTypeEnum;
 use App\Factory\DownloaderFactory;
+use App\Model\DownloadJobInterface;
+use App\Repository\DownloadJobRepository;
 use App\Repository\OidcSubjectIdentifierRepository;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\Exception\BadRequestException;
+use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
@@ -35,6 +38,7 @@ class DownloadJobQueuedProcessor implements ProcessorInterface
         private TagAwareCacheInterface $cache,
         private Security $security,
         private OidcSubjectIdentifierRepository $oidcSubjectIdentifierRepository,
+        private DownloadJobRepository $downloadJobRepository,
     ) {
     }
 
@@ -47,13 +51,24 @@ class DownloadJobQueuedProcessor implements ProcessorInterface
 
         $securityUser = $this->security->getUser();
 
+
+
+        $downloadJob
+            ->setUri($data->uri)
+            ->setUserAgent($data->userAgent ?? null)
+            ->setCookies($data->cookies ?? null)
+            ->setState(DownloadStateEnum::PENDING);
+
         if ($securityUser) {
             $oidcSubjectIdentifier = $this->oidcSubjectIdentifierRepository->findOneBy(['subject' => $securityUser->getUserIdentifier()]);
             if (!$oidcSubjectIdentifier) {
                 throw new \RuntimeException('OIDC subject identifier not found. Subject: ' . $securityUser->getUserIdentifier());
             }
-
             $downloadJob->setOwner($oidcSubjectIdentifier);
+
+            if(!$data->force) {
+                $this->checkForExistingDownloadJobs($downloadJob);
+            }
         }
 
         $this->logger->debug('Processing new download job', [
@@ -68,12 +83,6 @@ class DownloadJobQueuedProcessor implements ProcessorInterface
         if (isset($data->downloader) && !$this->downloaderFactory->isValidDownloader($data->downloader)) {
             throw new BadRequestException('Invalid downloader specified. Possible values: '.implode(', ', array_map(fn ($d) => $d->getIdentifier(), $this->downloaderFactory->getEnabledDownloaders())));
         }
-
-        $downloadJob
-            ->setUri($data->uri)
-            ->setUserAgent($data->userAgent ?? null)
-            ->setCookies($data->cookies ?? null)
-            ->setState(DownloadStateEnum::PENDING);
 
         if (isset($data->downloader)) {
             $downloadJob->setDownloader($data->downloader);
@@ -133,6 +142,27 @@ class DownloadJobQueuedProcessor implements ProcessorInterface
             ->setJobUuid($downloadJob->getUuid()->toRfc4122())
             ->setToken($downloadJob->getToken())
             ->setJobType(JobTypeEnum::DOWNLOAD);
+    }
+
+    private function checkForExistingDownloadJobs(DownloadJob $downloadJob): void
+    {
+        $result = $this->downloadJobRepository->findByUrlAndOwner(
+            $downloadJob->getUri(),
+            $downloadJob->getOwner()
+        );
+
+        if($result) {
+            /** @var DownloadJobInterface $existingDownloadJob */
+            foreach($result as $existingDownloadJob) {
+                if(in_array($existingDownloadJob->getState(), [
+                    DownloadStateEnum::PENDING,
+                    DownloadStateEnum::COMPLETED,
+                    DownloadStateEnum::ALREADY_EXISTS
+                ], true)) {
+                    throw new ConflictHttpException('Download Job already exists');
+                }
+            }
+        }
     }
 
     private function getDomainProbeCacheKey(DownloadJob $downloadJob): string

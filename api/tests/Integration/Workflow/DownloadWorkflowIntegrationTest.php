@@ -6,6 +6,7 @@ use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
 use App\Dto\DownloadJobDTO;
 use App\Entity\DownloadJob;
+use App\Entity\OidcSubjectIdentifier;
 use App\Enum\DownloadStateEnum;
 use App\Factory\DownloaderFactory;
 use App\Handler\DownloadJobHandler;
@@ -18,6 +19,8 @@ use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\EventDispatcher\EventDispatcher;
+use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
+use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 /**
@@ -39,6 +42,7 @@ class DownloadWorkflowIntegrationTest extends TestCase
     private OidcSubjectIdentifierRepository $oidcSubjectIdentifierRepository;
     private ProcessorInterface $persistProcessor;
     private ProcessorInterface $messengerProcessor;
+    private DownloadJobRepository $downloadJobRepository;
     private array $dispatchedEvents = [];
 
     protected function setUp(): void
@@ -52,6 +56,7 @@ class DownloadWorkflowIntegrationTest extends TestCase
         $this->cache = $this->createMock(TagAwareCacheInterface::class);
         $this->security = $this->createMock(Security::class);
         $this->oidcSubjectIdentifierRepository = $this->createMock(OidcSubjectIdentifierRepository::class);
+        $this->downloadJobRepository = $this->createMock(DownloadJobRepository::class);
         $this->eventDispatcher = new EventDispatcher();
         $this->dispatchedEvents = [];
 
@@ -74,7 +79,8 @@ class DownloadWorkflowIntegrationTest extends TestCase
             $this->downloaderFactory,
             $this->cache,
             $this->security,
-            $this->oidcSubjectIdentifierRepository
+            $this->oidcSubjectIdentifierRepository,
+            $this->downloadJobRepository
         );
 
         $this->handler = new DownloadJobHandler(
@@ -92,6 +98,7 @@ class DownloadWorkflowIntegrationTest extends TestCase
         $dto->uri = 'https://example.com/test.zip';
         $dto->downloader = 'mock';
         $dto->userAgent = 'TestAgent/1.0';
+        $dto->force = true; // Prevent error response due to existing urls (got seperate test for that)
 
         $operation = $this->createMock(Operation::class);
 
@@ -146,6 +153,7 @@ class DownloadWorkflowIntegrationTest extends TestCase
         // Step 1: Process DTO without specifying downloader
         $dto = new DownloadJobDTO();
         $dto->uri = 'https://example.com/auto-select.zip';
+        $dto->force = true; // Prevent error response due to existing urls (got seperate test for that)
 
         $operation = $this->createMock(Operation::class);
 
@@ -197,6 +205,7 @@ class DownloadWorkflowIntegrationTest extends TestCase
     {
         $dto = new DownloadJobDTO();
         $dto->uri = 'https://unsupported.com/test.zip';
+        $dto->force = true; // Prevent error response due to existing urls (got seperate test for that)
 
         $operation = $this->createMock(Operation::class);
 
@@ -280,6 +289,7 @@ class DownloadWorkflowIntegrationTest extends TestCase
         $dto = new DownloadJobDTO();
         $dto->uri = 'https://example.com/test.zip';
         $dto->downloader = 'invalid-downloader';
+        $dto->force = true; // Prevent error response due to existing urls (got seperate test for that)
 
         $operation = $this->createMock(Operation::class);
 
@@ -295,6 +305,7 @@ class DownloadWorkflowIntegrationTest extends TestCase
         $dto = new DownloadJobDTO();
         $dto->uri = 'https://example.com/state-test.zip';
         $dto->downloader = 'mock';
+        $dto->force = true; // Prevent error response due to existing urls (got seperate test for that)
 
         $operation = $this->createMock(Operation::class);
 
@@ -325,5 +336,52 @@ class DownloadWorkflowIntegrationTest extends TestCase
 
         // Verify final state
         $this->assertSame(DownloadStateEnum::COMPLETED, $job->getState());
+    }
+
+    public function testWorkflowRejectsExistingDownloadJobsByUrl(): void
+    {
+        $this->testCompleteWorkflowWithValidDownloader(); // success
+
+
+        // Step 1: Process DTO with specified downloader
+        $dto = new DownloadJobDTO();
+        $dto->uri = 'https://example.com/test.zip';
+        $dto->downloader = 'mock';
+        $dto->userAgent = 'TestAgent/1.0';
+        // Defaults to false
+        //$dto->force = true; // Prevent error response due to existing urls (got seperate test for that)
+
+        $operation = $this->createMock(Operation::class);
+
+        $this->expectException(ConflictHttpException::class);
+        $this->expectExceptionMessageIs('Download Job already exists');
+
+        $user = $this->createMock(UserInterface::class);
+        $user->expects($this->once())
+            ->method('getUserIdentifier')
+            ->willReturn('admin');
+
+        $oidcSubject = $this->createMock(OidcSubjectIdentifier::class);
+
+        $this->oidcSubjectIdentifierRepository->expects($this->once())
+            ->method('findOneBy')
+            ->with([
+                'subject' => 'admin'
+            ])
+            ->willReturn($oidcSubject);
+
+        $this->downloadJobRepository->expects($this->once())
+            ->method('findByUrlAndOwner')
+            ->with(
+                $dto->uri,
+                $oidcSubject
+            )
+            ->willReturn([new DownloadJob()->setState(DownloadStateEnum::COMPLETED)]);
+
+        $this->security->expects($this->once())
+            ->method('getUser')
+            ->willReturn($user);
+
+        $result = $this->processor->process($dto, $operation);
     }
 }
