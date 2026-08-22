@@ -34,7 +34,12 @@ SELECT
 FROM
     download_job
 GROUP BY
-    owner_id
+    owner_id;
+EOL
+);
+        $this->addSql(<<<EOL
+CREATE RULE ignore_delete_user_download_stats AS ON DELETE TO user_download_stats
+DO INSTEAD NOTHING;
 EOL
 );
     }
@@ -42,6 +47,6 @@ EOL
     public function down(Schema $schema): void
     {
         // this down() migration is auto-generated, please modify it to your needs
-        $this->addSql('DROP VIEW download_stats');
+        $this->addSql('DROP VIEW user_download_stats');
     }
 }

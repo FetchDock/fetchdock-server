@@ -2,17 +2,11 @@
 
 namespace App\Resource\Stats;
 
-use ApiPlatform\Metadata\ApiResource;
-use ApiPlatform\Metadata\Get;
-use App\Entity\OidcSubjectIdentifier;
 use App\Interface\OwnerFilterableInterface;
 use App\Repository\UserDownloadStatsRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\ORM\QueryBuilder;
 
-#[ORM\Table(
-    name: 'user_download_stats'
-)]
 #[ORM\Entity(
     repositoryClass: UserDownloadStatsRepository::class,
     readOnly: true,
