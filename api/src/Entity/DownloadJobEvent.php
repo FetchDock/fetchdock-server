@@ -10,6 +10,7 @@ use ApiPlatform\Metadata\Link;
 use App\Interface\OwnerFilterableInterface;
 use App\Repository\DownloadJobEventRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\ORM\QueryBuilder;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
 
@@ -175,7 +176,12 @@ class DownloadJobEvent implements OwnerFilterableInterface
     {
         $rootAlias = $queryBuilder->getRootAliases()[0];
         return $queryBuilder
-            ->andWhere('download_job.owner = :owner')
+            ->innerJoin(
+                sprintf('%s.downloadJob', $rootAlias),
+                'dj',
+                Join::INNER_JOIN
+            )
+            ->andWhere('dj.owner = :owner')
             ->setParameter('owner', $ownerIdentifier);
     }
 }
