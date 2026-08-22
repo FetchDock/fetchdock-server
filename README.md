@@ -40,6 +40,7 @@ If you're having issues with setting up authentication with your provider, feel 
   - Just create a new class implementing the `App\Service\Downloader\DownloaderInterface` and it's automatically registered
 - Dockerized for easy deployment
 - API documentation with Swagger UI
+- (Partial) multi user support
 
 ### Future Plans (in no particular order)
 - [ ] Add more backends for different platforms
