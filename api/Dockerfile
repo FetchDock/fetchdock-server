@@ -3,7 +3,7 @@
 # Adapted from https://github.com/dunglas/symfony-docker
 
 # Versions
-FROM dunglas/frankenphp:1-php8.5 AS frankenphp_upstream
+FROM dunglas/frankenphp:1.12.6-php8.5 AS frankenphp_upstream
 ARG APP_VERSION=undefined
 ENV APP_VERSION=${APP_VERSION}
 
