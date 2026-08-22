@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\DownloadJob;
+use App\Entity\OidcSubjectIdentifier;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -33,6 +34,26 @@ class DownloadJobRepository extends ServiceEntityRepository
             ->setParameter('token', $token)
             ->getQuery()
             ->getOneOrNullResult();
+    }
+
+    public function findByUrlAndOwner(string $url, OidcSubjectIdentifier $owner): ?array
+    {
+        return $this->createQueryBuilder('d')
+            ->andWhere('d.uri = :uri')
+            ->andWhere('d.owner = :owner')
+            ->setParameter('uri', $url)
+            ->setParameter('owner', $owner)
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function findByUrl(string $url): ?array
+    {
+        return $this->createQueryBuilder('d')
+            ->andWhere('d.uri = :uri')
+            ->setParameter('uri', $url)
+            ->getQuery()
+            ->getResult();
     }
 
     //    /**
