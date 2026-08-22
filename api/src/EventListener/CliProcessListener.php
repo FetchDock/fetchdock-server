@@ -23,6 +23,7 @@ class CliProcessListener
         $this->sendToHub([
             'is_error' => $event->isError,
             'job_id' => $event->downloadJob->getId(),
+            'job' => $event->downloadJob,
             'output' => $event->output,
         ]);
     }
@@ -33,6 +34,7 @@ class CliProcessListener
         $this->sendToHub([
             'is_error' => $event->isError,
             'job_id' => $event->downloadJob->getId(),
+            'job' => $event->downloadJob,
             'output' => $event->output,
         ]);
     }
