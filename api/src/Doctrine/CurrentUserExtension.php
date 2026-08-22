@@ -11,7 +11,7 @@ use App\Repository\OidcSubjectIdentifierRepository;
 use Doctrine\ORM\QueryBuilder;
 use Symfony\Bundle\SecurityBundle\Security;
 
-final class CurrentUserExtension implements QueryCollectionExtensionInterface, QueryItemExtensionInterface
+class CurrentUserExtension implements QueryCollectionExtensionInterface, QueryItemExtensionInterface
 {
     public function __construct(
         private Security $security,
@@ -32,8 +32,9 @@ final class CurrentUserExtension implements QueryCollectionExtensionInterface, Q
 
     public function addWhere(QueryBuilder $queryBuilder, string $resourceClass): void
     {
-        if (null !== $this->security->getUser()) {
-            $oidcUser = $this->oidcSubjectIdentifierRepository->findOneBy(['subject' => $this->security->getUser()->getUserIdentifier()]);
+        $securityUser = $this->security->getUser();
+        if (null !== $securityUser) {
+            $oidcUser = $this->oidcSubjectIdentifierRepository->findOneBy(['subject' => $securityUser->getUserIdentifier()]);
 
             // Check if the $resourceClass implements the OwnerFilterableInterface
             if (!in_array(OwnerFilterableInterface::class, class_implements($resourceClass), true)) {
