@@ -15,10 +15,15 @@ ENV PATH=${PATH}:/root/.local/share/pnpm/bin
 
 WORKDIR /srv/app
 
-RUN npm install -g corepack@latest && \
-    corepack enable && \
-	corepack prepare --activate pnpm@latest && \
-	pnpm config -g set store-dir /.pnpm-store
+RUN corepack enable && \
+	corepack prepare pnpm@latest --activate && \
+	mkdir -p /pnpm && \
+	pnpm config set store-dir /.pnpm-store
+
+#RUN npm install -g corepack@latest && \
+#    corepack enable && \
+#	corepack prepare --activate pnpm@latest && \
+#	pnpm config -g set store-dir /.pnpm-store
 
 # Next.js collects completely anonymous telemetry data about general usage.
 # Learn more here: https://nextjs.org/telemetry

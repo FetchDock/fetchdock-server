@@ -13,9 +13,7 @@ doctrine:
 
         schema_filter: ~^(?!view_)~ # Exclude views from schema management
     orm:
-        auto_generate_proxy_classes: true
-        enable_lazy_ghost_objects: true
-        enable_native_lazy_objects: true
+        # enable_native_lazy_objects: true # Default is true; option is deprecated and will be removed in DoctrineBundle 4.0
         # Deprecated when using DBAL 4 and will be removed in DoctrineBundle 3.0
         # Will be removed when commenting doesn't break anything
         # report_fields_where_declared: true
@@ -49,8 +47,6 @@ when@test:
 when@prod:
     doctrine:
         orm:
-            auto_generate_proxy_classes: false
-            proxy_dir: '%kernel.build_dir%/doctrine/orm/Proxies'
             query_cache_driver:
                 type: pool
                 pool: doctrine.system_cache_pool

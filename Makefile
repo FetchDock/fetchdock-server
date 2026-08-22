@@ -59,3 +59,7 @@ api:
 .PHONY: worker
 worker:
 	$(DOCKER_COMPOSE_PREFIX) docker compose run --entrypoint="" --rm -it worker $(Arguments)
+
+.PHONY: pwa
+pwa:
+	$(DOCKER_COMPOSE_PREFIX) docker compose run --entrypoint="" --rm -it pwa $(Arguments)
