@@ -21,6 +21,7 @@ class DownloadJobTest extends ApiTestCase
                     'session' => 'abc123',
                 ],
                 'downloader' => 'mock',
+                'force' => true
             ],
             'headers' => [
                 'Content-Type' => 'application/ld+json',
@@ -37,6 +38,7 @@ class DownloadJobTest extends ApiTestCase
             'json' => [
                 'uri' => 'https://example.com/file.zip',
                 'downloader' => 'mock',
+                'force' => true
             ],
             'headers' => [
                 'Content-Type' => 'application/ld+json',
