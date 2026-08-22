@@ -9,6 +9,7 @@ enum DownloadStateEnum: int
     case COMPLETED = 2;
     case FAILED = 3;
     case CANCELED = 4;
+    case ALREADY_EXISTS = 5;
 
     public function label(): string
     {
@@ -18,6 +19,7 @@ enum DownloadStateEnum: int
             self::COMPLETED => 'Completed',
             self::FAILED => 'Failed',
             self::CANCELED => 'Canceled',
+            self::ALREADY_EXISTS => 'Already Exists',
         };
     }
 }
