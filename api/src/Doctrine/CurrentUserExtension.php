@@ -22,22 +22,17 @@ final class CurrentUserExtension implements QueryCollectionExtensionInterface, Q
 
     public function applyToCollection(QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass, ?Operation $operation = null, array $context = []): void
     {
-        if (!$this->security->isGranted('ROLE_ADMIN') && null !== $this->security->getUser()) {
-            $oidcUser = $this->oidcSubjectIdentifierRepository->findOneBy(['subject' => $this->security->getUser()->getUserIdentifier()]);
-
-            // Check if the $resourceClass implements the OwnerFilterableInterface
-            if (!in_array(OwnerFilterableInterface::class, class_implements($resourceClass), true)) {
-                return;
-            }
-
-            /** @var OwnerFilterableInterface $resourceClass */
-            $resourceClass::getOwnerQueryBuilder($queryBuilder, $oidcUser->getId());
-        }
+        $this->addWhere($queryBuilder, $resourceClass);
     }
 
     public function applyToItem(QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass, array $identifiers, ?Operation $operation = null, array $context = []): void
     {
-        if (!$this->security->isGranted('ROLE_ADMIN') && null !== $this->security->getUser()) {
+        $this->addWhere($queryBuilder, $resourceClass);
+    }
+
+    public function addWhere(QueryBuilder $queryBuilder, string $resourceClass): void
+    {
+        if (null !== $this->security->getUser()) {
             $oidcUser = $this->oidcSubjectIdentifierRepository->findOneBy(['subject' => $this->security->getUser()->getUserIdentifier()]);
 
             // Check if the $resourceClass implements the OwnerFilterableInterface
