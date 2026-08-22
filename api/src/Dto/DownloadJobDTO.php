@@ -23,4 +23,9 @@ final class DownloadJobDTO
     #[Assert\Type('string')]
     #[CustomAssert\SelectDownloader]
     public string $downloader;
+
+    /**
+     * @var bool Allow DownloadJob to be accepted eventhough one already exists with the same uri
+     */
+    public bool $force = false;
 }

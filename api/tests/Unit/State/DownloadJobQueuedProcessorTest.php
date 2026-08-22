@@ -8,10 +8,12 @@ use App\Dto\CookieDTO;
 use App\Dto\DownloadJobDTO;
 use App\Dto\JobAcceptedDTO;
 use App\Entity\DownloadJob;
+use App\Entity\OidcSubjectIdentifier;
 use App\Enum\DownloadStateEnum;
 use App\Enum\JobTypeEnum;
 use App\Factory\DownloaderFactory;
 use App\Model\DownloadJobInterface;
+use App\Repository\DownloadJobRepository;
 use App\Repository\OidcSubjectIdentifierRepository;
 use App\Service\Downloader\DownloaderInterface;
 use App\State\DownloadJobQueuedProcessor;
@@ -32,7 +34,9 @@ class DownloadJobQueuedProcessorTest extends TestCase
     private TagAwareCacheInterface $cache;
     private Operation $operation;
     private Security $security;
+    private DownloadJobRepository $downloadJobRepository;
     private OidcSubjectIdentifierRepository $oidcSubjectIdentifierRepository;
+    private OidcSubjectIdentifier $oidcSubjectIdentifier;
 
     protected function setUp(): void
     {
@@ -43,7 +47,13 @@ class DownloadJobQueuedProcessorTest extends TestCase
         $this->cache = $this->createMock(TagAwareCacheInterface::class);
         $this->operation = $this->createMock(Operation::class);
         $this->security = $this->createMock(Security::class);
+        $this->downloadJobRepository = $this->createMock(DownloadJobRepository::class);
         $this->oidcSubjectIdentifierRepository = $this->createMock(OidcSubjectIdentifierRepository::class);
+
+        $this->oidcSubjectIdentifier = $this->createMock(OidcSubjectIdentifier::class);
+        $this->oidcSubjectIdentifier->expects($this->atLeast(0))
+            ->method('getId')
+            ->willReturn(1);
 
         $this->processor = new DownloadJobQueuedProcessor(
             $this->persistProcessor,
@@ -52,7 +62,8 @@ class DownloadJobQueuedProcessorTest extends TestCase
             $this->downloaderFactory,
             $this->cache,
             $this->security,
-            $this->oidcSubjectIdentifierRepository
+            $this->oidcSubjectIdentifierRepository,
+            $this->downloadJobRepository
         );
     }
 
