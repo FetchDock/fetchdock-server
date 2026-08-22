@@ -2,14 +2,11 @@
 
 namespace App\Service\Downloader;
 
-use App\Dto\CookieDTO;
 use App\Entity\DownloadedFile;
-use App\Entity\DownloadJob;
 use App\Model\DownloadJobInterface;
 use App\Repository\DownloadedFileRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
-use Psr\Http\Message\UriInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Process\Exception\ProcessFailedException;
@@ -44,20 +41,57 @@ class YoutubeDlCliDownloader extends AbstractCliDownloader implements CliDownloa
         return [];
     }
 
-    public function supportsUri(UriInterface $uri): bool
+    /**
+     * Runs YT-DLPs --dump-json command to get metadata for a given URL.
+     * Returns the metadata as an associative array, or null if the command fails or the output is not valid JSON.
+     *
+     * @param DownloadJobInterface $downloadJob
+     * @return array|null
+     * @throws \JsonException
+     */
+    public function getMetadata(DownloadJobInterface $downloadJob): ?array
     {
+        $uri = $downloadJob->getUrl();
+
         $process = new Process([
             $this->binaryPath,
-            '--simulate',
+            '-J',
             (string) $uri,
         ]);
+
         try {
             $process->mustRun();
 
-            return $process->isSuccessful();
+            if ($process->isSuccessful()) {
+                $output = $process->getOutput();
+                $metadata = json_decode($output, true, 512, JSON_THROW_ON_ERROR);
+                if (JSON_ERROR_NONE === json_last_error()) {
+                    return $metadata;
+                }
+
+                $this->logger->error('Failed to decode JSON metadata from yt-dlp output.', [
+                    'uri' => (string) $uri,
+                    'output' => $output,
+                    'error' => json_last_error_msg(),
+                ]);
+            } else {
+                $this->logger->error('yt-dlp failed to get metadata.', [
+                    'uri' => (string) $uri,
+                    'output' => $process->getOutput(),
+                    'error' => $process->getErrorOutput(),
+                    'exit_code' => $process->getExitCode(),
+                ]);
+            }
         } catch (ProcessFailedException $e) {
-            return false;
+            $this->logger->error('yt-dlp failed to get metadata.', [
+                'uri' => (string) $uri,
+                'output' => $e->getProcess()->getOutput(),
+                'error' => $e->getProcess()->getErrorOutput(),
+                'exit_code' => $e->getProcess()->getExitCode(),
+            ]);
         }
+
+        return null;
     }
 
     public function supportsDownloadJob(DownloadJobInterface $downloadJob): bool
@@ -108,7 +142,7 @@ class YoutubeDlCliDownloader extends AbstractCliDownloader implements CliDownloa
         }
     }
 
-    public function addFilesToDownloadJobFromCommandOutput(DownloadJob $downloadJob, string $commandOutput): void
+    public function addFilesToDownloadJobFromCommandOutput(DownloadJobInterface $downloadJob, string $commandOutput): void
     {
         // Convert \n to actual new lines
         $lines = explode("\n", $commandOutput);
@@ -175,7 +209,7 @@ class YoutubeDlCliDownloader extends AbstractCliDownloader implements CliDownloa
         return $versions['latest'];
     }
 
-    private function addFileToDownloadJobFromCommandOutput(DownloadJob $downloadJob, string $filePath): void
+    private function addFileToDownloadJobFromCommandOutput(DownloadJobInterface $downloadJob, string $filePath): void
     {
         if (file_exists($filePath) && is_file($filePath)) {
             $downloadedFile = $this->downloadedFileRepository->findOneBy(['path' => $filePath]);
