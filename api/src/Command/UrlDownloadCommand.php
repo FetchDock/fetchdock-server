@@ -80,15 +80,19 @@ class UrlDownloadCommand extends Command
         } else {
             $downloaders = $this->downloaderCollection->getDownloadersByDownloadJob($downloadJob);
 
-            // Just take the first one for now, later we can add a choice if multiple are found
-            foreach ($downloaders as $downloader) {
-                $this->downloader = $downloader;
-                break;
+            if($downloaders) {
+                // Just take the first one for now, later we can add a choice if multiple are found
+                foreach ($downloaders as $downloader) {
+                    $this->downloader = $downloader;
+                    break;
+                }
+            } else {
+                return Command::FAILURE;
             }
         }
 
         $io->info(sprintf('Downloading URL: %s', $url));
-        if ($this->downloader->download(Utils::uriFor($url))) {
+        if ($this->downloader->download($downloadJob)) {
             $io->success('URL sent to download server successfully!');
 
             return Command::SUCCESS;
