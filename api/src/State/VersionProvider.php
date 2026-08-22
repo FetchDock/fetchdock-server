@@ -5,8 +5,8 @@ namespace App\State;
 use ApiPlatform\Metadata\CollectionOperationInterface;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
-use App\Entity\Version;
 use App\Factory\DownloaderFactory;
+use App\Resource\Version;
 use Psr\Log\LoggerInterface;
 
 class VersionProvider implements ProviderInterface

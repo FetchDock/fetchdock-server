@@ -4,8 +4,8 @@ namespace App\Tests\Unit\State;
 
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
-use App\Entity\Version;
 use App\Factory\DownloaderFactory;
+use App\Resource\Version;
 use App\Service\Downloader\DownloaderInterface;
 use App\State\VersionProvider;
 use PHPUnit\Framework\TestCase;

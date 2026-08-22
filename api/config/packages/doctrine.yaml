@@ -10,6 +10,8 @@ doctrine:
         # Deprecated when using DBAL 4 and will be removed in DoctrineBundle 3.0
         # Will be removed when commenting doesn't break anything
         #use_savepoints: true
+
+        schema_filter: ~^(?!view_)~ # Exclude views from schema management
     orm:
         auto_generate_proxy_classes: true
         enable_lazy_ghost_objects: true
@@ -29,6 +31,12 @@ doctrine:
                 dir: '%kernel.project_dir%/src/Entity'
                 prefix: 'App\Entity'
                 alias: App
+            Resource:
+                type: attribute
+                is_bundle: false
+                dir: '%kernel.project_dir%/src/Resource'
+                prefix: 'App\Resource'
+                alias: resource
         controller_resolver:
             auto_mapping: false
 

@@ -5,8 +5,8 @@ namespace App\State;
 use ApiPlatform\Metadata\CollectionOperationInterface;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
-use App\Entity\Downloader;
 use App\Factory\DownloaderFactory;
+use App\Resource\Downloader;
 use App\Service\Downloader\DownloaderInterface;
 
 class DownloaderProvider implements ProviderInterface
