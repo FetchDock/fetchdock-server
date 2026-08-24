@@ -3,6 +3,7 @@
 namespace App\EventListener;
 
 use App\Entity\DownloadJobEvent;
+use App\Enum\DownloadStateEnum;
 use App\Event\JobCompletedEvent;
 use App\Event\JobFailedEvent;
 use App\Event\JobPickedUpEvent;
@@ -26,8 +27,11 @@ class JobEventLogger
     #[AsEventListener(event: JobPickedUpEvent::class)]
     public function onJobPickedUp(JobPickedUpEvent $event): void
     {
+        $downloadJob = $event->getDownloadJob();
+        $downloadJob->setState(DownloadStateEnum::IN_PROGRESS);
+
         $jobEvent = new DownloadJobEvent()
-            ->setDownloadJob($event->getDownloadJob())
+            ->setDownloadJob($downloadJob)
             ->setEvent('job.picked_up')
             ->setSource('listener');
 

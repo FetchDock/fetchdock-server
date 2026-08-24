@@ -25,6 +25,7 @@ interface DownloadJobInterface
      */
     public function getCookies(): ?array;
     public function getState(): ?DownloadStateEnum;
+    public function setState(DownloadStateEnum $state): static;
     public function getDownloader(): ?string;
     public function getDownloadJobEvents(): Collection;
     public function getFiles(): Collection;

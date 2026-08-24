@@ -3,7 +3,7 @@
 namespace App\Tests\Unit\EventListener;
 
 use App\Entity\DownloadJob;
-use App\Entity\DownloadJobEvent;
+use App\Enum\DownloadStateEnum;
 use App\Event\JobCompletedEvent;
 use App\Event\JobFailedEvent;
 use App\Event\JobPickedUpEvent;
@@ -154,5 +154,22 @@ class JobEventLoggerTest extends TestCase
             ->method('flush');
 
         $this->listener->onJobCompleted($event);
+    }
+
+    public function testDownloadJobStateIsSetToInProgressOnPickup(): void
+    {
+        $event = new JobPickedUpEvent($this->downloadJob, 'worker-123');
+
+        $this->logger->expects($this->once())
+            ->method('info')
+            ->with('Job picked up by worker', $this->anything());
+
+        $this->entityManager->expects($this->exactly(2))
+            ->method('persist');
+        $this->entityManager->expects($this->once())
+            ->method('flush');
+
+        $this->listener->onJobPickedUp($event);
+        $this->assertEquals(DownloadStateEnum::IN_PROGRESS, $this->downloadJob->getState());
     }
 }
