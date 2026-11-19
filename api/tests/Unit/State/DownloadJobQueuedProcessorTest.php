@@ -411,6 +411,30 @@ class DownloadJobQueuedProcessorTest extends TestCase
         $this->assertSame(['files' => 1], $event->getContext());
     }
 
+    public function testProcessRestoresSoftDeletedFilesStillOnDisk(): void
+    {
+        $existingFile = $this->createTemporaryFile();
+        $previousJob = $this->createPreviousJob('yt-dlp-cli', [$existingFile]);
+        $previousJob->setDeletedAt(new \DateTime());
+        $softDeletedFile = $previousJob->getFiles()->first();
+        $softDeletedFile->setDeletedAt(new \DateTime());
+
+        $data = new DownloadJobDTO();
+        $data->uri = 'https://example.com/video';
+
+        $this->downloadJobRepository->method('findReusableByUri')->willReturn([$previousJob]);
+        $this->messengerProcessor->expects($this->never())->method('process');
+        $this->persistProcessor->expects($this->once())
+            ->method('process')
+            ->with($this->callback(fn (DownloadJob $job) => DownloadStateEnum::ALREADY_EXISTS === $job->getState()
+                && $job->getFiles()->contains($softDeletedFile)));
+
+        $this->processor->process($data, $this->operation);
+
+        $this->assertFalse($softDeletedFile->isDeleted());
+        $this->assertNull($softDeletedFile->getDeletedAt());
+    }
+
     public function testProcessDownloadsAgainWhenPreviousFilesNoLongerExist(): void
     {
         $previousJob = $this->createPreviousJob('mock', ['/nonexistent/removed-file.mp4']);

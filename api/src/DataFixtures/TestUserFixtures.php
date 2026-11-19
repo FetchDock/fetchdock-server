@@ -10,9 +10,12 @@ class TestUserFixtures extends Fixture
 {
     public function load(ObjectManager $manager): void
     {
-        $oidcSubjectIdentifier = new OidcSubjectIdentifier();
-        $oidcSubjectIdentifier->setSubject('admin');
-        $manager->persist($oidcSubjectIdentifier);
+        // One subject identifier per in-memory test user (see security.yaml, when@test)
+        foreach (['admin', 'user'] as $subject) {
+            $oidcSubjectIdentifier = new OidcSubjectIdentifier();
+            $oidcSubjectIdentifier->setSubject($subject);
+            $manager->persist($oidcSubjectIdentifier);
+        }
 
         $manager->flush();
     }

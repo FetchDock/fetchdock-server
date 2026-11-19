@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Post;
@@ -14,12 +15,15 @@ use App\Enum\DownloadStateEnum;
 use App\Interface\OwnerFilterableInterface;
 use App\Model\DownloadJobInterface;
 use App\Repository\DownloadJobRepository;
+use App\State\DownloadJobDeleteProcessor;
 use App\State\DownloadJobQueuedProcessor;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\ORM\QueryBuilder;
+use Gedmo\Mapping\Annotation as Gedmo;
+use Gedmo\SoftDeleteable\Traits\SoftDeleteableEntity;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
 use GuzzleHttp\Psr7\Uri;
 use Psr\Http\Message\UriInterface;
@@ -42,12 +46,19 @@ use Symfony\Component\Uid\Uuid;
         new GetCollection(
             order: ['createdAt' => 'DESC'],
         ),
+        // Soft-deletes the job for its owner; files no longer used by any job are soft-deleted as well
+        new Delete(
+            security: "is_granted('ROLE_USER') and object.getOwner() !== null and object.getOwner().getSubject() === user.getUserIdentifier()",
+            processor: DownloadJobDeleteProcessor::class
+        ),
     ],
     mercure: true
 )]
+#[Gedmo\SoftDeleteable(fieldName: 'deletedAt', timeAware: false, hardDelete: false)]
 class DownloadJob implements DownloadJobInterface, OwnerFilterableInterface
 {
     use TimestampableEntity;
+    use SoftDeleteableEntity;
 
     #[ApiProperty(identifier: false)]
     #[ORM\Id]

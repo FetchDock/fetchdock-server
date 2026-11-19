@@ -63,6 +63,35 @@ class DownloadJobRepositoryTest extends KernelTestCase
         $this->assertSame([$jobWithFiles], $result);
     }
 
+    public function testFindReusableByUriIncludesSoftDeletedJobsAndFiles(): void
+    {
+        $uri = $this->createUniqueUri();
+        $job = $this->createJob($uri, DownloadStateEnum::COMPLETED, withFile: true);
+        $this->entityManager->flush();
+        $jobId = $job->getId();
+        $fileId = $job->getFiles()->first()->getId();
+
+        // Soft-delete both through the SoftDeleteable listener, then reload from the database
+        $this->entityManager->remove($job->getFiles()->first());
+        $this->entityManager->remove($job);
+        $this->entityManager->flush();
+        $this->entityManager->clear();
+
+        $result = $this->repository->findReusableByUri($uri);
+
+        $this->assertCount(1, $result);
+        $this->assertSame($jobId, $result[0]->getId());
+        $this->assertTrue($result[0]->isDeleted());
+        $this->assertCount(1, $result[0]->getFiles());
+        $this->assertSame($fileId, $result[0]->getFiles()->first()->getId());
+        $this->assertTrue($result[0]->getFiles()->first()->isDeleted());
+
+        // The soft-delete filter is enabled again afterwards
+        $this->assertTrue($this->entityManager->getFilters()->isEnabled('softdeleteable'));
+        $this->entityManager->clear();
+        $this->assertNull($this->repository->find($jobId));
+    }
+
     public function testFindReusableByUriReturnsEmptyArrayForUnknownUri(): void
     {
         $this->assertSame([], $this->repository->findReusableByUri('https://example.com/never-downloaded'));

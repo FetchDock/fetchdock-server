@@ -37,6 +37,11 @@ doctrine:
                 alias: resource
         controller_resolver:
             auto_mapping: false
+        filters:
+            # Hides soft-deleted entities (see #[Gedmo\SoftDeleteable]) from all queries
+            softdeleteable:
+                class: Gedmo\SoftDeleteable\Filter\SoftDeleteableFilter
+                enabled: true
 
 when@test:
     doctrine:
