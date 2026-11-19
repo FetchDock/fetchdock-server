@@ -49,7 +49,10 @@ class DownloadJobRepository extends ServiceEntityRepository
     }
 
     /**
-     * Previously finished jobs for the given URI whose files may be reused, newest first.
+     * Previously finished jobs for the given URI that have files linked, newest first.
+     *
+     * Jobs without files (e.g. repeat downloads created before files were reused) are excluded.
+     * Whether the linked files still exist on disk is checked by the caller.
      *
      * @return list<DownloadJob>
      */
@@ -58,6 +61,7 @@ class DownloadJobRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('d')
             ->andWhere('d.uri = :uri')
             ->andWhere('d.state IN (:states)')
+            ->andWhere('d.files IS NOT EMPTY')
             ->setParameter('uri', $uri)
             ->setParameter('states', [DownloadStateEnum::COMPLETED->value, DownloadStateEnum::ALREADY_EXISTS->value])
             ->orderBy('d.id', 'DESC')
