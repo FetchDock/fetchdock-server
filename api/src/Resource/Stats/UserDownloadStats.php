@@ -11,6 +11,9 @@ use Doctrine\ORM\QueryBuilder;
     repositoryClass: UserDownloadStatsRepository::class,
     readOnly: true,
 )]
+// A database view, not a table. The "view_" prefix keeps it out of schema tools (DBAL schema_filter).
+// The class name is part of the public API, so only the database name differs.
+#[ORM\Table(name: 'view_user_download_stats')]
 class UserDownloadStats implements OwnerFilterableInterface
 {
     #[ORM\Id]
