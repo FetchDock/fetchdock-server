@@ -70,6 +70,14 @@ services:
             - { name: api_platform.doctrine.orm.query_extension.collection }
             - { name: api_platform.doctrine.orm.query_extension.item }
 
+    # Gedmo SoftDeleteable Extension Listener
+    # Turns removals of #[Gedmo\SoftDeleteable] entities into setting their deletedAt field
+    gedmo.listener.softdeleteable:
+        class: Gedmo\SoftDeleteable\SoftDeleteableListener
+        tags:
+            - { name: doctrine.event_listener, event: 'onFlush' }
+            - { name: doctrine.event_listener, event: 'loadClassMetadata' }
+
     # Gedmo Timestampable Extension Listener
     gedmo.listener.timestampable:
         class: Gedmo\Timestampable\TimestampableListener

@@ -206,7 +206,13 @@ class DownloadJobQueuedProcessor implements ProcessorInterface
                 continue;
             }
 
+            $restoredFiles = 0;
             foreach ($existingFiles as $file) {
+                // Files soft-deleted because no live job used them anymore are restored, as they're still on disk
+                if ($file->isDeleted()) {
+                    $file->setDeletedAt(null);
+                    ++$restoredFiles;
+                }
                 $downloadJob->addFile($file);
             }
 
@@ -224,6 +230,7 @@ class DownloadJobQueuedProcessor implements ProcessorInterface
                 'job_uuid' => $downloadJob->getUuid()?->toRfc4122(),
                 'previous_job_id' => $previousJob->getId(),
                 'files' => $existingFiles->count(),
+                'restored_files' => $restoredFiles,
             ]);
 
             return true;

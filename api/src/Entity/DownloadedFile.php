@@ -13,6 +13,8 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\ORM\QueryBuilder;
+use Gedmo\Mapping\Annotation as Gedmo;
+use Gedmo\SoftDeleteable\Traits\SoftDeleteableEntity;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ApiResource(
@@ -32,8 +34,12 @@ use Symfony\Component\Serializer\Attribute\Groups;
     )
 )]
 #[ORM\Entity(repositoryClass: DownloadedFileRepository::class)]
+// Soft-deleted once no live (non-deleted) DownloadJob uses the file anymore. The file stays on disk.
+#[Gedmo\SoftDeleteable(fieldName: 'deletedAt', timeAware: false, hardDelete: false)]
 class DownloadedFile
 {
+    use SoftDeleteableEntity;
+
     #[Groups(['downloadedFile:read'])]
     #[ORM\Id]
     #[ORM\GeneratedValue]

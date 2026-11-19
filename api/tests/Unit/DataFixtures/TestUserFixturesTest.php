@@ -13,14 +13,21 @@ class TestUserFixturesTest extends TestCase
     {
         $objectManager = $this->createMock(ObjectManager::class);
 
-        $objectManager->expects($this->once())
+        $subjects = [];
+        $objectManager->expects($this->exactly(2))
             ->method('persist')
-            ->with($this->isInstanceOf(OidcSubjectIdentifier::class));
+            ->willReturnCallback(function (object $entity) use (&$subjects) {
+                $this->assertInstanceOf(OidcSubjectIdentifier::class, $entity);
+                $subjects[] = $entity->getSubject();
+            });
 
         $objectManager->expects($this->once())
             ->method('flush');
 
         $fixtures = new TestUserFixtures();
         $fixtures->load($objectManager);
+
+        // One subject identifier per in-memory test user
+        $this->assertSame(['admin', 'user'], $subjects);
     }
 }
