@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\DownloadJob;
 use App\Entity\OidcSubjectIdentifier;
+use App\Enum\DownloadStateEnum;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -43,6 +44,23 @@ class DownloadJobRepository extends ServiceEntityRepository
             ->andWhere('d.owner = :owner')
             ->setParameter('uri', $url)
             ->setParameter('owner', $owner)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Previously finished jobs for the given URI whose files may be reused, newest first.
+     *
+     * @return list<DownloadJob>
+     */
+    public function findReusableByUri(string $uri): array
+    {
+        return $this->createQueryBuilder('d')
+            ->andWhere('d.uri = :uri')
+            ->andWhere('d.state IN (:states)')
+            ->setParameter('uri', $uri)
+            ->setParameter('states', [DownloadStateEnum::COMPLETED->value, DownloadStateEnum::ALREADY_EXISTS->value])
+            ->orderBy('d.id', 'DESC')
             ->getQuery()
             ->getResult();
     }

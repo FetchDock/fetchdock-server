@@ -8,7 +8,9 @@ use ApiPlatform\State\ProcessorInterface;
 use ApiPlatform\Symfony\Messenger\Processor as MessengerProcessor;
 use App\Dto\DownloadJobDTO;
 use App\Dto\JobAcceptedDTO;
+use App\Entity\DownloadedFile;
 use App\Entity\DownloadJob;
+use App\Entity\DownloadJobEvent;
 use App\Enum\DownloadStateEnum;
 use App\Enum\JobTypeEnum;
 use App\Factory\DownloaderFactory;
@@ -82,6 +84,18 @@ class DownloadJobQueuedProcessor implements ProcessorInterface
         // Validate downloader
         if (isset($data->downloader) && !$this->downloaderFactory->isValidDownloader($data->downloader)) {
             throw new BadRequestException('Invalid downloader specified. Possible values: '.implode(', ', array_map(fn ($d) => $d->getIdentifier(), $this->downloaderFactory->getEnabledDownloaders())));
+        }
+
+        // If this URI was downloaded before (e.g. by another user) and its files still exist,
+        // link those files to a new job instead of downloading again.
+        // "force" explicitly requests a fresh download.
+        if (!$data->force && $this->reusePreviousDownload($downloadJob, $data->downloader ?? null)) {
+            $this->persistProcessor->process($downloadJob, $operation, $uriVariables, $context);
+
+            return new JobAcceptedDTO()
+                ->setJobUuid($downloadJob->getUuid()->toRfc4122())
+                ->setToken($downloadJob->getToken())
+                ->setJobType(JobTypeEnum::DOWNLOAD);
         }
 
         if (isset($data->downloader)) {
@@ -163,6 +177,59 @@ class DownloadJobQueuedProcessor implements ProcessorInterface
                 }
             }
         }
+    }
+
+    /**
+     * Turn the new job into an ALREADY_EXISTS job linked to the files of a previous download of the same URI.
+     *
+     * Only the files are shared. Nothing else from the previous job (its event log, cookies,
+     * user agent or owner) is copied, as that may contain another user's data.
+     *
+     * @return bool true if a previous download was reused
+     */
+    private function reusePreviousDownload(DownloadJob $downloadJob, ?string $requestedDownloader): bool
+    {
+        foreach ($this->downloadJobRepository->findReusableByUri($downloadJob->getUri()) as $previousJob) {
+            $previousDownloader = $previousJob->getDownloader();
+            if (null === $previousDownloader) {
+                continue;
+            }
+            // An explicitly requested downloader may produce different files, so only reuse matching jobs
+            if (null !== $requestedDownloader && $requestedDownloader !== $previousDownloader) {
+                continue;
+            }
+
+            $existingFiles = $previousJob->getFiles()->filter(
+                static fn (DownloadedFile $file) => null !== $file->getPath() && is_file($file->getPath())
+            );
+            if ($existingFiles->isEmpty()) {
+                continue;
+            }
+
+            foreach ($existingFiles as $file) {
+                $downloadJob->addFile($file);
+            }
+
+            $downloadJob
+                ->setDownloader($previousDownloader)
+                ->setState(DownloadStateEnum::ALREADY_EXISTS)
+                ->addDownloadJobEvent(new DownloadJobEvent()
+                    ->setEvent('job.loaded_from_cache')
+                    ->setSource('api')
+                    ->setUpdateMessage('Previously downloaded job. Loaded from cache')
+                    ->setContext(['files' => $existingFiles->count()]));
+
+            $this->logger->info('Reusing files of a previous download job', [
+                'uri' => $downloadJob->getUri(),
+                'job_uuid' => $downloadJob->getUuid()?->toRfc4122(),
+                'previous_job_id' => $previousJob->getId(),
+                'files' => $existingFiles->count(),
+            ]);
+
+            return true;
+        }
+
+        return false;
     }
 
     private function getDomainProbeCacheKey(DownloadJob $downloadJob): string
