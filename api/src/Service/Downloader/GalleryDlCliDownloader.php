@@ -81,6 +81,8 @@ class GalleryDlCliDownloader extends AbstractCliDownloader implements CliDownloa
                 'uri' => $downloadJob->getUrl(),
             ]);
             return false;
+        } finally {
+            $this->removeTemporaryFiles();
         }
     }
 
@@ -174,11 +176,9 @@ class GalleryDlCliDownloader extends AbstractCliDownloader implements CliDownloa
 
         // Check if the downloadJob contains cookies
         if($downloadJob->getCookies()) {
-            // Gallery-dl expects a cookie file in the Netscape cookies.txt format
-            // So we'll create a temporary file with the cookies, pass it to the command, and delete it afterwards
-            $cookieFilePath = tempnam(sys_get_temp_dir(), 'gallery_dl_cookies_');
-            file_put_contents($cookieFilePath, $downloadJob->getCookiesNetscapeFileContent());
-            $commandOptions = ['--cookies', $cookieFilePath];
+            // Gallery-dl expects a cookie file in the Netscape cookies.txt format.
+            // The temporary file is removed by the caller via removeTemporaryFiles().
+            $commandOptions = ['--cookies', $this->createCookieFile($downloadJob)];
         }
 
         if($downloadJob->getUserAgent()) {
