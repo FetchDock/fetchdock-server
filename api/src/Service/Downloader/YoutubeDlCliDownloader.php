@@ -144,51 +144,134 @@ class YoutubeDlCliDownloader extends AbstractCliDownloader implements CliDownloa
         }
     }
 
-    public function addFilesToDownloadJobFromCommandOutput(DownloadJobInterface $downloadJob, string $commandOutput): void
+    /**
+     * yt-dlp skipped the download because the video ID is in the shared download archive.
+     * Example: "[download] sample-5s: sample-5s has already been recorded in the archive".
+     */
+    private const string ARCHIVE_SKIP_LINE_SUFFIX = 'has already been recorded in the archive';
+
+    /**
+     * A shortcut written for a fresh download. Example:
+     * "[info] Writing internet shortcut (.desktop) to: /downloads/generic/example.com/id.desktop".
+     */
+    private const string SHORTCUT_LINE_PREFIX = '[info] Writing internet shortcut (.desktop) to: ';
+
+    /**
+     * A media file kept from a previous download (--no-force-overwrites). Example:
+     * "[download] /downloads/generic/example.com/id.mp4 has already been downloaded".
+     */
+    private const string ALREADY_DOWNLOADED_LINE_PATTERN = '/^\[download\] (.+) has already been downloaded$/';
+
+    /**
+     * Files created or loaded while parsing the current command output, by path.
+     * Prevents creating the same DownloadedFile twice before the entity manager is flushed.
+     *
+     * @var array<string, DownloadedFile>
+     */
+    private array $filesByPath = [];
+
+    /**
+     * The download archive makes yt-dlp skip a video it downloaded before, even when its files were removed since.
+     * In that case, run this job once more without the archive: existing files are then reported (and not downloaded
+     * again thanks to --no-force-overwrites), and missing files are downloaded again.
+     */
+    protected function runDownload(DownloadJobInterface $downloadJob): void
     {
-        // Convert \n to actual new lines
-        $lines = explode("\n", $commandOutput);
+        $process = $this->runDownloadProcess($downloadJob);
 
-        // Look for the line that starts with [info] Writing internet shortcut (.desktop) to:
-        // This file will contain a line like: Name={path to file}
-        foreach ($lines as $line) {
+        if ($this->wasSkippedByDownloadArchive($process->getOutput())) {
+            $this->logger->info('yt-dlp skipped the download because of the download archive, retrying this job without the archive', [
+                'url' => (string) $downloadJob->getUrl(),
+            ]);
+            $this->runDownloadProcess($downloadJob, ['--no-download-archive']);
+        }
+    }
+
+    private function wasSkippedByDownloadArchive(string $commandOutput): bool
+    {
+        foreach (explode("\n", $commandOutput) as $line) {
             $line = trim($line);
-            if (str_starts_with($line, '[info] Writing internet shortcut (.desktop) to: ')) {
-                $filePath = trim(substr($line, strlen('[info] Writing internet shortcut (.desktop) to: ')));
-                if (file_exists($filePath) && is_file($filePath)) {
-                    $downloadedFile = $this->downloadedFileRepository->findOneBy(['path' => $filePath]);
-                    if (!$downloadedFile) {
-                        $downloadedFile = new DownloadedFile();
-                        $downloadedFile->setPath($filePath);
-                        $downloadedFile->setVisible(true);
-                        // Trim the file extension for the name and append .info.json
-                        // That file contains all the metadat in a JSON format
-                        $metadataFilePath = preg_replace('/\.desktop$/', '.info.json', $filePath);
-                        if (file_exists($metadataFilePath) && is_file($metadataFilePath)) {
-                            $metadata = json_decode(file_get_contents($metadataFilePath), true);
-
-                            // Get the extension from the metadata if it exists
-                            $fileExt = $metadata['ext'] ?? null;
-                            if ($fileExt) {
-                                // Look for the file with the extension
-                                $actualFilePath = preg_replace('/\.desktop$/', '.'.$fileExt, $filePath);
-                                $this->addFileToDownloadJobFromCommandOutput($downloadJob, $actualFilePath);
-                            }
-
-                            if (JSON_ERROR_NONE === json_last_error()) {
-                                $downloadedFile->setMetadata($metadata);
-                            } else {
-                                $downloadedFile->setMetadata([]);
-                            }
-                        }
-                    }
-                    $downloadedFile->addDownloadJob($downloadJob);
-                    $this->entityManager->persist($downloadedFile);
-                }
+            if (str_starts_with($line, '[download] ') && str_ends_with($line, self::ARCHIVE_SKIP_LINE_SUFFIX)) {
+                return true;
             }
         }
+
+        return false;
+    }
+
+    public function addFilesToDownloadJobFromCommandOutput(DownloadJobInterface $downloadJob, string $commandOutput): void
+    {
+        $this->filesByPath = [];
+
+        foreach (explode("\n", $commandOutput) as $line) {
+            $line = trim($line);
+
+            if (str_starts_with($line, self::SHORTCUT_LINE_PREFIX)) {
+                $this->addShortcutAndMediaFiles($downloadJob, trim(substr($line, strlen(self::SHORTCUT_LINE_PREFIX))));
+            } elseif (1 === preg_match(self::ALREADY_DOWNLOADED_LINE_PATTERN, $line, $matches)) {
+                // An existing shortcut is reported without its path ("Internet shortcut (.desktop) is already present"),
+                // so derive it from the media file
+                $mediaPath = $matches[1];
+                $shortcutPath = preg_replace('/\.[^.\/]+$/', '.desktop', $mediaPath);
+                if (is_file($shortcutPath)) {
+                    $this->addShortcutAndMediaFiles($downloadJob, $shortcutPath);
+                }
+                $this->linkFile($downloadJob, $mediaPath);
+            }
+        }
+
+        $this->filesByPath = [];
         $this->entityManager->persist($downloadJob);
         $this->entityManager->flush();
+    }
+
+    /**
+     * Link a .desktop shortcut and the media file it belongs to.
+     * The media file's extension is read from the .info.json metadata next to the shortcut.
+     */
+    private function addShortcutAndMediaFiles(DownloadJobInterface $downloadJob, string $shortcutPath): void
+    {
+        $metadata = $this->readMetadataFile(preg_replace('/\.desktop$/', '.info.json', $shortcutPath));
+        $this->linkFile($downloadJob, $shortcutPath, $metadata);
+
+        $extension = $metadata['ext'] ?? null;
+        if (is_string($extension) && '' !== $extension) {
+            $this->linkFile($downloadJob, preg_replace('/\.desktop$/', '.'.$extension, $shortcutPath));
+        }
+    }
+
+    /**
+     * Link an existing file to the job, creating its DownloadedFile if it isn't known yet.
+     * A new DownloadedFile gets the given metadata, or else the .info.json next to the file.
+     */
+    private function linkFile(DownloadJobInterface $downloadJob, string $path, ?array $metadata = null): void
+    {
+        if (!is_file($path)) {
+            return;
+        }
+
+        $downloadedFile = $this->filesByPath[$path] ?? $this->downloadedFileRepository->findOneBy(['path' => $path]);
+        if (null === $downloadedFile) {
+            $downloadedFile = new DownloadedFile()
+                ->setPath($path)
+                ->setVisible(true)
+                ->setMetadata($metadata ?? $this->readMetadataFile(preg_replace('/\.[^.\/]+$/', '.info.json', $path)) ?? []);
+        }
+
+        $downloadedFile->addDownloadJob($downloadJob);
+        $this->entityManager->persist($downloadedFile);
+        $this->filesByPath[$path] = $downloadedFile;
+    }
+
+    private function readMetadataFile(string $path): ?array
+    {
+        if (!is_file($path)) {
+            return null;
+        }
+
+        $metadata = json_decode((string) file_get_contents($path), true);
+
+        return is_array($metadata) ? $metadata : null;
     }
 
     public function getCurrentVersion(): string
@@ -209,31 +292,6 @@ class YoutubeDlCliDownloader extends AbstractCliDownloader implements CliDownloa
         }
 
         return $versions['latest'];
-    }
-
-    private function addFileToDownloadJobFromCommandOutput(DownloadJobInterface $downloadJob, string $filePath): void
-    {
-        if (file_exists($filePath) && is_file($filePath)) {
-            $downloadedFile = $this->downloadedFileRepository->findOneBy(['path' => $filePath]);
-            if (!$downloadedFile) {
-                $downloadedFile = new DownloadedFile();
-                $downloadedFile->setPath($filePath);
-                $downloadedFile->setVisible(true);
-                // Trim the file extension for the name and append .info.json
-                // That file contains all the metadat in a JSON format
-                $metadataFilePath = preg_replace('/\.[^.]+$/', '.info.json', $filePath);
-                if (file_exists($metadataFilePath) && is_file($metadataFilePath)) {
-                    $metadata = json_decode(file_get_contents($metadataFilePath), true);
-                    if (JSON_ERROR_NONE === json_last_error()) {
-                        $downloadedFile->setMetadata($metadata);
-                    } else {
-                        $downloadedFile->setMetadata([]);
-                    }
-                }
-            }
-            $downloadedFile->addDownloadJob($downloadJob);
-            $this->entityManager->persist($downloadedFile);
-        }
     }
 
     protected function getCommandOptions(DownloadJobInterface $downloadJob): array
