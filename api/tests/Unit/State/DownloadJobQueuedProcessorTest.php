@@ -7,7 +7,9 @@ use ApiPlatform\State\ProcessorInterface;
 use App\Dto\CookieDTO;
 use App\Dto\DownloadJobDTO;
 use App\Dto\JobAcceptedDTO;
+use App\Entity\DownloadedFile;
 use App\Entity\DownloadJob;
+use App\Entity\DownloadJobEvent;
 use App\Entity\OidcSubjectIdentifier;
 use App\Enum\DownloadStateEnum;
 use App\Enum\JobTypeEnum;
@@ -37,6 +39,8 @@ class DownloadJobQueuedProcessorTest extends TestCase
     private DownloadJobRepository $downloadJobRepository;
     private OidcSubjectIdentifierRepository $oidcSubjectIdentifierRepository;
     private OidcSubjectIdentifier $oidcSubjectIdentifier;
+    /** @var list<string> */
+    private array $temporaryFiles = [];
 
     protected function setUp(): void
     {
@@ -356,5 +360,155 @@ class DownloadJobQueuedProcessorTest extends TestCase
 
         $this->processor->process($data1, $this->operation);
         $this->processor->process($data2, $this->operation);
+    }
+
+    public function testProcessReusesExistingFilesOfPreviousDownload(): void
+    {
+        $existingFile = $this->createTemporaryFile();
+        $previousJob = $this->createPreviousJob('yt-dlp-cli', [$existingFile, '/nonexistent/removed-file.mp4']);
+        $previousJob->addDownloadJobEvent(new DownloadJobEvent()
+            ->setEvent('process.stopped')
+            ->setSource('listener')
+            ->setContext(['command' => 'yt-dlp --cookies /tmp/user-a-cookies.txt']));
+
+        $data = new DownloadJobDTO();
+        $data->uri = 'https://example.com/video';
+        $data->userAgent = 'UserB/1.0';
+
+        $this->downloadJobRepository->expects($this->once())
+            ->method('findReusableByUri')
+            ->with('https://example.com/video')
+            ->willReturn([$previousJob]);
+
+        // No probing and no queued download: the job is complete on creation
+        $this->downloaderFactory->expects($this->never())->method('getDownloadersByDownloadJob');
+        $this->cache->expects($this->never())->method('get');
+        $this->messengerProcessor->expects($this->never())->method('process');
+
+        $persistedJob = null;
+        $this->persistProcessor->expects($this->once())
+            ->method('process')
+            ->willReturnCallback(function (DownloadJob $job) use (&$persistedJob) {
+                $persistedJob = $job;
+
+                return $job;
+            });
+
+        $result = $this->processor->process($data, $this->operation);
+
+        $this->assertInstanceOf(DownloadJob::class, $persistedJob);
+        $this->assertNotSame($previousJob, $persistedJob);
+        $this->assertSame($persistedJob->getUuid()->toRfc4122(), $result->getJobUuid());
+        $this->assertSame(DownloadStateEnum::ALREADY_EXISTS, $persistedJob->getState());
+        $this->assertSame('yt-dlp-cli', $persistedJob->getDownloader());
+        $this->assertSame('UserB/1.0', $persistedJob->getUserAgent());
+
+        // Only files that still exist on disk are linked, on both sides of the relation
+        $this->assertCount(1, $persistedJob->getFiles());
+        $linkedFile = $persistedJob->getFiles()->first();
+        $this->assertSame($existingFile, $linkedFile->getPath());
+        $this->assertTrue($linkedFile->getDownloadJob()->contains($persistedJob));
+        $this->assertTrue($linkedFile->getDownloadJob()->contains($previousJob));
+
+        // The previous job's event log is not copied, only a single "loaded from cache" event is added
+        $this->assertCount(1, $persistedJob->getDownloadJobEvents());
+        $event = $persistedJob->getDownloadJobEvents()->first();
+        $this->assertSame('job.loaded_from_cache', $event->getEvent());
+        $this->assertSame('Previously downloaded job. Loaded from cache', $event->getUpdateMessage());
+        $this->assertSame(['files' => 1], $event->getContext());
+    }
+
+    public function testProcessDownloadsAgainWhenPreviousFilesNoLongerExist(): void
+    {
+        $previousJob = $this->createPreviousJob('mock', ['/nonexistent/removed-file.mp4']);
+
+        $data = new DownloadJobDTO();
+        $data->uri = 'https://example.com/video';
+        $data->downloader = 'mock';
+
+        $this->downloaderFactory->method('isValidDownloader')->willReturn(true);
+        $this->downloadJobRepository->method('findReusableByUri')->willReturn([$previousJob]);
+
+        $this->persistProcessor->expects($this->once())
+            ->method('process')
+            ->with($this->callback(fn (DownloadJob $job) => DownloadStateEnum::PENDING === $job->getState()
+                && $job->getFiles()->isEmpty()
+                && $job->getDownloadJobEvents()->isEmpty()));
+        $this->messengerProcessor->expects($this->once())->method('process');
+
+        $this->processor->process($data, $this->operation);
+    }
+
+    public function testProcessWithForceDoesNotReusePreviousDownload(): void
+    {
+        $data = new DownloadJobDTO();
+        $data->uri = 'https://example.com/video';
+        $data->downloader = 'mock';
+        $data->force = true;
+
+        $this->downloaderFactory->method('isValidDownloader')->willReturn(true);
+        $this->downloadJobRepository->expects($this->never())->method('findReusableByUri');
+
+        $this->persistProcessor->expects($this->once())
+            ->method('process')
+            ->with($this->callback(fn (DownloadJob $job) => DownloadStateEnum::PENDING === $job->getState()));
+        $this->messengerProcessor->expects($this->once())->method('process');
+
+        $this->processor->process($data, $this->operation);
+    }
+
+    public function testProcessDoesNotReusePreviousDownloadOfDifferentDownloader(): void
+    {
+        $previousJob = $this->createPreviousJob('gallery-dl-cli', [$this->createTemporaryFile()]);
+
+        $data = new DownloadJobDTO();
+        $data->uri = 'https://example.com/video';
+        $data->downloader = 'mock';
+
+        $this->downloaderFactory->method('isValidDownloader')->willReturn(true);
+        $this->downloadJobRepository->method('findReusableByUri')->willReturn([$previousJob]);
+
+        $this->persistProcessor->expects($this->once())
+            ->method('process')
+            ->with($this->callback(fn (DownloadJob $job) => DownloadStateEnum::PENDING === $job->getState()
+                && 'mock' === $job->getDownloader()
+                && $job->getFiles()->isEmpty()));
+        $this->messengerProcessor->expects($this->once())->method('process');
+
+        $this->processor->process($data, $this->operation);
+    }
+
+    /**
+     * @param list<string> $filePaths
+     */
+    private function createPreviousJob(string $downloader, array $filePaths): DownloadJob
+    {
+        $previousJob = new DownloadJob()
+            ->setUri('https://example.com/video')
+            ->setDownloader($downloader)
+            ->setState(DownloadStateEnum::COMPLETED);
+
+        foreach ($filePaths as $filePath) {
+            $previousJob->addFile(new DownloadedFile()->setPath($filePath)->setVisible(true));
+        }
+
+        return $previousJob;
+    }
+
+    private function createTemporaryFile(): string
+    {
+        $path = tempnam(sys_get_temp_dir(), 'reuse-test-');
+        $this->temporaryFiles[] = $path;
+
+        return $path;
+    }
+
+    protected function tearDown(): void
+    {
+        foreach ($this->temporaryFiles as $path) {
+            if (is_file($path)) {
+                unlink($path);
+            }
+        }
     }
 }
