@@ -10,7 +10,6 @@ use App\Dto\JobAcceptedDTO;
 use App\Entity\DownloadedFile;
 use App\Entity\DownloadJob;
 use App\Entity\DownloadJobEvent;
-use App\Entity\OidcSubjectIdentifier;
 use App\Enum\DownloadStateEnum;
 use App\Enum\JobTypeEnum;
 use App\Factory\DownloaderFactory;
@@ -38,7 +37,6 @@ class DownloadJobQueuedProcessorTest extends TestCase
     private Security $security;
     private DownloadJobRepository $downloadJobRepository;
     private OidcSubjectIdentifierRepository $oidcSubjectIdentifierRepository;
-    private OidcSubjectIdentifier $oidcSubjectIdentifier;
     /** @var list<string> */
     private array $temporaryFiles = [];
 
@@ -53,11 +51,6 @@ class DownloadJobQueuedProcessorTest extends TestCase
         $this->security = $this->createMock(Security::class);
         $this->downloadJobRepository = $this->createMock(DownloadJobRepository::class);
         $this->oidcSubjectIdentifierRepository = $this->createMock(OidcSubjectIdentifierRepository::class);
-
-        $this->oidcSubjectIdentifier = $this->createMock(OidcSubjectIdentifier::class);
-        $this->oidcSubjectIdentifier->expects($this->atLeast(0))
-            ->method('getId')
-            ->willReturn(1);
 
         $this->processor = new DownloadJobQueuedProcessor(
             $this->persistProcessor,
