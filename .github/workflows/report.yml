@@ -14,14 +14,12 @@ jobs:
   report:
     runs-on: ubuntu-latest
     steps:
-      - name: Download test results artifact
-        uses: actions/download-artifact@v8
-        with:
-          name: test-results
+      # With `artifact`, the reporter downloads the artifact from the CI run that triggered this workflow.
+      # CI uploads build/logs/*.xml, which ends up at the root of the artifact.
       - uses: dorny/test-reporter@v3
         with:
           artifact: test-results
           name: PHP Unit Tests
-          path: 'build/logs/junit.xml'
+          path: 'junit.xml'
           reporter: phpunit-junit
-          
+
