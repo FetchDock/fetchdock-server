@@ -16,7 +16,7 @@ class VersionTest extends ApiTestCase
         $response = static::createClient()->request('GET', '/versions');
 
         $this->assertResponseIsSuccessful();
-        $this->assertResponseHeaderSame('content-type', 'application/ld+json; charset=utf-8');
+        $this->assertResponseHeaderSame('content-type', 'application/ld+json');
 
         $data = $response->toArray();
 
@@ -45,7 +45,7 @@ class VersionTest extends ApiTestCase
         $response = static::createClient()->request('GET', '/versions/mock');
 
         $this->assertResponseIsSuccessful();
-        $this->assertResponseHeaderSame('content-type', 'application/ld+json; charset=utf-8');
+        $this->assertResponseHeaderSame('content-type', 'application/ld+json');
 
         $data = $response->toArray();
 

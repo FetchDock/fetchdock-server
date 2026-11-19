@@ -9,3 +9,4 @@ docker/gallery-dl/config/gallery-dl.conf
 /api/bolt.db
 /api/config/jwt/*.pem
 *~ # Jetbrains temp files
+/.agentbridge/
