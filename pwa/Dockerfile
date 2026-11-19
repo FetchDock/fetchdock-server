@@ -79,7 +79,8 @@ RUN mkdir .next; \
 COPY --from=builder --link --chown=1001:1001 /srv/app/.next/standalone ./
 COPY --from=builder --link --chown=1001:1001 /srv/app/.next/static ./.next/static
 
-USER nextjs
+# nextjs:nodejs, created above. Numeric so it also resolves without the image's /etc/passwd (hadolint DL3066).
+USER 1001:1001
 
 EXPOSE 3000
 
