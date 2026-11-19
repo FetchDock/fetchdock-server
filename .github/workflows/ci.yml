@@ -111,7 +111,10 @@ jobs:
         with:
           path: build/logs/cobertura.xml
           threshold: 35
-          publish: true
+          # Pull requests from forks get a read-only GITHUB_TOKEN: they can't push to the coverage storage
+          # branch or comment on the PR. They only get the report and the threshold check.
+          publish: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository) }}
+          skip-diff-storage: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository }}
           diff: true
           diff-branch: develop
       - name: Upload test results
