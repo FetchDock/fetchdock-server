@@ -20,6 +20,14 @@ abstract class AbstractCliDownloader implements DownloaderInterface
     protected const float TIMEOUT = 1800.0;
     protected const float IDLE_TIMEOUT = 300.0;
 
+    /**
+     * Temporary files (e.g. cookie files) created for the current CLI invocation.
+     * They contain user secrets and must be removed once the process has finished.
+     *
+     * @var list<string>
+     */
+    private array $temporaryFiles = [];
+
     public function __construct(
         protected TagAwareCacheInterface $cache,
         protected EventDispatcherInterface $eventDispatcher,
@@ -47,6 +55,15 @@ abstract class AbstractCliDownloader implements DownloaderInterface
         $this->createConfigFileIfNotExists();
         $this->createDownloadDirectoryIfNotExists();
 
+        try {
+            return $this->runDownloadProcess($downloadJob);
+        } finally {
+            $this->removeTemporaryFiles();
+        }
+    }
+
+    private function runDownloadProcess(DownloadJobInterface $downloadJob): true
+    {
         $processOptions = array_merge(
             [
                 $this->binaryPath,
@@ -116,6 +133,36 @@ abstract class AbstractCliDownloader implements DownloaderInterface
             $this->logger->info('Creating config file', ['path' => $this->configPath]);
             file_put_contents($this->configPath, $this->getConfigFileContents());
         }
+    }
+
+    /**
+     * Write the job's cookies to a Netscape cookies.txt file readable only by the current user.
+     * The file is tracked and removed by removeTemporaryFiles().
+     */
+    protected function createCookieFile(DownloadJobInterface $downloadJob): string
+    {
+        $cookieFilePath = tempnam(sys_get_temp_dir(), $this->getIdentifier().'_cookies_');
+        if (false === $cookieFilePath) {
+            throw new \RuntimeException('Unable to create temporary cookie file');
+        }
+        $this->temporaryFiles[] = $cookieFilePath;
+
+        chmod($cookieFilePath, 0600);
+        if (false === file_put_contents($cookieFilePath, $downloadJob->getCookiesNetscapeFileContent())) {
+            throw new \RuntimeException('Unable to write temporary cookie file');
+        }
+
+        return $cookieFilePath;
+    }
+
+    protected function removeTemporaryFiles(): void
+    {
+        foreach ($this->temporaryFiles as $temporaryFile) {
+            if (is_file($temporaryFile) && !unlink($temporaryFile)) {
+                $this->logger->error('Failed to remove temporary file', ['path' => $temporaryFile]);
+            }
+        }
+        $this->temporaryFiles = [];
     }
 
     abstract protected function getConfigFileContents(): string;

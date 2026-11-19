@@ -300,6 +300,111 @@ class AbstractCliDownloaderTest extends TestCase
         $this->assertSame(['installed' => '1.0.0', 'latest' => '1.0.1'], $result);
     }
 
+    public function testCreateCookieFileWritesCookiesReadableOnlyByOwner(): void
+    {
+        $downloader = $this->createCookieDownloader('/bin/true');
+        $method = new \ReflectionMethod($downloader, 'createCookieFile');
+
+        $cookieFile = $method->invoke($downloader, $this->createCookieDownloadJob());
+
+        try {
+            $this->assertFileExists($cookieFile);
+            $this->assertSame("# Netscape HTTP Cookie File\nsecret-cookie-line\n", file_get_contents($cookieFile));
+            $this->assertSame(0600, fileperms($cookieFile) & 0777);
+        } finally {
+            (new \ReflectionMethod($downloader, 'removeTemporaryFiles'))->invoke($downloader);
+        }
+
+        $this->assertFileDoesNotExist($cookieFile);
+    }
+
+    public function testDownloadRemovesCookieFileAfterSuccessfulRun(): void
+    {
+        $downloader = $this->createCookieDownloader('/bin/true');
+
+        $this->assertTrue($downloader->download($this->createCookieDownloadJob()));
+
+        $this->assertNotNull($downloader->lastCookieFile);
+        $this->assertFileDoesNotExist($downloader->lastCookieFile);
+    }
+
+    public function testDownloadRemovesCookieFileWhenProcessFails(): void
+    {
+        $downloader = $this->createCookieDownloader('/bin/false');
+
+        try {
+            $downloader->download($this->createCookieDownloadJob());
+            $this->fail('Expected the failing download process to throw');
+        } catch (\RuntimeException) {
+            // Expected: mustRun() throws when the process exits non-zero
+        }
+
+        $this->assertNotNull($downloader->lastCookieFile);
+        $this->assertFileDoesNotExist($downloader->lastCookieFile);
+    }
+
+    private function createCookieDownloadJob(): DownloadJobInterface
+    {
+        $downloadJob = $this->createStub(DownloadJobInterface::class);
+        $downloadJob->method('getUrl')->willReturn(new \GuzzleHttp\Psr7\Uri('https://test.com/video'));
+        $downloadJob->method('getCookiesNetscapeFileContent')->willReturn("# Netscape HTTP Cookie File\nsecret-cookie-line\n");
+
+        return $downloadJob;
+    }
+
+    /**
+     * A downloader whose command options include a cookie file, like the real yt-dlp and gallery-dl downloaders.
+     */
+    private function createCookieDownloader(string $binaryPath): AbstractCliDownloader
+    {
+        $workDir = sys_get_temp_dir().'/cli-downloader-test-'.bin2hex(random_bytes(4));
+
+        return new class($this->cache, $this->eventDispatcher, $workDir.'/config.conf', $binaryPath, $workDir.'/downloads', $this->logger) extends AbstractCliDownloader {
+            public ?string $lastCookieFile = null;
+
+            public function getIdentifier(): string
+            {
+                return 'test-cookie-downloader';
+            }
+
+            public function supportsDownloadJob(DownloadJobInterface $downloadJob): bool
+            {
+                return true;
+            }
+
+            public function getSupportedDomains(): array
+            {
+                return ['test.com'];
+            }
+
+            public function getCurrentVersion(): string
+            {
+                return '1.0.0-test';
+            }
+
+            public function getLatestVersion(): string
+            {
+                return '1.0.1-test';
+            }
+
+            protected function getConfigFileContents(): string
+            {
+                return '';
+            }
+
+            public function addFilesToDownloadJobFromCommandOutput(DownloadJob $downloadJob, string $commandOutput): void
+            {
+            }
+
+            protected function getCommandOptions(DownloadJobInterface $downloadJob): array
+            {
+                $this->lastCookieFile = $this->createCookieFile($downloadJob);
+
+                return ['--cookies', $this->lastCookieFile];
+            }
+        };
+    }
+
     private function createConcreteDownloader(?string $configPath = null, ?string $binaryPath = null, ?string $downloadPath = null): AbstractCliDownloader
     {
         return new class($this->cache, $this->eventDispatcher, $configPath ?? $this->configPath, $binaryPath ?? $this->binaryPath, $downloadPath ?? $this->downloadPath, $this->logger) extends AbstractCliDownloader {
