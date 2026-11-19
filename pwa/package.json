@@ -19,7 +19,7 @@
     "better-auth": "^1.7.26",
     "formik": "^2.4.9",
     "isomorphic-unfetch": "^4.0.2",
-    "next": "15.5.23",
+    "next": "15.5.29",
     "oidc-client-ts": "^3.5.0",
     "postcss": "^8.5.33",
     "ra-data-simple-rest": "^5.15.7",
