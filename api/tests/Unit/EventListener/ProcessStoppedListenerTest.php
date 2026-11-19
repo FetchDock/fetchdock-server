@@ -39,11 +39,44 @@ class ProcessStoppedListenerTest extends TestCase
         $this->downloadJob = new DownloadJob();
         $this->downloadJob->setUri('https://example.com/test.mp4');
         $this->downloadJob->setState(DownloadStateEnum::IN_PROGRESS);
+        // The listener skips jobs without an identifier. Give the shared job a
+        // persisted id so the existing tests exercise the normal database path.
+        self::setJobId($this->downloadJob, 1);
 
         $this->process = $this->createMock(Process::class);
         $this->process->method('getCommandLine')->willReturn('yt-dlp https://example.com');
         $this->process->method('getOutput')->willReturn('Downloaded successfully');
         $this->process->method('getErrorOutput')->willReturn('');
+    }
+
+    private static function setJobId(DownloadJob $job, ?int $id): void
+    {
+        $property = new \ReflectionProperty(DownloadJob::class, 'id');
+        $property->setValue($job, $id);
+    }
+
+    public function testOnCliProcessStopEventWithUnpersistedJobDoesNotQueryRepository(): void
+    {
+        // A DownloadJob built by app:url:download is never persisted, so its id is null.
+        // Doctrine's find(null) throws MissingIdentifierField; the listener must skip it.
+        self::setJobId($this->downloadJob, null);
+        $event = new CliProcessStopEvent(
+            $this->downloadJob,
+            true,
+            $this->process,
+            0,
+            'Success'
+        );
+
+        $this->assertNull($this->downloadJob->getId());
+        $this->repository->expects($this->never())
+            ->method('find');
+        $this->entityManager->expects($this->never())
+            ->method('persist');
+        $this->entityManager->expects($this->never())
+            ->method('flush');
+
+        $this->listener->onCliProcessStopEvent($event);
     }
 
     public function testOnCliProcessStopEventWithSuccessfulExit(): void

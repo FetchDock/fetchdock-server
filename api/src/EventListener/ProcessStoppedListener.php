@@ -34,8 +34,17 @@ class ProcessStoppedListener
             'uri' => $event->downloadJob->getUri(),
         ]);
 
+        // CLI commands such as app:url:download build a DownloadJob that is never
+        // persisted, so its id is null. Doctrine cannot find() a null identifier
+        // and throws MissingIdentifierField; there is nothing to record for such
+        // a job, so skip the database work entirely.
+        $jobId = $event->downloadJob->getId();
+        if (null === $jobId) {
+            return;
+        }
+
         /** @var DownloadJob $downloadJob */
-        $downloadJob = $this->downloadJobRepository->find($event->downloadJob->getId());
+        $downloadJob = $this->downloadJobRepository->find($jobId);
         if ($downloadJob) {
             // Create a new DownloadJobEvent to log the process stop
             $jobEvent = new DownloadJobEvent()
