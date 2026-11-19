@@ -56,13 +56,27 @@ abstract class AbstractCliDownloader implements DownloaderInterface
         $this->createDownloadDirectoryIfNotExists();
 
         try {
-            return $this->runDownloadProcess($downloadJob);
+            $this->runDownload($downloadJob);
+
+            return true;
         } finally {
             $this->removeTemporaryFiles();
         }
     }
 
-    private function runDownloadProcess(DownloadJobInterface $downloadJob): true
+    /**
+     * Run the download. Downloaders can override this to run the process more than once,
+     * e.g. to retry with different options.
+     */
+    protected function runDownload(DownloadJobInterface $downloadJob): void
+    {
+        $this->runDownloadProcess($downloadJob);
+    }
+
+    /**
+     * @param list<string> $extraOptions options added after the config, which take precedence over it
+     */
+    protected function runDownloadProcess(DownloadJobInterface $downloadJob, array $extraOptions = []): Process
     {
         $processOptions = array_merge(
             [
@@ -72,7 +86,10 @@ abstract class AbstractCliDownloader implements DownloaderInterface
             [
                 '--config', $this->configPath,
                 '--verbose',
-                $downloadJob->getUrl()->__toString()
+            ],
+            $extraOptions,
+            [
+                $downloadJob->getUrl()->__toString(),
             ]
         );
 
@@ -116,7 +133,7 @@ abstract class AbstractCliDownloader implements DownloaderInterface
             throw new \RuntimeException($downloadProcess->getErrorOutput());
         }
 
-        return true;
+        return $downloadProcess;
     }
 
     protected function createConfigFileIfNotExists(): void
