@@ -13,6 +13,7 @@ ENV APP_VERSION=${APP_VERSION}
 # https://docs.docker.com/compose/compose-file/#target
 
 ## Download the latest gallery-dl & yt-dlp binary from GitHub
+# The "deno" extra installs the Deno JavaScript runtime, which yt-dlp needs for YouTube extraction
 # hadolint ignore=DL3008,DL3013
 RUN apt-get update && apt-get install --no-install-recommends -y \
     ca-certificates \
@@ -25,7 +26,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
     cron \
     procps \
 	&& rm -rf /var/lib/apt/lists/* \
-    && pip3 install --no-cache-dir gallery-dl brotli psycopg[binary] "yt-dlp[default]" --break-system-packages \
+    && pip3 install --no-cache-dir gallery-dl brotli psycopg[binary] "yt-dlp[default,deno]" --break-system-packages \
     && wget --progress=dot:giga https://raw.githubusercontent.com/vishnubob/wait-for-it/81b1373f17855a4dc21156cfe1694c31d7d1792e/wait-for-it.sh -O /usr/local/bin/wait-for-it \
     && chmod +x /usr/local/bin/wait-for-it
 
