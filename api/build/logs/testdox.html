@@ -1,0 +1,1132 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1"/>
+        <title>Test Documentation</title>
+        <style>
+            :root {
+                color-scheme: light dark;
+
+                --background: light-dark(#f4f5f7, #16181d);
+                --card-background: light-dark(#ffffff, #1f2228);
+                --border: light-dark(#e2e4e8, #30343c);
+                --text: light-dark(#1a1a1a, #e6e8eb);
+                --muted: light-dark(#6b7280, #9aa1ab);
+                --shadow: light-dark(0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.4));
+
+                --passed-background: light-dark(#d6e6f2, #1e3550);
+                --failed-background: light-dark(#fad4c0, #4a2a10);
+            }
+
+            *, *::before, *::after {
+                box-sizing: border-box;
+            }
+
+            body {
+                text-rendering: optimizeLegibility;
+                font-family: Source SansSerif Pro, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+                font-variant-ligatures: common-ligatures;
+                font-kerning: normal;
+                line-height: 1.5;
+                margin: 0;
+                padding: 2.5rem 1rem;
+                background-color: var(--background);
+                color: var(--text);
+            }
+
+            .summary,
+            main {
+                max-width: 52rem;
+                margin: 0 auto;
+            }
+
+            .summary {
+                margin-bottom: 1.5rem;
+            }
+
+            .summary h1 {
+                font-size: 1.5rem;
+                font-weight: 600;
+                margin: 0 0 0.25rem;
+            }
+
+            .counts {
+                margin: 0;
+                color: var(--muted);
+            }
+
+            .counts .passed,
+            .counts .failed {
+                display: inline-block;
+                padding: 0.1rem 0.5rem;
+                border-radius: 0.25rem;
+                color: var(--text);
+                font-weight: 600;
+            }
+
+            .counts .passed {
+                background-color: var(--passed-background);
+            }
+
+            .counts .failed {
+                background-color: var(--failed-background);
+            }
+
+            .test-class {
+                background-color: var(--card-background);
+                border: 1px solid var(--border);
+                border-radius: 0.5rem;
+                box-shadow: var(--shadow);
+                padding: 1rem 1.25rem;
+                margin-bottom: 1rem;
+            }
+
+            .test-class h2 {
+                font-size: 1.1rem;
+                font-weight: 600;
+                margin: 0 0 0.5rem;
+                padding-bottom: 0.5rem;
+                border-bottom: 1px solid var(--border);
+            }
+
+            ul {
+                list-style: none;
+                margin: 0;
+                padding: 0;
+            }
+
+            li {
+                position: relative;
+                margin-bottom: 0.25rem;
+                padding: 0.25rem 0.5rem 0.25rem 1.9rem;
+                border-radius: 0.25rem;
+            }
+
+            li::before {
+                position: absolute;
+                left: 0.5rem;
+            }
+
+            li.success {
+                background-color: var(--passed-background);
+            }
+
+            li.success::before {
+                content: '✓';
+            }
+
+            li.defect {
+                background-color: var(--failed-background);
+            }
+
+            li.defect::before {
+                content: '✗';
+            }
+        </style>
+    </head>
+    <body>
+        <header class="summary">
+            <h1>Test Documentation</h1>
+            <p class="counts"><span class="passed">526 passed</span> · <span class="failed">14 failed</span></p>
+        </header>
+        <main>
+
+            <section class="test-class">
+                <h2>Abstract Cli Downloader (App\Tests\Unit\Service\Downloader\AbstractCliDownloader)</h2>
+                <ul>
+                    <li class="success">Get downloader type</li>
+                    <li class="success">Downloader implements interface</li>
+                    <li class="success">Constructor sets properties</li>
+                    <li class="success">Timeout constants</li>
+                    <li class="success">Create config file if not exists creates directory</li>
+                    <li class="success">Create config file if not exists skips if exists</li>
+                    <li class="success">Create download directory if not exists</li>
+                    <li class="success">Create download directory if not exists skips if exists</li>
+                    <li class="success">Get pip update command args returns correct structure</li>
+                    <li class="success">Get pip update command args with different package</li>
+                    <li class="success">Get version from pip returns cached value</li>
+                    <li class="success">Get version from pip returns null on cache miss</li>
+                    <li class="success">Get version from pip cache key includes package name</li>
+                    <li class="success">Get version from pip callback parses valid output</li>
+                    <li class="success">Create cookie file writes cookies readable only by owner</li>
+                    <li class="success">Download removes cookie file after successful run</li>
+                    <li class="success">Download removes cookie file when process fails</li>
+                    <li class="success">User options are passed after the config and before the url</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>Abstract Site Setting (App\Tests\Unit\Entity\AbstractSiteSetting)</h2>
+                <ul>
+                    <li class="success">All fields default to null meaning inherit with data set &quot;site defaults&quot;</li>
+                    <li class="success">All fields default to null meaning inherit with data set &quot;user overrides&quot;</li>
+                    <li class="success">Setters are chainable and accept null with data set &quot;site defaults&quot;</li>
+                    <li class="success">Setters are chainable and accept null with data set &quot;user overrides&quot;</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>Auth Controller (App\Tests\Unit\Controller\AuthController)</h2>
+                <ul>
+                    <li class="success">Start o auth 2 flow redirects to idp with pkce and state</li>
+                    <li class="success">Start o auth 2 flow stores code verifier in cache</li>
+                    <li class="success">Start o auth 2 flow returns error when authorization endpoint not found</li>
+                    <li class="success">Start o auth 2 flow handles well known failure</li>
+                    <li class="success">Start o auth 2 flow handles well known http exception</li>
+                    <li class="success">Start o auth 2 flow code challenge is derived from verifier</li>
+                    <li class="success">Start o auth 2 flow redirect url points to authorization endpoint</li>
+                    <li class="success">Start o auth 2 flow generates unique state per request</li>
+                    <li class="success">Start o auth 2 flow handles well known invalid json</li>
+                    <li class="defect">Callback exchanges code for tokens successfully</li>
+                    <li class="defect">Callback deletes cache entry to prevent replay</li>
+                    <li class="success">Callback renders error when idpeturns error</li>
+                    <li class="success">Callback renders error when code is missing</li>
+                    <li class="success">Callback renders error when state is missing</li>
+                    <li class="success">Callback renders error when state not found in cache</li>
+                    <li class="defect">Callback renders error when token endpoint not found</li>
+                    <li class="defect">Callback renders error when idp returns token error</li>
+                    <li class="defect">Callback renders error when token exchange throws exception</li>
+                    <li class="defect">Callback renders error when idp returns invalid json</li>
+                    <li class="defect">Callback sends correct parameters to token endpoint</li>
+                    <li class="success">Callback renders error when both code and state are missing</li>
+                    <li class="defect">Callback renders error when well known fails during token exchange</li>
+                    <li class="success">Callback handles idp error without description</li>
+                    <li class="success">Code to token exchanges code successfully</li>
+                    <li class="success">Code to token returns bad request when no content type is specified</li>
+                    <li class="success">Code to token returns bad request when code is missing</li>
+                    <li class="success">Code to token returns bad request when code verifier is missing</li>
+                    <li class="success">Code to token returns bad request when redirect uri is missing</li>
+                    <li class="success">Code to token returns bad request when body is empty</li>
+                    <li class="success">Code to token returns bad request when body is invalid json</li>
+                    <li class="success">Code to token returns error when token endpoint not found</li>
+                    <li class="success">Code to token returns error when idp rejects code</li>
+                    <li class="success">Code to token returns error when well known fails</li>
+                    <li class="success">Code to token returns error when http client throws</li>
+                    <li class="success">Code to token sends correct parameters to idp</li>
+                    <li class="success">Refresh token exchanges refresh token successfully</li>
+                    <li class="success">Refresh token returns bad request when refresh token is missing</li>
+                    <li class="success">Refresh token returns error when token endpoint not found</li>
+                    <li class="success">Refresh token returns error when idp rejects refresh token</li>
+                    <li class="success">Refresh token returns error when http client throws</li>
+                    <li class="success">Refresh token sends correct parameters to idp</li>
+                    <li class="success">Refresh token returns bad request when body is empty</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>Cleanup Listener (App\Tests\Unit\EventListener\CleanupListener)</h2>
+                <ul>
+                    <li class="success">On job completed removes cookies</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>Client (App\Tests\Api\Client)</h2>
+                <ul>
+                    <li class="success">Register list rename and revoke</li>
+                    <li class="success">Invalid type is rejected</li>
+                    <li class="success">Clients are isolated per owner</li>
+                    <li class="success">Client settings layer</li>
+                    <li class="success">Client layer overrides user layers</li>
+                    <li class="success">Foreign or invalid client id is ignored</li>
+                    <li class="success">Last seen at is tracked</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>Client Preferences (App\Tests\Api\ClientPreferences)</h2>
+                <ul>
+                    <li class="success">Empty without stored preferences</li>
+                    <li class="success">Put stores data as sent</li>
+                    <li class="success">Put replaces the preferences</li>
+                    <li class="success">Delete removes the preferences</li>
+                    <li class="success">Preferences are isolated per owner and client type</li>
+                    <li class="success">Body larger than 16 kb is rejected</li>
+                    <li class="success">Invalid bodies are rejected with data set &quot;list&quot;</li>
+                    <li class="success">Invalid bodies are rejected with data set &quot;string&quot;</li>
+                    <li class="success">Invalid bodies are rejected with data set &quot;null&quot;</li>
+                    <li class="success">Invalid bodies are rejected with data set &quot;missing data&quot;</li>
+                    <li class="success">Invalid bodies are rejected with data set &quot;not an object&quot;</li>
+                    <li class="success">Invalid bodies are rejected with data set &quot;invalid JSON&quot;</li>
+                    <li class="success">Invalid bodies are rejected with data set &quot;too deep&quot;</li>
+                    <li class="success">Invalid client type is not found</li>
+                    <li class="success">Requires authentication</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>Cli Process Listener (App\Tests\Unit\EventListener\CliProcessListener)</h2>
+                <ul>
+                    <li class="success">Progress is published privately to the owners output topic</li>
+                    <li class="success">Errors are published</li>
+                    <li class="success">Raw output is not published</li>
+                    <li class="success">Progress is published only when the whole percent changes</li>
+                    <li class="success">Progress of the next file is published from zero</li>
+                    <li class="success">Start and stop publish state events</li>
+                    <li class="success">Job without owner is not published</li>
+                    <li class="success">Unavailable hub does not fail the download</li>
+                    <li class="success">Send std output to logger</li>
+                    <li class="success">Send err output to logger</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>Cli Process Start Event (App\Tests\Unit\Event\CliProcessStartEvent)</h2>
+                <ul>
+                    <li class="success">Event initialization</li>
+                    <li class="success">Event properties are readonly</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>Cookie DTO (App\Tests\Unit\Dto\CookieDTO)</h2>
+                <ul>
+                    <li class="success">Public properties</li>
+                    <li class="success">To netscape cookie line</li>
+                    <li class="success">Cookie d t o from payload example 1</li>
+                    <li class="success">Cookie d t o from payload example 2</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>Current User Extension (App\Tests\Unit\Doctrine\CurrentUserExtension)</h2>
+                <ul>
+                    <li class="success">Owner is added to query if security returns a valid user</li>
+                    <li class="success">Apply to collection</li>
+                    <li class="success">Apply to item</li>
+                    <li class="success">Query builder is not called when class does not implement interface</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>Downloader Factory (App\Tests\Unit\Factory\DownloaderFactory)</h2>
+                <ul>
+                    <li class="success">Constructor indexes downloaders by identifier</li>
+                    <li class="success">Get downloader by identifier</li>
+                    <li class="success">Is valid downloader</li>
+                    <li class="success">Get downloaders by uri with supported domain</li>
+                    <li class="success">Get downloaders by uri with multiple supported downloaders</li>
+                    <li class="success">Get downloaders by uri with no supported downloaders</li>
+                    <li class="success">Get downloaders by uri logs debug messages</li>
+                    <li class="success">Constructor handles duplicate identifiers</li>
+                    <li class="success">Get enabled downloaders returns iterable</li>
+                    <li class="success">Get cli downloaders returns only cli downloaders</li>
+                    <li class="success">Get cli downloaders filters out non cli downloaders</li>
+                    <li class="success">Get cli downloaders returns iterable that can be converted to array</li>
+                    <li class="success">Get cli downloaders returns empty iterable when no cli downloaders</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>Downloader Factory Integration (App\Tests\Integration\Factory\DownloaderFactoryIntegration)</h2>
+                <ul>
+                    <li class="success">Factory with real mock downloader</li>
+                    <li class="success">Get downloader by identifier with real downloader</li>
+                    <li class="success">Get downloaders by uri with real downloader support</li>
+                    <li class="success">Get downloaders by uri with unsupported domain</li>
+                    <li class="success">Real downloader properties</li>
+                    <li class="success">Factory with multiple real downloaders</li>
+                    <li class="success">Logging integration with real downloader</li>
+                    <li class="success">Valid downloader check with real downloader</li>
+                    <li class="success">Downloader factory consistency</li>
+                    <li class="success">Factory handles real downloader exceptions</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>Downloader Options (App\Tests\Api\DownloaderOptions)</h2>
+                <ul>
+                    <li class="success">Options schema</li>
+                    <li class="success">Options schema of downloader without options is empty</li>
+                    <li class="success">Options schema of unknown downloader is not found</li>
+                    <li class="success">Downloader options are stored and replaced</li>
+                    <li class="success">Denied unknown and invalid options are rejected</li>
+                    <li class="success">Site downloader options</li>
+                    <li class="success">Resolve returns the merged options of the effective downloader</li>
+                    <li class="success">Download job gets the merged options</li>
+                    <li class="success">Policy overrides require admin</li>
+                    <li class="success">Admin can expose and hide options</li>
+                    <li class="success">Admin cannot expose hard denied options</li>
+                    <li class="success">Policy override validation</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>Downloader Provider (App\Tests\Unit\State\DownloaderProvider)</h2>
+                <ul>
+                    <li class="success">Provider is instantiable</li>
+                    <li class="success">Provide collection operation</li>
+                    <li class="success">Provide single downloader with valid id</li>
+                    <li class="success">Provide single downloader with invalid id</li>
+                    <li class="success">Provide single downloader without id</li>
+                    <li class="success">Provide with url domains</li>
+                    <li class="success">Provide with empty downloaders list</li>
+                    <li class="success">Provide implements provider interface</li>
+                    <li class="success">Supported domains include site domains</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>Downloader Type Enum (App\Tests\Unit\Enum\DownloaderTypeEnum)</h2>
+                <ul>
+                    <li class="success">All enum cases</li>
+                    <li class="success">Enum names</li>
+                    <li class="success">Enum labels</li>
+                    <li class="success">Enum comparison</li>
+                    <li class="success">Label method exists</li>
+                    <li class="success">Label accuracy</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>Download Job (App\Tests\Api\DownloadJob)</h2>
+                <ul>
+                    <li class="success">Create download job with full payload</li>
+                    <li class="success">Create download job with minimal payload</li>
+                    <li class="success">Create download job fails because it exists</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>Download Job (App\Tests\Unit\Entity\DownloadJob)</h2>
+                <ul>
+                    <li class="success">Entity instantiation</li>
+                    <li class="success">Set and get uri</li>
+                    <li class="success">Set and get user agent</li>
+                    <li class="success">Set user agent to null</li>
+                    <li class="success">Set and get cookies</li>
+                    <li class="success">Set cookies to null returns empty array</li>
+                    <li class="success">Set and get state</li>
+                    <li class="success">State transitions</li>
+                    <li class="success">Set and get downloader</li>
+                    <li class="success">Get url</li>
+                    <li class="success">Uuid is generated and unique</li>
+                    <li class="success">Token is generated and unique</li>
+                    <li class="success">Add download job event</li>
+                    <li class="success">Add same download job event twice</li>
+                    <li class="success">Remove download job event</li>
+                    <li class="success">Remove non existent download job event</li>
+                    <li class="success">Remove download job event that belongs to another job</li>
+                    <li class="success">Complex scenario</li>
+                    <li class="success">Add cookie</li>
+                    <li class="success">Add cookie with same name</li>
+                    <li class="success">Remove cookie</li>
+                    <li class="success">Set cookies with values other than cookie d t o throws invalid argument exception</li>
+                    <li class="success">Set cookies with null throws invalid argument exception</li>
+                    <li class="success">Add file</li>
+                    <li class="success">Remove file</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>Download Job Delete (App\Tests\Api\DownloadJobDelete)</h2>
+                <ul>
+                    <li class="success">Owner deletes job and its unshared files</li>
+                    <li class="success">File used by another live job is not deleted</li>
+                    <li class="success">User cannot delete another users job</li>
+                    <li class="success">Anonymous user cannot delete job</li>
+                    <li class="success">Resubmitting uri restores soft deleted file still on disk</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>Download Job DTO (App\Tests\Unit\Dto\DownloadJobDTO)</h2>
+                <ul>
+                    <li class="success">Public properties</li>
+                    <li class="success">Uri property</li>
+                    <li class="success">User agent property</li>
+                    <li class="success">Cookies property</li>
+                    <li class="success">Downloader property</li>
+                    <li class="success">Validation constraints</li>
+                    <li class="success">Complete d t o</li>
+                    <li class="success">Minimal d t o</li>
+                    <li class="success">D t o is final</li>
+                    <li class="success">Property types</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>Download Job DTOHandler (App\Tests\Unit\Handler\DownloadJobDTOHandler)</h2>
+                <ul>
+                    <li class="success">Handler is instantiable</li>
+                    <li class="success">Handler has invoke method</li>
+                    <li class="success">Handler is callable</li>
+                    <li class="success">Handler accepts download job d t o</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>Download Job Event Repository (App\Tests\Integration\Repository\DownloadJobEventRepository)</h2>
+                <ul>
+                    <li class="success">Repository is instantiable</li>
+                    <li class="success">Find all returns array</li>
+                    <li class="success">Count returns integer</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>Download Job Handler (App\Tests\Integration\Handler\DownloadJobHandler)</h2>
+                <ul>
+                    <li class="success">Successful download with specified downloader</li>
+                    <li class="success">Successful download with auto selected downloader</li>
+                    <li class="success">Job not found in database</li>
+                    <li class="success">Invalid downloader specified</li>
+                    <li class="success">No downloader found for uri</li>
+                    <li class="success">Downloader throws exception</li>
+                    <li class="success">Job update event content with specified downloader</li>
+                    <li class="success">Job update event content with auto selected downloader</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>Download Job Handler Event (App\Tests\Integration\Handler\DownloadJobHandlerEvent)</h2>
+                <ul>
+                    <li class="success">Job picked up event is dispatched</li>
+                    <li class="success">Job update event is dispatched when downloader is selected</li>
+                    <li class="success">Job failed event is dispatched on exception</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>Download Job Queued Processor (App\Tests\Unit\State\DownloadJobQueuedProcessor)</h2>
+                <ul>
+                    <li class="success">Process with valid downloader specified</li>
+                    <li class="success">Process with invalid downloader specified</li>
+                    <li class="success">Process with auto downloader selection from cache</li>
+                    <li class="success">Process with auto downloader selection not cached</li>
+                    <li class="success">Process with no downloader found</li>
+                    <li class="success">Process with invalid uri</li>
+                    <li class="success">Process with minimal data</li>
+                    <li class="success">Get cache key generation</li>
+                    <li class="success">Process reuses existing files of previous download</li>
+                    <li class="success">Process restores soft deleted files still on disk</li>
+                    <li class="success">Process downloads again when previous files no longer exist</li>
+                    <li class="success">Process with force does not reuse previous download</li>
+                    <li class="success">Process does not reuse previous download of different downloader</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>Download Job Repository (App\Tests\Integration\Repository\DownloadJobRepository)</h2>
+                <ul>
+                    <li class="success">Find reusable by uri returns finished jobs for uri newest first</li>
+                    <li class="success">Find reusable by uri skips newer successful job without files</li>
+                    <li class="success">Find reusable by uri includes soft deleted jobs and files</li>
+                    <li class="success">Find reusable by uri returns empty array for unknown uri</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>Download Job Repository (App\Tests\Unit\Repository\DownloadJobRepository)</h2>
+                <ul>
+                    <li class="success">Constructor</li>
+                    <li class="success">Inherits from service entity repository</li>
+                    <li class="success">Repository entity class</li>
+                    <li class="success">Repository instantiation</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>Download Job Serialization (App\Tests\Api\DownloadJobSerialization)</h2>
+                <ul>
+                    <li class="success">Api response does not contain sensitive fields</li>
+                    <li class="success">Json ld serialization used for mercure updates does not contain sensitive fields</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>Download Progress Parser (App\Tests\Unit\Mercure\DownloadProgressParser)</h2>
+                <ul>
+                    <li class="success">Parses yt dlp progress lines with data set &quot;in progress&quot;</li>
+                    <li class="success">Parses yt dlp progress lines with data set &quot;approximate size&quot;</li>
+                    <li class="success">Parses yt dlp progress lines with data set &quot;unknown speed and ETA&quot;</li>
+                    <li class="success">Parses yt dlp progress lines with data set &quot;fragments&quot;</li>
+                    <li class="success">Parses yt dlp progress lines with data set &quot;finished&quot;</li>
+                    <li class="success">Parses errors</li>
+                    <li class="success">Skips everything else</li>
+                    <li class="success">Parses multiple lines separated by carriage returns</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>Download Router Migration Set Downloadjob Owner Command (App\Tests\Integration\Command\DownloadRouterMigrationSetDownloadjobOwnerCommand)</h2>
+                <ul>
+                    <li class="success">Assigns all jobs without owner and keeps existing owners</li>
+                    <li class="success">Dry run only reports the count</li>
+                    <li class="success">Fails for unknown owner</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>Download State Enum (App\Tests\Unit\Enum\DownloadStateEnum)</h2>
+                <ul>
+                    <li class="success">All enum cases</li>
+                    <li class="success">Enum values</li>
+                    <li class="success">Enum names</li>
+                    <li class="success">From value</li>
+                    <li class="success">Try from value</li>
+                    <li class="success">From invalid value</li>
+                    <li class="success">Enum comparison</li>
+                    <li class="success">State progression</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>Download Workflow Integration (App\Tests\Integration\Workflow\DownloadWorkflowIntegration)</h2>
+                <ul>
+                    <li class="defect">Complete workflow with valid downloader</li>
+                    <li class="defect">Workflow with auto downloader selection</li>
+                    <li class="success">Workflow with unsupported uri</li>
+                    <li class="defect">Workflow with download failure</li>
+                    <li class="success">Workflow validates downloader factory</li>
+                    <li class="success">Workflow maintains job state</li>
+                    <li class="defect">Workflow rejects existing download jobs by url</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>Effective Settings Resolver (App\Tests\Unit\Service\Settings\EffectiveSettingsResolver)</h2>
+                <ul>
+                    <li class="success">Hard defaults without site</li>
+                    <li class="success">Default downloader follows factory order</li>
+                    <li class="success">Site defaults override hard defaults</li>
+                    <li class="success">Site downloader is ignored when it cannot handle the url</li>
+                    <li class="success">Layer precedence</li>
+                    <li class="success">Downloader preference precedence</li>
+                    <li class="success">Foreign client is ignored</li>
+                    <li class="success">Disabled downloader is never chosen</li>
+                    <li class="success">Priority orders downloaders without preference</li>
+                    <li class="success">Downloader options merge user and site layers</li>
+                    <li class="success">Effective settings contain the options of the chosen downloader</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>Exclude Views From Schema Listener (App\Tests\Unit\Doctrine\ExcludeViewsFromSchemaListener)</h2>
+                <ul>
+                    <li class="success">Removes tables for views from generated schema</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>Extractor Matcher (App\Tests\Integration\Service\ExtractorMatcher)</h2>
+                <ul>
+                    <li class="success">Matches both tools for a tweet</li>
+                    <li class="success">Yt dlp family is the extractor module</li>
+                    <li class="success">Generic urls do not match</li>
+                    <li class="success">Catalog lists extractors with hosts</li>
+                    <li class="success">Url is passed as argument not through a shell</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>Gallery Dl Cli Downloader (App\Tests\Unit\Service\Downloader\GalleryDlCliDownloader)</h2>
+                <ul>
+                    <li class="success">Implements cli downloader interface</li>
+                    <li class="success">Get identifier</li>
+                    <li class="success">Get update command args returns correct array</li>
+                    <li class="success">Command options include user agent and referrer</li>
+                    <li class="success">Command options omit missing referrer</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>Job Accepted DTO (App\Tests\Unit\Dto\JobAcceptedDTO)</h2>
+                <ul>
+                    <li class="success">Job uuid getters and setters</li>
+                    <li class="success">Token getters and setters</li>
+                    <li class="success">Job type getters and setters</li>
+                    <li class="success">Status getters and setters</li>
+                    <li class="success">Message getters and setters</li>
+                    <li class="success">Fluent interface</li>
+                    <li class="success">Set job uuid with minimal value</li>
+                    <li class="success">Set token with short value</li>
+                    <li class="success">Set token with long value</li>
+                    <li class="success">Initial state</li>
+                    <li class="success">Complete workflow</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>Job Event Logger (App\Tests\Unit\EventListener\JobEventLogger)</h2>
+                <ul>
+                    <li class="success">Listener is instantiable</li>
+                    <li class="success">On job picked up logs and stores</li>
+                    <li class="success">On job update logs and stores</li>
+                    <li class="success">On job completed logs and stores</li>
+                    <li class="success">On job failed logs and stores</li>
+                    <li class="success">On job failed without context</li>
+                    <li class="success">On job update without context</li>
+                    <li class="success">On job completed without metadata</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>Job Events (App\Tests\Unit\Event\JobEvents)</h2>
+                <ul>
+                    <li class="success">Job picked up event</li>
+                    <li class="success">Job picked up event without worker identifier</li>
+                    <li class="success">Job update event</li>
+                    <li class="success">Job update event without context</li>
+                    <li class="success">Job completed event</li>
+                    <li class="success">Job completed event without metadata</li>
+                    <li class="success">Job failed event</li>
+                    <li class="success">Job failed event without context</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>Job Type Enum (App\Tests\Unit\Enum\JobTypeEnum)</h2>
+                <ul>
+                    <li class="success">All enum cases</li>
+                    <li class="success">Enum names</li>
+                    <li class="success">Download label</li>
+                    <li class="success">Label method exists</li>
+                    <li class="success">Enum comparison</li>
+                    <li class="success">Match expression returns correct label</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>Mercure Privacy (App\Tests\Integration\Mercure\MercurePrivacy)</h2>
+                <ul>
+                    <li class="success">Api resource updates are private</li>
+                    <li class="success">Custom updates are private</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>Mock Downloader (App\Tests\Unit\Service\Downloader\MockDownloader)</h2>
+                <ul>
+                    <li class="success">Get identifier</li>
+                    <li class="success">Get downloader type</li>
+                    <li class="success">Get supported domains</li>
+                    <li class="success">Get current version</li>
+                    <li class="success">Get latest version</li>
+                    <li class="success">Supports uri with supported domain</li>
+                    <li class="success">Supports uri with another supported domain</li>
+                    <li class="success">Supports uri with unsupported domain</li>
+                    <li class="success">Supports uri with subdomain</li>
+                    <li class="success">Supports uri with different scheme</li>
+                    <li class="success">Supports uri with port</li>
+                    <li class="success">Download</li>
+                    <li class="success">Download with different job</li>
+                    <li class="success">Consistent behavior</li>
+                    <li class="success">Download does not depend on uri content</li>
+                    <li class="success">Domain matching edge cases</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>Oidc Subject Identifier (App\Tests\Unit\Entity\OidcSubjectIdentifier)</h2>
+                <ul>
+                    <li class="success">Getters and setters</li>
+                    <li class="success">Download job collection relation</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>Oidc User (App\Tests\Unit\Security\Core\User\OidcUser)</h2>
+                <ul>
+                    <li class="success">Oidc user always gets the role user role</li>
+                    <li class="success">Get user identifier returns sub</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>Oidc User Provider (App\Tests\Unit\Security\Core\User\OidcUserProvider)</h2>
+                <ul>
+                    <li class="success">Constructor</li>
+                    <li class="success">Load user by identifier</li>
+                    <li class="success">Identified user identifier is stored in database</li>
+                    <li class="success">Refreshing user does nothing</li>
+                    <li class="success">Supports class supports oidc user</li>
+                    <li class="success">Supports class does not support non oidc user</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>Options Arguments Builder (App\Tests\Unit\Service\Downloader\Options\OptionsArgumentsBuilder)</h2>
+                <ul>
+                    <li class="success">Values become single flag value elements</li>
+                    <li class="success">Booleans become bare flags</li>
+                    <li class="success">Lists repeat the flag</li>
+                    <li class="success">Hidden unknown and invalid options are skipped</li>
+                    <li class="success">Options are skipped when the tool cannot be inspected</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>Options Dumper (App\Tests\Integration\Service\OptionsDumper)</h2>
+                <ul>
+                    <li class="success">Dumps both tools</li>
+                    <li class="success">Unknown tool fails</li>
+                    <li class="success">Schemas expose common options but no hard denied ones</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>Options Policy (App\Tests\Unit\Service\Downloader\Options\OptionsPolicy)</h2>
+                <ul>
+                    <li class="success">Code policy exposes allowlisted groups without denied options</li>
+                    <li class="success">Hard denied flags and metavars are never exposed</li>
+                    <li class="success">Hard deny checks every flag and the metavar</li>
+                    <li class="success">Every planned hard denied flag is listed</li>
+                    <li class="success">Admin overrides expose and hide options</li>
+                    <li class="success">Admin overrides cannot expose hard denied options</li>
+                    <li class="success">Type override changes value options only</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>Options Schema Factory (App\Tests\Unit\Service\Downloader\Options\OptionsSchemaFactory)</h2>
+                <ul>
+                    <li class="success">Value options use their long flag and type</li>
+                    <li class="success">True and false flags of one dest become one boolean</li>
+                    <li class="success">False only flag has no true flag</li>
+                    <li class="success">Constant flags are keyed by flag</li>
+                    <li class="success">Hidden and unsupported options are skipped</li>
+                    <li class="success">Downloaders without tool have no options</li>
+                    <li class="success">Schema contains exposed options only</li>
+                    <li class="success">Tool options are cached</li>
+                    <li class="success">Dump failure is reported</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>Options Validator (App\Tests\Unit\Service\Downloader\Options\OptionsValidator)</h2>
+                <ul>
+                    <li class="success">Valid options</li>
+                    <li class="success">Unknown and hidden options are rejected</li>
+                    <li class="success">Invalid values are rejected with data set &quot;string for boolean&quot;</li>
+                    <li class="success">Invalid values are rejected with data set &quot;string for integer&quot;</li>
+                    <li class="success">Invalid values are rejected with data set &quot;float for integer&quot;</li>
+                    <li class="success">Invalid values are rejected with data set &quot;integer for string&quot;</li>
+                    <li class="success">Invalid values are rejected with data set &quot;not a choice&quot;</li>
+                    <li class="success">Invalid values are rejected with data set &quot;too long&quot;</li>
+                    <li class="success">Invalid values are rejected with data set &quot;newline&quot;</li>
+                    <li class="success">Invalid values are rejected with data set &quot;NUL byte&quot;</li>
+                    <li class="success">Invalid values are rejected with data set &quot;object for list&quot;</li>
+                    <li class="success">Invalid values are rejected with data set &quot;list with integer&quot;</li>
+                    <li class="success">Invalid values are rejected with data set &quot;too many items&quot;</li>
+                    <li class="success">Invalid values are rejected with data set &quot;list for string&quot;</li>
+                    <li class="success">Normalize drops null values</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>Process Start Event (App\Tests\Unit\Event\ProcessStartEvent)</h2>
+                <ul>
+                    <li class="success">Event initialization</li>
+                    <li class="success">Event property is readonly</li>
+                    <li class="success">Is symfony event</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>Process Stopped Listener (App\Tests\Unit\EventListener\ProcessStoppedListener)</h2>
+                <ul>
+                    <li class="success">On cli process stop event with unpersisted job does not query repository</li>
+                    <li class="success">On cli process stop event with successful exit</li>
+                    <li class="success">On cli process stop event with failure exit</li>
+                    <li class="success">On cli process stop event logs correct information</li>
+                    <li class="success">On cli process stop event when job not found</li>
+                    <li class="success">Add files to download job from command output when job not completed</li>
+                    <li class="success">Add files to download job from command output with valid downloader</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>Resolve Site Provider (App\Tests\Unit\State\ResolveSiteProvider)</h2>
+                <ul>
+                    <li class="success">Unsupported url resolves without site</li>
+                    <li class="success">Rate limit per user</li>
+                    <li class="success">Matcher failure is a service unavailable error</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>Select Downloader Validator (App\Tests\Unit\Validator\SelectDownloaderValidator)</h2>
+                <ul>
+                    <li class="success">Validate with null value</li>
+                    <li class="success">Validate with empty string value</li>
+                    <li class="success">Validate with valid downloader</li>
+                    <li class="success">Validate with invalid downloader</li>
+                    <li class="defect">Validate with different invalid downloaders</li>
+                    <li class="success">Validate with mixed valid and invalid values</li>
+                    <li class="success">Constraint message</li>
+                    <li class="success">Constraint with custom message</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>Site (App\Tests\Api\Site)</h2>
+                <ul>
+                    <li class="success">Lists sites</li>
+                    <li class="success">Search matches name and domain</li>
+                    <li class="success">Search escapes like wildcards</li>
+                    <li class="success">Enabled filter</li>
+                    <li class="success">Get site by slug includes extractors</li>
+                    <li class="success">Unknown slug is 404</li>
+                    <li class="success">Sites are read only</li>
+                    <li class="success">Requires authentication</li>
+                    <li class="success">Sync is idempotent</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>Site (App\Tests\Unit\Entity\Site)</h2>
+                <ul>
+                    <li class="success">Defaults</li>
+                    <li class="success">Domains are normalised unique and sorted</li>
+                    <li class="success">Add extractor moves it from its previous site</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>Site Resolve (App\Tests\Api\SiteResolve)</h2>
+                <ul>
+                    <li class="success">Resolves twitter urls with data set &quot;x.com&quot;</li>
+                    <li class="success">Resolves twitter urls with data set &quot;twitter.com&quot;</li>
+                    <li class="success">Resolves youtu be to youtube</li>
+                    <li class="success">Empty downloader options are a json object</li>
+                    <li class="success">Unsupported url is not an error</li>
+                    <li class="success">Known domain resolves without running the matcher</li>
+                    <li class="success">Host resolution is cached</li>
+                    <li class="success">Unmapped extractor creates an automatic site and learns the host</li>
+                    <li class="success">Site defaults apply</li>
+                    <li class="success">Disabled site resolves as unsupported</li>
+                    <li class="success">Invalid urls are rejected with data set &quot;missing&quot;</li>
+                    <li class="success">Invalid urls are rejected with data set &quot;empty&quot;</li>
+                    <li class="success">Invalid urls are rejected with data set &quot;not a url&quot;</li>
+                    <li class="success">Invalid urls are rejected with data set &quot;ftp&quot;</li>
+                    <li class="success">Invalid urls are rejected with data set &quot;javascript&quot;</li>
+                    <li class="success">Invalid urls are rejected with data set &quot;too long&quot;</li>
+                    <li class="success">Requires authentication</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>Site Resolver (App\Tests\Unit\Service\Site\SiteResolver)</h2>
+                <ul>
+                    <li class="success">Get host with data set #0</li>
+                    <li class="success">Get host with data set #1</li>
+                    <li class="success">Get host with data set #2</li>
+                    <li class="success">Get host with data set #3</li>
+                    <li class="success">Slugify with data set #0</li>
+                    <li class="success">Slugify with data set #1</li>
+                    <li class="success">Slugify with data set #2</li>
+                    <li class="success">Slugify with data set #3</li>
+                    <li class="success">Slugify never returns an empty slug</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>Site Setting (App\Tests\Unit\Entity\SiteSetting)</h2>
+                <ul>
+                    <li class="success">Site default setting links both sides</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>Site Setting Repository (App\Tests\Integration\Repository\SiteSettingRepository)</h2>
+                <ul>
+                    <li class="success">Repository is instantiable</li>
+                    <li class="success">Find all returns array</li>
+                    <li class="success">Find by id returns null for non existent</li>
+                    <li class="success">Find by returns array for empty result</li>
+                    <li class="success">Count returns integer</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>Site Synchronizer (App\Tests\Integration\Service\SiteSynchronizer)</h2>
+                <ul>
+                    <li class="success">Curated site takes over extractors of an automatic site and removes it</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>Subscription Token (App\Tests\Api\SubscriptionToken)</h2>
+                <ul>
+                    <li class="success">Issues token for the users own topics only</li>
+                    <li class="success">Different users get different topics</li>
+                    <li class="success">Requires authentication</li>
+                    <li class="success">Only allows post</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>Test User Fixtures (App\Tests\Unit\DataFixtures\TestUserFixtures)</h2>
+                <ul>
+                    <li class="success">Load</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>Update Downloaders Message Handler (App\Tests\Unit\MessageHandler\UpdateDownloadersMessageHandler)</h2>
+                <ul>
+                    <li class="success">Handler is instantiable</li>
+                    <li class="success">Handler with no enabled downloaders</li>
+                    <li class="success">Handler with non cli downloader</li>
+                    <li class="success">Handler with cli downloader</li>
+                    <li class="success">Handler is callable</li>
+                    <li class="success">Handler synchronises sites after updating</li>
+                    <li class="success">Handler logs site synchronisation failure</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>Url Download Command (App\Tests\Unit\Command\UrlDownloadCommand)</h2>
+                <ul>
+                    <li class="success">Execute with valid url and auto detected downloader</li>
+                    <li class="success">Execute with valid url and specific downloader</li>
+                    <li class="success">Execute with downloader not found</li>
+                    <li class="success">Execute with downloader does not support url</li>
+                    <li class="defect">Execute with download failure</li>
+                    <li class="success">Execute with no available downloaders</li>
+                    <li class="success">Command description</li>
+                    <li class="success">Command name</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>User Download Stats Repository (App\Tests\Integration\Repository\UserDownloadStatsRepository)</h2>
+                <ul>
+                    <li class="success">Repository is instantiable</li>
+                    <li class="success">Find all returns array</li>
+                    <li class="success">Count returns integer</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>User Setting (App\Tests\Unit\Entity\UserSetting)</h2>
+                <ul>
+                    <li class="success">Set and get owner</li>
+                    <li class="success">Sync browsers was removed</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>User Setting Repository (App\Tests\Integration\Repository\UserSettingRepository)</h2>
+                <ul>
+                    <li class="success">Repository is instantiable</li>
+                    <li class="success">Find all returns array</li>
+                    <li class="success">Count returns integer</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>User Settings (App\Tests\Api\UserSettings)</h2>
+                <ul>
+                    <li class="success">Global settings default to inherit</li>
+                    <li class="success">Put replaces the global layer</li>
+                    <li class="success">Patch merges into the global layer</li>
+                    <li class="success">Unknown preferred downloader is rejected</li>
+                    <li class="success">Global settings are isolated per owner</li>
+                    <li class="success">Downloader settings list every downloader</li>
+                    <li class="success">Unknown downloader is not found</li>
+                    <li class="success">Site overrides</li>
+                    <li class="success">Unknown site is not found</li>
+                    <li class="success">Requires authentication</li>
+                    <li class="success">Resolve applies user layers</li>
+                    <li class="success">Resolve skips disabled downloaders</li>
+                    <li class="success">Resolve follows downloader priority</li>
+                    <li class="success">Download job honours request context</li>
+                    <li class="success">Download job keeps allowed referrer</li>
+                    <li class="success">Download job uses the effective downloader</li>
+                    <li class="success">Download job is rejected when all downloaders are disabled</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>User Site Setting (App\Tests\Unit\Entity\UserSiteSetting)</h2>
+                <ul>
+                    <li class="success">Has a single owner</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>User Stats (App\Tests\Unit\Resource\UserStats)</h2>
+                <ul>
+                    <li class="success">Get stats for user returns user stats</li>
+                    <li class="success">User stats has download stats property</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>User Stats Provider (App\Tests\Unit\State\UserStatsProvider)</h2>
+                <ul>
+                    <li class="success">With get operation</li>
+                    <li class="success">With get collection operation</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>User Topics (App\Tests\Unit\Mercure\UserTopics)</h2>
+                <ul>
+                    <li class="success">Topics are under the owners prefix</li>
+                    <li class="success">Users have different prefixes</li>
+                    <li class="success">Job without owner has no topics</li>
+                    <li class="success">Download job mercure options are private to the owner</li>
+                    <li class="success">Download job without owner has no mercure updates</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>Version (App\Tests\Api\Version)</h2>
+                <ul>
+                    <li class="success">Get versions collection</li>
+                    <li class="success">Get single version with mock downloader</li>
+                    <li class="success">Get non existent version returns 404</li>
+                    <li class="success">Versions collection includes latest version field</li>
+                    <li class="success">Version response contains all version fields</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>Version Provider (App\Tests\Unit\State\VersionProvider)</h2>
+                <ul>
+                    <li class="success">Provide collection returns versions with latest version</li>
+                    <li class="success">Provide single version returns version with latest version</li>
+                    <li class="success">Provide single version returns null for unknown downloader</li>
+                    <li class="success">Provide without id returns null</li>
+                    <li class="success">Provide collection with no downloaders returns empty array</li>
+                    <li class="success">Version property matches both current and latest when up to date</li>
+                    <li class="success">Provide collection continues on error and logs failure</li>
+                    <li class="success">Provide collection handles latest version error</li>
+                    <li class="success">Provide single version returns null on error and logs failure</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>Well Known Controller (App\Tests\Unit\Controller\WellKnownController)</h2>
+                <ul>
+                    <li class="success">Config for browser extension returns expected structure</li>
+                    <li class="success">Scopes constant contains required scopes</li>
+                </ul>
+            </section>
+
+            <section class="test-class">
+                <h2>Youtube Dl Cli Downloader (App\Tests\Unit\Service\Downloader\YoutubeDlCliDownloader)</h2>
+                <ul>
+                    <li class="success">Implements cli downloader interface</li>
+                    <li class="success">Get identifier</li>
+                    <li class="success">Get update command args returns correct array</li>
+                    <li class="success">Get supported domains returns empty array</li>
+                    <li class="success">Add files links shortcut and media file of fresh download</li>
+                    <li class="success">Add files links files that were already downloaded</li>
+                    <li class="success">Add files links already downloaded media file without shortcut</li>
+                    <li class="success">Add files links media file when shortcut is already known</li>
+                    <li class="success">Add files creates one downloaded file per path</li>
+                    <li class="success">Add files ignores files that do not exist</li>
+                    <li class="success">Download retries without archive when skipped by download archive</li>
+                    <li class="success">Download runs once when not skipped by download archive</li>
+                    <li class="success">Command options include user agent and referrer</li>
+                    <li class="success">Command options omit missing referrer</li>
+                </ul>
+            </section>
+        </main>
+    </body>
+</html>
