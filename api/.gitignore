@@ -23,6 +23,8 @@
 ###> phpunit/phpunit ###
 /phpunit.xml
 /.phpunit.cache/
+# Test reports (junit.xml, testdox.html, coverage)
+/build/
 ###< phpunit/phpunit ###
 
 ###> lexik/jwt-authentication-bundle ###
