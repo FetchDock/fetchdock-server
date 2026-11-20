@@ -12,8 +12,11 @@ use Symfony\Component\Uid\Uuid;
 interface DownloadJobInterface
 {
     public function getId(): ?int;
+
     public function getUuid(): ?Uuid;
+
     public function getToken(): ?string;
+
     public function getUri(): ?string;
 
     public function getUrl(): UriInterface;
@@ -24,10 +27,15 @@ interface DownloadJobInterface
      * @return CookieDTO[]|null
      */
     public function getCookies(): ?array;
+
     public function getState(): ?DownloadStateEnum;
+
     public function getDownloader(): ?string;
+
     public function getDownloadJobEvents(): Collection;
+
     public function getFiles(): Collection;
+
     public function getOwner(): ?OidcSubjectIdentifier;
 
     public function getCookiesNetscapeFileContent(): string;

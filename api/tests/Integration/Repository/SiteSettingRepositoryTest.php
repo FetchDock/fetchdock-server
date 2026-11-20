@@ -2,7 +2,6 @@
 
 namespace App\Tests\Integration\Repository;
 
-use App\Entity\SiteSetting;
 use App\Repository\SiteSettingRepository;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 

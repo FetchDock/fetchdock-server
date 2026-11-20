@@ -342,14 +342,13 @@ class DownloadWorkflowIntegrationTest extends TestCase
     {
         $this->testCompleteWorkflowWithValidDownloader(); // success
 
-
         // Step 1: Process DTO with specified downloader
         $dto = new DownloadJobDTO();
         $dto->uri = 'https://example.com/test.zip';
         $dto->downloader = 'mock';
         $dto->userAgent = 'TestAgent/1.0';
         // Defaults to false
-        //$dto->force = true; // Prevent error response due to existing urls (got seperate test for that)
+        // $dto->force = true; // Prevent error response due to existing urls (got seperate test for that)
 
         $operation = $this->createMock(Operation::class);
 
@@ -366,7 +365,7 @@ class DownloadWorkflowIntegrationTest extends TestCase
         $this->oidcSubjectIdentifierRepository->expects($this->once())
             ->method('findOneBy')
             ->with([
-                'subject' => 'admin'
+                'subject' => 'admin',
             ])
             ->willReturn($oidcSubject);
 

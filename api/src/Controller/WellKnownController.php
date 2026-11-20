@@ -2,7 +2,6 @@
 
 namespace App\Controller;
 
-use App\Util\Version;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\Response;
@@ -22,7 +21,7 @@ final class WellKnownController extends AbstractController
         #[Autowire('%oidc.client_id%')]
         private string $clientId,
         #[Autowire('%app.version%')]
-        private string $appVersion
+        private string $appVersion,
     ) {
     }
 
@@ -40,7 +39,7 @@ final class WellKnownController extends AbstractController
             [
                 'DEPRECATION_WARNINGS' => [
                     '.auth_mode' => 'WILL BE REMOVED ON NEXT BROWSER EXTENSION UPDATE. USE .auth.mode INSTEAD',
-                    '.oauth2.*' => 'WILL BE REMOVED ON NEXT BROWSER EXTENSION UPDATE. USE .auth.oauth2.* INSTEAD'
+                    '.oauth2.*' => 'WILL BE REMOVED ON NEXT BROWSER EXTENSION UPDATE. USE .auth.oauth2.* INSTEAD',
                 ],
                 'authentication' => [
                     'enabled' => true,
@@ -56,7 +55,7 @@ final class WellKnownController extends AbstractController
                             referenceType: UrlGeneratorInterface::ABSOLUTE_URL
                         ),
                         'scopes' => self::SCOPES,
-                    ]
+                    ],
                 ],
                 'auth_mode' => 'oauth2',
                 'oauth2' => [
@@ -75,15 +74,15 @@ final class WellKnownController extends AbstractController
                     'mercure' => [
                         'enabled' => true,
                         'hub_url' => sprintf(
-                            "%s.well-known/mercure",
+                            '%s.well-known/mercure',
                             $this->generateUrl(
                                 route: 'api_entrypoint',
                                 referenceType: UrlGeneratorInterface::ABSOLUTE_URL
                             )
-                        )
+                        ),
                     ],
                 ],
-                'version' => $this->appVersion
+                'version' => $this->appVersion,
             ]
         );
     }

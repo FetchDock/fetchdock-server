@@ -45,8 +45,6 @@ class YoutubeDlCliDownloader extends AbstractCliDownloader implements CliDownloa
      * Runs YT-DLPs --dump-json command to get metadata for a given URL.
      * Returns the metadata as an associative array, or null if the command fails or the output is not valid JSON.
      *
-     * @param DownloadJobInterface $downloadJob
-     * @return array|null
      * @throws \JsonException
      */
     public function getMetadata(DownloadJobInterface $downloadJob): ?array
@@ -114,14 +112,13 @@ class YoutubeDlCliDownloader extends AbstractCliDownloader implements CliDownloa
 
             $success = $process->isSuccessful();
 
-            if(!$success) {
+            if (!$success) {
                 $this->logger->debug('yt-dlp-cli failed.', [
                     'cli' => [
                         'cmd' => $process->getCommandLine(),
                         'output' => $process->getOutput(),
                         'error' => $process->getErrorOutput(),
                         'exit_code' => $process->getExitCode(),
-
                     ],
                     'uri' => $downloadJob->getUrl(),
                 ]);
@@ -138,6 +135,7 @@ class YoutubeDlCliDownloader extends AbstractCliDownloader implements CliDownloa
                 ],
                 'uri' => $downloadJob->getUrl(),
             ]);
+
             return false;
         } finally {
             $this->removeTemporaryFiles();
@@ -298,13 +296,13 @@ class YoutubeDlCliDownloader extends AbstractCliDownloader implements CliDownloa
     {
         $commandOptions = [];
 
-        if($downloadJob->getCookies()) {
+        if ($downloadJob->getCookies()) {
             // yt-dlp expects a cookie file in the Netscape cookies.txt format.
             // The temporary file is removed by the caller via removeTemporaryFiles().
             $commandOptions = ['--cookies', $this->createCookieFile($downloadJob)];
         }
 
-        if($downloadJob->getUserAgent()) {
+        if ($downloadJob->getUserAgent()) {
             $commandOptions = array_merge($commandOptions, ['--user-agent', $downloadJob->getUserAgent()]);
         }
 

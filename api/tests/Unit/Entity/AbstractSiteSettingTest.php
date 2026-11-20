@@ -2,107 +2,55 @@
 
 namespace App\Tests\Unit\Entity;
 
-use App\Entity\AbstractSiteSetting;
-use App\Entity\SupportedSite;
+use App\Entity\Site;
+use App\Entity\SiteSetting;
 use App\Entity\UserSiteSetting;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 class AbstractSiteSettingTest extends TestCase
 {
-    private AbstractSiteSetting $abstractSiteSetting;
-    private SupportedSite $site;
-
-    protected function setUp(): void
+    public static function settingClasses(): iterable
     {
-        // Use UserSiteSetting as concrete implementation of AbstractSiteSetting
-        $this->abstractSiteSetting = new UserSiteSetting();
-        $this->site = new SupportedSite();
+        yield 'site defaults' => [SiteSetting::class];
+        yield 'user overrides' => [UserSiteSetting::class];
     }
 
-    public function testGetIdReturnsNull(): void
+    #[DataProvider('settingClasses')]
+    public function testAllFieldsDefaultToNullMeaningInherit(string $class): void
     {
-        $this->assertNull($this->abstractSiteSetting->getId());
+        $setting = new $class();
+
+        $this->assertNull($setting->getId());
+        $this->assertNull($setting->getSite());
+        $this->assertNull($setting->isSendCookies());
+        $this->assertNull($setting->isSendUserAgent());
+        $this->assertNull($setting->isSendReferrer());
+        $this->assertNull($setting->getDownloader());
     }
 
-    public function testSetAndGetSite(): void
+    #[DataProvider('settingClasses')]
+    public function testSettersAreChainableAndAcceptNull(string $class): void
     {
-        $result = $this->abstractSiteSetting->setSite($this->site);
-
-        $this->assertSame($this->abstractSiteSetting, $result);
-        $this->assertSame($this->site, $this->abstractSiteSetting->getSite());
-    }
-
-    public function testSetAndGetSendCookies(): void
-    {
-        $result = $this->abstractSiteSetting->setSendCookies(true);
-
-        $this->assertSame($this->abstractSiteSetting, $result);
-        $this->assertTrue($this->abstractSiteSetting->isSendCookies());
-    }
-
-    public function testSetAndGetSendCookiesFalse(): void
-    {
-        $result = $this->abstractSiteSetting->setSendCookies(false);
-
-        $this->assertSame($this->abstractSiteSetting, $result);
-        $this->assertFalse($this->abstractSiteSetting->isSendCookies());
-    }
-
-    public function testSetAndGetSendUserAgent(): void
-    {
-        $result = $this->abstractSiteSetting->setSendUserAgent(true);
-
-        $this->assertSame($this->abstractSiteSetting, $result);
-        $this->assertTrue($this->abstractSiteSetting->isSendUserAgent());
-    }
-
-    public function testSetAndGetSendUserAgentFalse(): void
-    {
-        $result = $this->abstractSiteSetting->setSendUserAgent(false);
-
-        $this->assertSame($this->abstractSiteSetting, $result);
-        $this->assertFalse($this->abstractSiteSetting->isSendUserAgent());
-    }
-
-    public function testSetAndGetSendReferrer(): void
-    {
-        $result = $this->abstractSiteSetting->setSendReferrer(true);
-
-        $this->assertSame($this->abstractSiteSetting, $result);
-        $this->assertTrue($this->abstractSiteSetting->isSendReferrer());
-    }
-
-    public function testSetAndGetSendReferrerFalse(): void
-    {
-        $result = $this->abstractSiteSetting->setSendReferrer(false);
-
-        $this->assertSame($this->abstractSiteSetting, $result);
-        $this->assertFalse($this->abstractSiteSetting->isSendReferrer());
-    }
-
-    public function testSetAndGetDownloader(): void
-    {
-        $downloader = 'youtube-dl';
-        $result = $this->abstractSiteSetting->setDownloader($downloader);
-
-        $this->assertSame($this->abstractSiteSetting, $result);
-        $this->assertSame($downloader, $this->abstractSiteSetting->getDownloader());
-    }
-
-    public function testChainableSetters(): void
-    {
-        $result = $this->abstractSiteSetting
-            ->setSite($this->site)
+        $site = new Site()->setSlug('twitter')->setName('Twitter / X');
+        $setting = new $class()
+            ->setSite($site)
             ->setSendCookies(true)
             ->setSendUserAgent(false)
             ->setSendReferrer(true)
-            ->setDownloader('gallery-dl');
+            ->setDownloader('gallery-dl-cli');
 
-        $this->assertSame($this->abstractSiteSetting, $result);
-        $this->assertSame($this->site, $this->abstractSiteSetting->getSite());
-        $this->assertTrue($this->abstractSiteSetting->isSendCookies());
-        $this->assertFalse($this->abstractSiteSetting->isSendUserAgent());
-        $this->assertTrue($this->abstractSiteSetting->isSendReferrer());
-        $this->assertEquals('gallery-dl', $this->abstractSiteSetting->getDownloader());
+        $this->assertSame($site, $setting->getSite());
+        $this->assertTrue($setting->isSendCookies());
+        $this->assertFalse($setting->isSendUserAgent());
+        $this->assertTrue($setting->isSendReferrer());
+        $this->assertSame('gallery-dl-cli', $setting->getDownloader());
+
+        $setting->setSendCookies(null)->setSendUserAgent(null)->setSendReferrer(null)->setDownloader(null);
+
+        $this->assertNull($setting->isSendCookies());
+        $this->assertNull($setting->isSendUserAgent());
+        $this->assertNull($setting->isSendReferrer());
+        $this->assertNull($setting->getDownloader());
     }
 }

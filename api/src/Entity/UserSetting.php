@@ -2,48 +2,28 @@
 
 namespace App\Entity;
 
-use ApiPlatform\Metadata\ApiResource;
-use ApiPlatform\Metadata\Get;
-use ApiPlatform\Metadata\Patch;
-use ApiPlatform\Metadata\Post;
-use App\Repository\OidcSubjectIdentifierRepository;
+use App\Repository\UserSettingRepository;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Serializer\Attribute\Groups;
 
-
-#[ORM\Entity(repositoryClass: OidcSubjectIdentifierRepository::class)]
-#[ApiResource(
-    operations: [
-        new Get(
-            uriTemplate: self::URI_TEMPLATE,
-        ),
-        new Post(
-            uriTemplate: self::URI_TEMPLATE,
-            input: __CLASS__
-        ),
-        new Patch(
-            uriTemplate: self::URI_TEMPLATE,
-            input: __CLASS__
-        )
-    ],
-    normalizationContext: ['groups' => ['settings:view']],
-    denormalizationContext: ['groups' => ['settings:edit']],
-)]
+/**
+ * A user's global settings. Its fields and the /users/settings endpoints follow in phase 2 of #73.
+ */
+#[ORM\Entity(repositoryClass: UserSettingRepository::class)]
 class UserSetting
 {
-    public CONST URI_TEMPLATE = '/users/settings.{_format}';
-
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    #[Groups(['settings:view', 'settings:edit'])]
-    public bool $syncBrowsers;
-
-    #[ORM\OneToOne(inversedBy: 'userSetting', cascade: ['persist', 'remove'])]
+    #[ORM\OneToOne(inversedBy: 'userSetting')]
     #[ORM\JoinColumn(name: 'owner_id', referencedColumnName: 'id', nullable: false)]
     private ?OidcSubjectIdentifier $owner = null;
+
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
 
     public function getOwner(): ?OidcSubjectIdentifier
     {

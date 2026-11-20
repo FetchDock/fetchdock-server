@@ -63,3 +63,14 @@ worker:
 .PHONY: pwa
 pwa:
 	$(DOCKER_COMPOSE_PREFIX) docker compose run --entrypoint="" --rm -it pwa $(Arguments)
+
+
+.PHONY: openapi
+openapi:
+	@mkdir -p ../contracts
+	@if [ -n "$$($(DOCKER_COMPOSE_PREFIX) docker compose ps -q api 2>/dev/null)" ]; then \
+		$(DOCKER_COMPOSE_PREFIX) docker compose exec -T api bin/console api:openapi:export > ../contracts/openapi.json; \
+	else \
+		$(DOCKER_COMPOSE_PREFIX) docker compose run --rm --no-deps -T api bin/console api:openapi:export > ../contracts/openapi.json; \
+	fi
+	@echo "Exported OpenAPI spec to ../contracts/openapi.json"

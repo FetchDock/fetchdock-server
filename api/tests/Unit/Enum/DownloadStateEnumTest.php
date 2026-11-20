@@ -15,7 +15,7 @@ class DownloadStateEnumTest extends TestCase
             'COMPLETED' => 2,
             'FAILED' => 3,
             'CANCELED' => 4,
-            'ALREADY_EXISTS' => 5
+            'ALREADY_EXISTS' => 5,
         ];
 
         $cases = DownloadStateEnum::cases();

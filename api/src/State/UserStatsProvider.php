@@ -11,12 +11,10 @@ use App\Resource\Stats\UserDownloadStats;
 
 class UserStatsProvider implements ProviderInterface
 {
-
     public function __construct(
         private readonly UserDownloadStatsRepository $downloadStatsRepository,
-        private readonly CurrentUserExtension $currentUserExtension
-    )
-    {
+        private readonly CurrentUserExtension $currentUserExtension,
+    ) {
     }
 
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): object|array|null

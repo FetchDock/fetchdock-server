@@ -2,14 +2,12 @@
 
 namespace App\Service\Downloader;
 
-use App\Dto\CookieDTO;
 use App\Entity\DownloadedFile;
 use App\Entity\DownloadJob;
 use App\Model\DownloadJobInterface;
 use App\Repository\DownloadedFileRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
-use Psr\Http\Message\UriInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Process\Exception\ProcessFailedException;
@@ -57,7 +55,7 @@ class GalleryDlCliDownloader extends AbstractCliDownloader implements CliDownloa
 
             $success = $process->isSuccessful();
 
-            if(!$success) {
+            if (!$success) {
                 $this->logger->debug('gallery-dl-cli failed.', [
                     'cli' => [
                         'cmd' => $process->getCommandLine(),
@@ -80,6 +78,7 @@ class GalleryDlCliDownloader extends AbstractCliDownloader implements CliDownloa
                 ],
                 'uri' => $downloadJob->getUrl(),
             ]);
+
             return false;
         } finally {
             $this->removeTemporaryFiles();
@@ -175,13 +174,13 @@ class GalleryDlCliDownloader extends AbstractCliDownloader implements CliDownloa
         $commandOptions = [];
 
         // Check if the downloadJob contains cookies
-        if($downloadJob->getCookies()) {
+        if ($downloadJob->getCookies()) {
             // Gallery-dl expects a cookie file in the Netscape cookies.txt format.
             // The temporary file is removed by the caller via removeTemporaryFiles().
             $commandOptions = ['--cookies', $this->createCookieFile($downloadJob)];
         }
 
-        if($downloadJob->getUserAgent()) {
+        if ($downloadJob->getUserAgent()) {
             $commandOptions = array_merge($commandOptions, ['--user-agent', $downloadJob->getUserAgent()]);
         }
 

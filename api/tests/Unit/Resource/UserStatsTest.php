@@ -4,8 +4,8 @@ namespace App\Tests\Unit\Resource;
 
 use App\Entity\OidcSubjectIdentifier;
 use App\Repository\UserDownloadStatsRepository;
-use App\Resource\UserStats;
 use App\Resource\Stats\UserDownloadStats;
+use App\Resource\UserStats;
 use PHPUnit\Framework\TestCase;
 
 class UserStatsTest extends TestCase

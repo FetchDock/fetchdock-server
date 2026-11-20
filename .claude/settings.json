@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "deny": [
+      "Read(./api/vendor/**)",
+      "Read(./api/var/**)",
+      "Read(./api/public/build/**)",
+      "Read(./api/composer.lock)",
+      "Read(./pwa/.next/**)",
+      "Read(./pwa/.pnpm-store/**)",
+      "Read(./pwa/node_modules/**)",
+      "Read(./pwa/pnpm-lock.yaml)",
+      "Read(./.env*)",
+      "Read(./api/.env*)",
+      "Read(./pwa/.env*)",
+      "Read(./api/config/jwt/*.pem)",
+      "Read(./api/bolt.db)",
+      "Read(./.http/http-client.private.env.json)",
+      "Bash(docker system prune*)"
+    ]
+  }
+}

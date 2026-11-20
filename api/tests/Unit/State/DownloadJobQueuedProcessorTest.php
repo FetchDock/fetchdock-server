@@ -85,7 +85,7 @@ class DownloadJobQueuedProcessorTest extends TestCase
                         && 'mock' === $job->getDownloader()
                         && 'TestAgent/1.0' === $job->getUserAgent()
                         && is_array($job->getCookies())
-                            && count($job->getCookies()) === 1
+                            && 1 === count($job->getCookies())
                             && $job->getCookies()[0] instanceof CookieDTO
                         && DownloadStateEnum::PENDING === $job->getState();
                 }),

@@ -6,6 +6,7 @@ use ApiPlatform\Metadata\CollectionOperationInterface;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
 use App\Factory\DownloaderFactory;
+use App\Repository\SiteRepository;
 use App\Resource\Downloader;
 use App\Service\Downloader\DownloaderInterface;
 
@@ -13,6 +14,7 @@ class DownloaderProvider implements ProviderInterface
 {
     public function __construct(
         private DownloaderFactory $downloaderFactory,
+        private SiteRepository $siteRepository,
     ) {
     }
 
@@ -44,27 +46,26 @@ class DownloaderProvider implements ProviderInterface
     {
         $model = new Downloader();
         $model->id = $downloader->getIdentifier();
+        $identifier = $model->id;
         $model->enabled = true; // For now, all downloaders are considered enabled.
         $model->downloaderType = $downloader->getDownloaderType();
 
-        $supportedDomains = [];
+        // Domains of the sites this downloader has extractors for (see app:sites:sync), plus the
+        // domains the downloader reports itself.
+        $supportedDomains = $this->siteRepository->findDomainsByDownloader($identifier);
         foreach ($downloader->getSupportedDomains() as $domain) {
-            try {
-                // If the domain is a valid URL, extract the host.
-                $supportedDomains[] = $this->getHostNameFromUrl($domain);
-                continue;
-            } catch (\Error $e) {
-                // Not a valid URL, treat as hostname.
-                $supportedDomains[] = $domain;
-            }
+            // A URL yields its host; anything else is taken as a host name.
+            $supportedDomains[] = $this->getHostNameFromUrl((string) $domain) ?? (string) $domain;
         }
         $model->supportedDomains = array_values(array_unique($supportedDomains));
 
         return $model;
     }
 
-    private function getHostNameFromUrl(string $url): string
+    private function getHostNameFromUrl(string $url): ?string
     {
-        return parse_url($url, PHP_URL_HOST);
+        $host = parse_url($url, PHP_URL_HOST);
+
+        return is_string($host) && '' !== $host ? strtolower($host) : null;
     }
 }

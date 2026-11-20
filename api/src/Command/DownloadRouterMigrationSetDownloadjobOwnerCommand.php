@@ -21,12 +21,12 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 class DownloadRouterMigrationSetDownloadjobOwnerCommand extends Command
 {
     private SymfonyStyle $io;
+
     public function __construct(
         private DownloadJobRepository $downloadJobRepository,
         private OidcSubjectIdentifierRepository $oidcSubjectIdentifierRepository,
         private LoggerInterface $logger,
-    )
-    {
+    ) {
         parent::__construct();
     }
 
@@ -43,7 +43,6 @@ class DownloadRouterMigrationSetDownloadjobOwnerCommand extends Command
         $ownerSub = $input->getArgument('owner-sub');
         $dryRun = $input->getOption('dry-run');
 
-
         $this->io = new SymfonyStyle($input, $output);
 
         if ($ownerSub) {
@@ -55,13 +54,13 @@ class DownloadRouterMigrationSetDownloadjobOwnerCommand extends Command
         } else {
             $ownerSubs = $this->oidcSubjectIdentifierRepository->findAll();
 
-            $choices = array_map(fn($s) => $s->getSubject(), $ownerSubs);
+            $choices = array_map(fn ($s) => $s->getSubject(), $ownerSubs);
             $ownerSub = $this->io->choice('Select owner sub', $choices);
             if (!$ownerSub) {
                 throw new \RuntimeException('Owner sub not selected');
             }
 
-            if ($selectedOwnerSub = array_filter($ownerSubs, fn($s) => $s->getSubject() === $ownerSub)) {
+            if ($selectedOwnerSub = array_filter($ownerSubs, fn ($s) => $s->getSubject() === $ownerSub)) {
                 $ownerSub = array_shift($selectedOwnerSub);
 
                 $this->setOwnerOnDownloadJobs($ownerSub, $dryRun);

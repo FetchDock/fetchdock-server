@@ -22,7 +22,7 @@ use Symfony\Component\Uid\Uuid;
         ),
         new GetCollection(
             security: "is_granted('ROLE_ADMIN')"
-        )
+        ),
     ]
 )]
 class OidcSubjectIdentifier
@@ -53,7 +53,7 @@ class OidcSubjectIdentifier
     /**
      * @var Collection<int, UserSiteSetting>
      */
-    #[ORM\ManyToMany(targetEntity: UserSiteSetting::class, mappedBy: 'owner')]
+    #[ORM\OneToMany(targetEntity: UserSiteSetting::class, mappedBy: 'owner', cascade: ['remove'])]
     private Collection $userSiteSettings;
 
     public function __construct()
@@ -144,7 +144,7 @@ class OidcSubjectIdentifier
     {
         if (!$this->userSiteSettings->contains($userSiteSetting)) {
             $this->userSiteSettings->add($userSiteSetting);
-            $userSiteSetting->addOwner($this);
+            $userSiteSetting->setOwner($this);
         }
 
         return $this;
@@ -152,9 +152,7 @@ class OidcSubjectIdentifier
 
     public function removeUserSiteSetting(UserSiteSetting $userSiteSetting): static
     {
-        if ($this->userSiteSettings->removeElement($userSiteSetting)) {
-            $userSiteSetting->removeOwner($this);
-        }
+        $this->userSiteSettings->removeElement($userSiteSetting);
 
         return $this;
     }

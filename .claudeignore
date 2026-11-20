@@ -1,0 +1,7 @@
+api/vendor/
+api/var/
+api/public/build/
+
+pwa/.next/
+pwa/.pnpm-store/
+pwa/node_modules/

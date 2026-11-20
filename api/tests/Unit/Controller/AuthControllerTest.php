@@ -49,7 +49,7 @@ class AuthControllerTest extends TestCase
         // AbstractController needs a container for redirect(), generateUrl(), render()
         $this->urlGenerator = $this->createMock(UrlGeneratorInterface::class);
         $this->urlGenerator->method('generate')
-            ->willReturnCallback(fn(string $route) => match ($route) {
+            ->willReturnCallback(fn (string $route) => match ($route) {
                 'app_auth_callback' => self::CALLBACK_URL,
                 default => '',
             });
@@ -58,8 +58,8 @@ class AuthControllerTest extends TestCase
         $twig->method('render')->willReturn('<html>mock</html>');
 
         $container = $this->createMock(ContainerInterface::class);
-        $container->method('has')->willReturnCallback(fn(string $id) => in_array($id, ['router', 'twig']));
-        $container->method('get')->willReturnCallback(fn(string $id) => match ($id) {
+        $container->method('has')->willReturnCallback(fn (string $id) => in_array($id, ['router', 'twig']));
+        $container->method('get')->willReturnCallback(fn (string $id) => match ($id) {
             'router' => $this->urlGenerator,
             'twig' => $twig,
             default => null,
@@ -101,7 +101,7 @@ class AuthControllerTest extends TestCase
         $this->mockWellKnownResponse();
 
         $cacheItem = $this->createMock(CacheItemInterface::class);
-        $cacheItem->expects($this->once())->method('set')->with($this->callback(fn($v) => is_string($v)));
+        $cacheItem->expects($this->once())->method('set')->with($this->callback(fn ($v) => is_string($v)));
         $cacheItem->expects($this->once())->method('expiresAfter')->with(300);
 
         $this->cache->expects($this->once())->method('getItem')
@@ -155,11 +155,12 @@ class AuthControllerTest extends TestCase
 
         $storedVerifier = null;
         $cacheItem = $this->createMock(CacheItemInterface::class);
-//        $cacheItem->method('set')->willReturnSelf();
+        //        $cacheItem->method('set')->willReturnSelf();
         $cacheItem->method('expiresAfter')->willReturnSelf();
 
         $cacheItem->method('set')->willReturnCallback(function ($value) use (&$storedVerifier, $cacheItem) {
             $storedVerifier = $value;
+
             return $cacheItem;
         });
 
@@ -201,6 +202,7 @@ class AuthControllerTest extends TestCase
         $cacheItem->method('set')->willReturnSelf();
         $this->cache->method('getItem')->willReturnCallback(function (string $key) use ($cacheItem, &$states) {
             $states[] = str_replace('oauth2_state_', '', $key);
+
             return $cacheItem;
         });
         $this->cache->method('save')->willReturn(true);
@@ -403,7 +405,7 @@ class AuthControllerTest extends TestCase
         $tokenResponse->method('getHeaders')->willReturn([]);
 
         $this->httpClient->method('request')
-            ->willReturnCallback(fn(string $method) => 'GET' === $method ? $wellKnownResponse : $tokenResponse);
+            ->willReturnCallback(fn (string $method) => 'GET' === $method ? $wellKnownResponse : $tokenResponse);
 
         $request = Request::create('/auth/callback', 'GET', [
             'code' => 'some-code',
@@ -441,6 +443,7 @@ class AuthControllerTest extends TestCase
                     return $wellKnownResponse;
                 }
                 $capturedOptions = $options;
+
                 return $tokenResponse;
             });
 
@@ -612,40 +615,40 @@ class AuthControllerTest extends TestCase
         $this->assertSame(Response::HTTP_BAD_REQUEST, $response->getStatusCode());
     }
 
-//    public function testCodeToTokenReturnsBadRequestWhenResponseContainsMalformedJson(): void
-//    {
-//        $wellKnownResponse = $this->createMock(ResponseInterface::class);
-//        $wellKnownResponse->method('getStatusCode')->willReturn(500);
-//        $wellKnownResponse->method('getContent')->willReturn('{"token_endpoint": "https://idp.example.com/token"}');
-//        $this->httpClient->method('request')->willReturn($wellKnownResponse);
-//
-//        $this->httpClient->method('request')
-//            ->willReturnCallback(function (string $method, string $url, array $options = []) {
-//                $response = $this->createMock(ResponseInterface::class);
-//                $response->method('getStatusCode')->willReturn(200);
-//                $response->method('getContent')->willReturn('404 Not Found'); // JSON expected, but plain text returned
-//                $response->method('getHeaders')->willReturn([]);
-//                return $response;
-//            });
-//
-//        $request = Request::create('/auth/code-to-token', 'POST', [], [], [], [
-//            'CONTENT_TYPE' => 'application/json',
-//        ], json_encode([
-//            'code' => 'auth-code',
-//            'code_verifier' => 'pkce-verifier',
-//            'redirect_uri' => 'https://extension/callback',
-//        ])); // Missing closing brace
-//
-//        $response = $this->controller->codeToToken($request);
-//
-//        $this->assertInstanceOf(JsonResponse::class, $response);
-//        $this->assertSame(Response::HTTP_INTERNAL_SERVER_ERROR, $response->getStatusCode());
-//        $this->assertJson($response->getContent());
-//        $data = json_decode($response->getContent(), true);
-//        $this->assertFalse($data['success']);
-//        $this->assertSame('Failed to decode token endpoint response', $data['message']);
-//
-//    }
+    //    public function testCodeToTokenReturnsBadRequestWhenResponseContainsMalformedJson(): void
+    //    {
+    //        $wellKnownResponse = $this->createMock(ResponseInterface::class);
+    //        $wellKnownResponse->method('getStatusCode')->willReturn(500);
+    //        $wellKnownResponse->method('getContent')->willReturn('{"token_endpoint": "https://idp.example.com/token"}');
+    //        $this->httpClient->method('request')->willReturn($wellKnownResponse);
+    //
+    //        $this->httpClient->method('request')
+    //            ->willReturnCallback(function (string $method, string $url, array $options = []) {
+    //                $response = $this->createMock(ResponseInterface::class);
+    //                $response->method('getStatusCode')->willReturn(200);
+    //                $response->method('getContent')->willReturn('404 Not Found'); // JSON expected, but plain text returned
+    //                $response->method('getHeaders')->willReturn([]);
+    //                return $response;
+    //            });
+    //
+    //        $request = Request::create('/auth/code-to-token', 'POST', [], [], [], [
+    //            'CONTENT_TYPE' => 'application/json',
+    //        ], json_encode([
+    //            'code' => 'auth-code',
+    //            'code_verifier' => 'pkce-verifier',
+    //            'redirect_uri' => 'https://extension/callback',
+    //        ])); // Missing closing brace
+    //
+    //        $response = $this->controller->codeToToken($request);
+    //
+    //        $this->assertInstanceOf(JsonResponse::class, $response);
+    //        $this->assertSame(Response::HTTP_INTERNAL_SERVER_ERROR, $response->getStatusCode());
+    //        $this->assertJson($response->getContent());
+    //        $data = json_decode($response->getContent(), true);
+    //        $this->assertFalse($data['success']);
+    //        $this->assertSame('Failed to decode token endpoint response', $data['message']);
+    //
+    //    }
 
     public function testCodeToTokenReturnsErrorWhenTokenEndpointNotFound(): void
     {
@@ -752,6 +755,7 @@ class AuthControllerTest extends TestCase
                     return $wellKnownResponse;
                 }
                 $capturedOptions = $options;
+
                 return $tokenResponse;
             });
 
@@ -894,6 +898,7 @@ class AuthControllerTest extends TestCase
                     return $wellKnownResponse;
                 }
                 $capturedOptions = $options;
+
                 return $tokenResponse;
             });
 
@@ -952,7 +957,7 @@ class AuthControllerTest extends TestCase
         $cacheItem->method('get')->willReturn($codeVerifier);
 
         $this->cache->method('getItem')
-            ->with('oauth2_state_' . $state)
+            ->with('oauth2_state_'.$state)
             ->willReturn($cacheItem);
     }
 
@@ -971,7 +976,7 @@ class AuthControllerTest extends TestCase
         $tokenResponse->method('getHeaders')->willReturn([]);
 
         $this->httpClient->method('request')
-            ->willReturnCallback(fn(string $method) => 'GET' === $method ? $wellKnownResponse : $tokenResponse);
+            ->willReturnCallback(fn (string $method) => 'GET' === $method ? $wellKnownResponse : $tokenResponse);
     }
 
     private function mockTokenExchangeForRefresh(array $responseData, int $statusCode = 200): void
@@ -988,6 +993,6 @@ class AuthControllerTest extends TestCase
         $tokenResponse->method('getHeaders')->willReturn([]);
 
         $this->httpClient->method('request')
-            ->willReturnCallback(fn(string $method) => 'GET' === $method ? $wellKnownResponse : $tokenResponse);
+            ->willReturnCallback(fn (string $method) => 'GET' === $method ? $wellKnownResponse : $tokenResponse);
     }
 }

@@ -96,3 +96,9 @@ services:
             # - [ setAnnotationReader, [ '@annotation_reader' ] ]
             # The `clock` service was introduced in Symfony 6.2; if using an older Symfony version, you can either comment this call or provide your own PSR-20 Clock implementation
             - [ setClock, [ '@clock' ] ]
+
+when@test:
+    services:
+        # Don't run bin/resolve_url.py in functional tests
+        App\Service\Site\ExtractorMatcherInterface:
+            class: App\Tests\Double\FakeExtractorMatcher

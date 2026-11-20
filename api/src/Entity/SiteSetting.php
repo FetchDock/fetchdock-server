@@ -5,37 +5,25 @@ namespace App\Entity;
 use App\Repository\SiteSettingRepository;
 use Doctrine\ORM\Mapping as ORM;
 
+/**
+ * Per-site defaults, managed by admins (config/sites.yaml, see app:sites:sync).
+ */
 #[ORM\Entity(repositoryClass: SiteSettingRepository::class)]
 class SiteSetting extends AbstractSiteSetting
 {
-    #[ORM\OneToOne(inversedBy: 'defaultSiteSetting', cascade: ['persist', 'remove'])]
-    #[ORM\JoinColumn(nullable: false)]
-    protected ?SupportedSite $site = null;
+    #[ORM\OneToOne(inversedBy: 'defaultSetting')]
+    #[ORM\JoinColumn(nullable: false, unique: true, onDelete: 'CASCADE')]
+    private ?Site $site = null;
 
-    public function getSite(): ?SupportedSite
+    public function getSite(): ?Site
     {
         return $this->site;
     }
 
-    public function setSite(SupportedSite $site): static
+    public function setSite(Site $site): static
     {
         $this->site = $site;
 
         return $this;
-    }
-
-    public function requiresCookies(): bool
-    {
-        return $this->sendCookies ?? false;
-    }
-
-    public function requiresUserAgent(): bool
-    {
-        return $this->sendUserAgent ?? false;
-    }
-
-    public function requiresReferrer(): bool
-    {
-        return $this->sendReferrer ?? false;
     }
 }

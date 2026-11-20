@@ -183,6 +183,7 @@ abstract class AbstractCliDownloader implements DownloaderInterface
     }
 
     abstract protected function getConfigFileContents(): string;
+
     abstract protected function getCommandOptions(
         DownloadJobInterface $downloadJob,
     ): array;

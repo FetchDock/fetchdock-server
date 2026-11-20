@@ -63,6 +63,11 @@ if [ "$1" = 'frankenphp' ] || [ "$1" = 'php' ] || [ "$1" = 'bin/console' ]; then
 			else
 				echo "[migration-coordinator] no migration files found, skipping"
 			fi
+
+			# Curated sites (config/sites.yaml) and their extractors; not fatal, it is retried after downloader updates
+			if ! php bin/console app:sites:sync --no-interaction; then
+				echo "[sites] WARNING: app:sites:sync failed" >&2
+			fi
 		elif [ "$NODE_MODE" = "worker" ]; then
 			MIGRATION_POLL_INTERVAL=${MIGRATION_POLL_INTERVAL:-2}
 			MIGRATION_TIMEOUT=${MIGRATION_TIMEOUT:-300}

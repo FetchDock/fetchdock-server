@@ -7,14 +7,14 @@ use Symfony\Component\Security\Core\User\UserInterface;
 class OidcUser implements UserInterface
 {
     public function __construct(
-        private readonly string  $issuer,
-        private readonly string  $sub,
-        private readonly string  $name = '',
-        private readonly string  $givenName = '',
-        private readonly string  $nickName = '',
+        private readonly string $issuer,
+        private readonly string $sub,
+        private readonly string $name = '',
+        private readonly string $givenName = '',
+        private readonly string $nickName = '',
         private readonly ?string $email = null,
         private readonly ?string $preferredUsername = null,
-        private readonly array   $roles = [],
+        private readonly array $roles = [],
     ) {
     }
 

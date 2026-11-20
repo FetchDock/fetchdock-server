@@ -4,7 +4,6 @@ namespace App\Tests\Unit\Handler;
 
 use App\Dto\DownloadJobDTO;
 use App\Handler\DownloadJobDTOHandler;
-use GuzzleHttp\Psr7\Uri;
 use PHPUnit\Framework\TestCase;
 
 class DownloadJobDTOHandlerTest extends TestCase
@@ -31,10 +30,10 @@ class DownloadJobDTOHandlerTest extends TestCase
     {
         $handler = new DownloadJobDTOHandler();
         $reflection = new \ReflectionMethod($handler, '__invoke');
-        
+
         $parameters = $reflection->getParameters();
         $this->assertCount(1, $parameters);
-        
+
         $parameter = $parameters[0];
         $this->assertEquals('downloadJob', $parameter->getName());
         $this->assertEquals(DownloadJobDTO::class, (string) $parameter->getType());

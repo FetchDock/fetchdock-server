@@ -5,6 +5,7 @@
         "php": ">=8.5",
         "ext-ctype": "*",
         "ext-iconv": "*",
+        "ext-uri": "*",
         "api-platform/doctrine-orm": "^4.3.17",
         "api-platform/symfony": "^4.3.17",
         "doctrine/doctrine-bundle": "^3.3",
@@ -32,6 +33,7 @@
         "symfony/process": "^8.1",
         "symfony/property-access": "^8.1",
         "symfony/property-info": "^8.1",
+        "symfony/rate-limiter": "^8.1",
         "symfony/runtime": "^8.1",
         "symfony/security-bundle": "^8.1",
         "symfony/serializer": "^8.1",
@@ -40,8 +42,7 @@
         "symfony/validator": "^8.1",
         "symfony/yaml": "^8.1",
         "web-token/jwt-bundle": "^4.1.7",
-        "web-token/jwt-library": "^4.1.7",
-        "ext-uri": "*"
+        "web-token/jwt-library": "^4.1.7"
     },
     "require-dev": {
         "api-platform/schema-generator": "^5.2.5",

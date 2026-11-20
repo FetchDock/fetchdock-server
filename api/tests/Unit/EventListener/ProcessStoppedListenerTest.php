@@ -99,7 +99,7 @@ class ProcessStoppedListenerTest extends TestCase
         $this->logger->expects($this->once())
             ->method('info')
             ->with('CLI process stopped', $this->callback(function ($context) {
-                return $context['exit_code'] === 0 && $context['is_successful'] === true;
+                return 0 === $context['exit_code'] && true === $context['is_successful'];
             }));
 
         $this->listener->onCliProcessStopEvent($event);

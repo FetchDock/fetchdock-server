@@ -16,6 +16,13 @@ final class DownloadJobDTO
     public string $userAgent;
 
     /**
+     * The page the URL was found on. Input only, never serialized.
+     */
+    #[Assert\Url(protocols: ['http', 'https'], requireTld: true)]
+    #[Assert\Length(max: 2048)]
+    public ?string $referrer = null;
+
+    /**
      * @var CookieDTO[]
      */
     public array $cookies;

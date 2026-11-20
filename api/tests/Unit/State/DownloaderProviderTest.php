@@ -2,25 +2,27 @@
 
 namespace App\Tests\Unit\State;
 
-use ApiPlatform\Metadata\CollectionOperationInterface;
 use ApiPlatform\Metadata\Get;
 use App\Enum\DownloaderTypeEnum;
 use App\Factory\DownloaderFactory;
+use App\Repository\SiteRepository;
 use App\Resource\Downloader;
 use App\Service\Downloader\DownloaderInterface;
 use App\State\DownloaderProvider;
-use GuzzleHttp\Psr7\Uri;
 use PHPUnit\Framework\TestCase;
 
 class DownloaderProviderTest extends TestCase
 {
     private DownloaderFactory|\PHPUnit\Framework\MockObject\MockObject $downloaderFactory;
+    private SiteRepository|\PHPUnit\Framework\MockObject\Stub $siteRepository;
     private DownloaderProvider $provider;
 
     protected function setUp(): void
     {
         $this->downloaderFactory = $this->createMock(DownloaderFactory::class);
-        $this->provider = new DownloaderProvider($this->downloaderFactory);
+        $this->siteRepository = $this->createStub(SiteRepository::class);
+        $this->siteRepository->method('findDomainsByDownloader')->willReturn([]);
+        $this->provider = new DownloaderProvider($this->downloaderFactory, $this->siteRepository);
     }
 
     public function testProviderIsInstantiable(): void
@@ -140,5 +142,21 @@ class DownloaderProviderTest extends TestCase
     public function testProvideImplementsProviderInterface(): void
     {
         $this->assertInstanceOf(\ApiPlatform\State\ProviderInterface::class, $this->provider);
+    }
+
+    public function testSupportedDomainsIncludeSiteDomains(): void
+    {
+        $siteRepository = $this->createMock(SiteRepository::class);
+        $siteRepository->expects($this->once())->method('findDomainsByDownloader')->with('gallery-dl-cli')->willReturn(['x.com', 'twitter.com']);
+        $downloader = $this->createStub(DownloaderInterface::class);
+        $downloader->method('getIdentifier')->willReturn('gallery-dl-cli');
+        $downloader->method('getDownloaderType')->willReturn(DownloaderTypeEnum::CLI_DOWNLOADER);
+        $downloader->method('getSupportedDomains')->willReturn(['https://X.com/', 'pixiv.net']);
+        $factory = $this->createStub(DownloaderFactory::class);
+        $factory->method('getDownloaderByIdentifier')->willReturn($downloader);
+
+        $result = new DownloaderProvider($factory, $siteRepository)->provide(new Get(), ['id' => 'gallery-dl-cli']);
+
+        $this->assertSame(['x.com', 'twitter.com', 'pixiv.net'], $result->supportedDomains);
     }
 }

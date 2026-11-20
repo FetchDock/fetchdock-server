@@ -175,6 +175,7 @@ class DownloadJobEvent implements OwnerFilterableInterface
     public static function getOwnerQueryBuilder(QueryBuilder $queryBuilder, string $ownerIdentifier): QueryBuilder
     {
         $rootAlias = $queryBuilder->getRootAliases()[0];
+
         return $queryBuilder
             ->innerJoin(
                 sprintf('%s.downloadJob', $rootAlias),

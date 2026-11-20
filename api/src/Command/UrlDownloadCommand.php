@@ -59,7 +59,7 @@ class UrlDownloadCommand extends Command
         $url = $input->getArgument('url');
 
         /**
-         * Minimal downloadJob since plain string url has been removed
+         * Minimal downloadJob since plain string url has been removed.
          */
         $downloadJob = new DownloadJob();
         $downloadJob->setUri(Utils::uriFor($url));
@@ -80,7 +80,7 @@ class UrlDownloadCommand extends Command
         } else {
             $downloaders = $this->downloaderCollection->getDownloadersByDownloadJob($downloadJob);
 
-            if($downloaders) {
+            if ($downloaders) {
                 // Just take the first one for now, later we can add a choice if multiple are found
                 foreach ($downloaders as $downloader) {
                     $this->downloader = $downloader;
