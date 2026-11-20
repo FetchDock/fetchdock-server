@@ -1,0 +1,16 @@
+framework:
+    rate_limiter:
+        # GET /sites/resolve: each call may run the extractor matcher (bin/resolve_url.py)
+        site_resolve:
+            policy: sliding_window
+            limit: 60
+            interval: '1 minute'
+
+when@test:
+    framework:
+        rate_limiter:
+            # Functional tests resolve many URLs; the limit itself is covered by ResolveSiteProviderTest
+            site_resolve:
+                policy: sliding_window
+                limit: 100000
+                interval: '1 minute'

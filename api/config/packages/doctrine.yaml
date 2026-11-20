@@ -37,6 +37,9 @@ doctrine:
                 alias: resource
         controller_resolver:
             auto_mapping: false
+        dql:
+            string_functions:
+                JSONB_TEXT: App\Doctrine\Functions\JsonbText
         filters:
             # Hides soft-deleted entities (see #[Gedmo\SoftDeleteable]) from all queries
             softdeleteable:

@@ -3,62 +3,45 @@
 namespace App\Entity;
 
 use App\Interface\OwnerFilterableInterface;
-use App\Repository\SiteSettingRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
+use App\Repository\UserSiteSettingRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\ORM\QueryBuilder;
 
-#[ORM\Entity(repositoryClass: SiteSettingRepository::class)]
+/**
+ * A user's overrides for one site.
+ */
+#[ORM\Entity(repositoryClass: UserSiteSettingRepository::class)]
+#[ORM\UniqueConstraint(name: 'uniq_user_site_setting_owner_site', columns: ['owner_id', 'site_id'])]
 class UserSiteSetting extends AbstractSiteSetting implements OwnerFilterableInterface
 {
-    #[ORM\OneToOne(inversedBy: 'defaultSiteSetting', cascade: ['persist', 'remove'])]
-    #[ORM\JoinColumn(nullable: false)]
-    protected ?SupportedSite $site = null;
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    private ?Site $site = null;
 
-    /**
-     * @var Collection<int, OidcSubjectIdentifier>
-     */
-    #[ORM\ManyToMany(targetEntity: OidcSubjectIdentifier::class, inversedBy: 'userSiteSettings')]
-    private Collection $owner;
+    #[ORM\ManyToOne(inversedBy: 'userSiteSettings')]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    private ?OidcSubjectIdentifier $owner = null;
 
-    public function __construct()
-    {
-        $this->owner = new ArrayCollection();
-    }
-
-    public function getSite(): ?SupportedSite
+    public function getSite(): ?Site
     {
         return $this->site;
     }
 
-    public function setSite(SupportedSite $site): static
+    public function setSite(Site $site): static
     {
         $this->site = $site;
 
         return $this;
     }
 
-    /**
-     * @return Collection<int, OidcSubjectIdentifier>
-     */
-    public function getOwner(): Collection
+    public function getOwner(): ?OidcSubjectIdentifier
     {
         return $this->owner;
     }
 
-    public function addOwner(OidcSubjectIdentifier $owner): static
+    public function setOwner(?OidcSubjectIdentifier $owner): static
     {
-        if (!$this->owner->contains($owner)) {
-            $this->owner->add($owner);
-        }
-
-        return $this;
-    }
-
-    public function removeOwner(OidcSubjectIdentifier $owner): static
-    {
-        $this->owner->removeElement($owner);
+        $this->owner = $owner;
 
         return $this;
     }
@@ -66,6 +49,7 @@ class UserSiteSetting extends AbstractSiteSetting implements OwnerFilterableInte
     public static function getOwnerQueryBuilder(QueryBuilder $queryBuilder, string $ownerIdentifier): QueryBuilder
     {
         $rootAlias = $queryBuilder->getRootAliases()[0];
+
         return $queryBuilder
             ->andWhere(sprintf('%s.owner = :owner', $rootAlias))
             ->setParameter('owner', $ownerIdentifier);

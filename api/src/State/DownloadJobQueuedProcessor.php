@@ -53,22 +53,21 @@ class DownloadJobQueuedProcessor implements ProcessorInterface
 
         $securityUser = $this->security->getUser();
 
-
-
         $downloadJob
             ->setUri($data->uri)
             ->setUserAgent($data->userAgent ?? null)
             ->setCookies($data->cookies ?? null)
+            ->setReferrer($data->referrer ?? null)
             ->setState(DownloadStateEnum::PENDING);
 
         if ($securityUser) {
             $oidcSubjectIdentifier = $this->oidcSubjectIdentifierRepository->findOneBy(['subject' => $securityUser->getUserIdentifier()]);
             if (!$oidcSubjectIdentifier) {
-                throw new \RuntimeException('OIDC subject identifier not found. Subject: ' . $securityUser->getUserIdentifier());
+                throw new \RuntimeException('OIDC subject identifier not found. Subject: '.$securityUser->getUserIdentifier());
             }
             $downloadJob->setOwner($oidcSubjectIdentifier);
 
-            if(!$data->force) {
+            if (!$data->force) {
                 $this->checkForExistingDownloadJobs($downloadJob);
             }
         }
@@ -165,13 +164,13 @@ class DownloadJobQueuedProcessor implements ProcessorInterface
             $downloadJob->getOwner()
         );
 
-        if($result) {
+        if ($result) {
             /** @var DownloadJobInterface $existingDownloadJob */
-            foreach($result as $existingDownloadJob) {
-                if(in_array($existingDownloadJob->getState(), [
+            foreach ($result as $existingDownloadJob) {
+                if (in_array($existingDownloadJob->getState(), [
                     DownloadStateEnum::PENDING,
                     DownloadStateEnum::COMPLETED,
-                    DownloadStateEnum::ALREADY_EXISTS
+                    DownloadStateEnum::ALREADY_EXISTS,
                 ], true)) {
                     throw new ConflictHttpException('Download Job already exists');
                 }

@@ -5,6 +5,7 @@ namespace App\MessageHandler;
 use App\Factory\DownloaderFactory;
 use App\Message\UpdateDownloadersMessage;
 use App\Service\Downloader\CliDownloaderInterface;
+use App\Service\Site\SiteSynchronizer;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 use Symfony\Component\Process\Process;
@@ -15,6 +16,7 @@ final class UpdateDownloadersMessageHandler
     public function __construct(
         private readonly DownloaderFactory $downloaderFactory,
         private readonly LoggerInterface $logger,
+        private readonly SiteSynchronizer $siteSynchronizer,
     ) {
     }
 
@@ -31,6 +33,13 @@ final class UpdateDownloadersMessageHandler
                     ]);
                 });
             }
+        }
+
+        // Updated tools may know new extractors and domains for the curated sites
+        try {
+            $this->siteSynchronizer->sync();
+        } catch (\Throwable $e) {
+            $this->logger->error('Site synchronisation after downloader update failed', ['exception' => $e]);
         }
     }
 }

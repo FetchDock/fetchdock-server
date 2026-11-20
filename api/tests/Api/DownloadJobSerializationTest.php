@@ -16,7 +16,7 @@ use Symfony\Component\Serializer\SerializerInterface;
  */
 class DownloadJobSerializationTest extends ApiTestCase
 {
-    private const array SENSITIVE_FIELDS = ['cookies', 'cookiesNetscapeFileContent', 'token', 'owner', 'userAgent'];
+    private const array SENSITIVE_FIELDS = ['cookies', 'cookiesNetscapeFileContent', 'token', 'owner', 'userAgent', 'referrer'];
 
     protected function setUp(): void
     {
@@ -40,6 +40,7 @@ class DownloadJobSerializationTest extends ApiTestCase
             $this->assertArrayNotHasKey($field, $data, "API response exposes '{$field}'");
         }
         $this->assertStringNotContainsString('FAKE_COOKIE_VALUE', $response->getContent());
+        $this->assertStringNotContainsString('FAKE_REFERRER_PAGE', $response->getContent());
     }
 
     public function testJsonLdSerializationUsedForMercureUpdatesDoesNotContainSensitiveFields(): void
@@ -55,6 +56,7 @@ class DownloadJobSerializationTest extends ApiTestCase
             $this->assertArrayNotHasKey($field, $data, "JSON-LD serialization exposes '{$field}'");
         }
         $this->assertStringNotContainsString('FAKE_COOKIE_VALUE', $json);
+        $this->assertStringNotContainsString('FAKE_REFERRER_PAGE', $json);
         $this->assertStringNotContainsString($job->getToken(), $json);
     }
 
@@ -79,7 +81,8 @@ class DownloadJobSerializationTest extends ApiTestCase
             ->setState(DownloadStateEnum::PENDING)
             ->setOwner($owner)
             ->setCookies([$cookie])
-            ->setUserAgent('FakeAgent/1.0');
+            ->setUserAgent('FakeAgent/1.0')
+            ->setReferrer('https://example.com/FAKE_REFERRER_PAGE');
         $entityManager->persist($job);
         $entityManager->flush();
 
