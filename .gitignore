@@ -10,3 +10,7 @@ docker/gallery-dl/config/gallery-dl.conf
 /api/config/jwt/*.pem
 *~ # Jetbrains temp files
 /.agentbridge/
+
+###> claude-code ###
+/.claude/settings.local.json
+###< claude-code ###
