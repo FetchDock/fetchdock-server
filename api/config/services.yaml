@@ -102,3 +102,6 @@ when@test:
         # Don't run bin/resolve_url.py in functional tests
         App\Service\Site\ExtractorMatcherInterface:
             class: App\Tests\Double\FakeExtractorMatcher
+        # Don't run bin/dump_options.py in functional tests
+        App\Service\Downloader\Options\OptionsDumperInterface:
+            class: App\Tests\Double\FakeOptionsDumper

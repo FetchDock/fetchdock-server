@@ -9,11 +9,13 @@ use App\Event\CliProcessStartEvent;
 use App\Event\CliProcessStdOutputEvent;
 use App\Event\CliProcessStopEvent;
 use App\Model\DownloadJobInterface;
+use App\Service\Downloader\Options\OptionsArgumentsBuilder;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Process\Process;
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
+use Symfony\Contracts\Service\Attribute\Required;
 
 abstract class AbstractCliDownloader implements DownloaderInterface
 {
@@ -36,6 +38,17 @@ abstract class AbstractCliDownloader implements DownloaderInterface
         protected string $downloadPath,
         protected LoggerInterface $logger,
     ) {
+    }
+
+    private ?OptionsArgumentsBuilder $optionsArgumentsBuilder = null;
+
+    /**
+     * Setter injection keeps the downloaders' constructors unchanged.
+     */
+    #[Required]
+    public function setOptionsArgumentsBuilder(OptionsArgumentsBuilder $optionsArgumentsBuilder): void
+    {
+        $this->optionsArgumentsBuilder = $optionsArgumentsBuilder;
     }
 
     abstract public function addFilesToDownloadJobFromCommandOutput(DownloadJob $downloadJob, string $commandOutput): void;
@@ -74,7 +87,7 @@ abstract class AbstractCliDownloader implements DownloaderInterface
     }
 
     /**
-     * @param list<string> $extraOptions options added after the config, which take precedence over it
+     * @param list<string> $extraOptions options added after the config and the user's options, which take precedence over them
      */
     protected function runDownloadProcess(DownloadJobInterface $downloadJob, array $extraOptions = []): Process
     {
@@ -87,6 +100,7 @@ abstract class AbstractCliDownloader implements DownloaderInterface
                 '--config', $this->configPath,
                 '--verbose',
             ],
+            $this->getUserOptionArguments($downloadJob),
             $extraOptions,
             [
                 $downloadJob->getUrl()->__toString(),
@@ -134,6 +148,16 @@ abstract class AbstractCliDownloader implements DownloaderInterface
         }
 
         return $downloadProcess;
+    }
+
+    /**
+     * The job's downloader options (the owner's settings) as "--flag=value" / "--flag" argv elements.
+     *
+     * @return list<string>
+     */
+    protected function getUserOptionArguments(DownloadJobInterface $downloadJob): array
+    {
+        return $this->optionsArgumentsBuilder?->build($this->getIdentifier(), $downloadJob->getDownloaderOptions()) ?? [];
     }
 
     protected function createConfigFileIfNotExists(): void

@@ -91,6 +91,14 @@ class DownloadJob implements DownloadJobInterface, OwnerFilterableInterface
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['jsonb' => true])]
     private ?array $cookies = [];
 
+    /**
+     * Command line options for the downloader, merged from the owner's settings when the job was queued.
+     *
+     * @var array<string, mixed>|null
+     */
+    #[ORM\Column(type: Types::JSON, nullable: true, options: ['jsonb' => true])]
+    private ?array $downloaderOptions = null;
+
     #[ORM\Column(enumType: DownloadStateEnum::class)]
     private ?DownloadStateEnum $state = null;
 
@@ -174,6 +182,23 @@ class DownloadJob implements DownloadJobInterface, OwnerFilterableInterface
     public function setReferrer(?string $referrer): static
     {
         $this->referrer = $referrer;
+
+        return $this;
+    }
+
+    // May contain the owner's site preferences: never serialized.
+    #[Ignore]
+    public function getDownloaderOptions(): array
+    {
+        return $this->downloaderOptions ?? [];
+    }
+
+    /**
+     * @param array<string, mixed>|null $downloaderOptions
+     */
+    public function setDownloaderOptions(?array $downloaderOptions): static
+    {
+        $this->downloaderOptions = [] === $downloaderOptions ? null : $downloaderOptions;
 
         return $this;
     }

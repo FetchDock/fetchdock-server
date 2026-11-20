@@ -5,6 +5,7 @@ namespace App\MessageHandler;
 use App\Factory\DownloaderFactory;
 use App\Message\UpdateDownloadersMessage;
 use App\Service\Downloader\CliDownloaderInterface;
+use App\Service\Downloader\Options\OptionsSchemaFactory;
 use App\Service\Site\SiteSynchronizer;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
@@ -17,6 +18,7 @@ final class UpdateDownloadersMessageHandler
         private readonly DownloaderFactory $downloaderFactory,
         private readonly LoggerInterface $logger,
         private readonly SiteSynchronizer $siteSynchronizer,
+        private readonly ?OptionsSchemaFactory $optionsSchemaFactory = null,
     ) {
     }
 
@@ -34,6 +36,9 @@ final class UpdateDownloadersMessageHandler
                 });
             }
         }
+
+        // Updated tools may have other options: regenerate the options schemas on next use
+        $this->optionsSchemaFactory?->invalidate();
 
         // Updated tools may know new extractors and domains for the curated sites
         try {

@@ -1,0 +1,335 @@
+{
+ "version": "2026.01.01-test",
+ "options": [
+  {
+   "flags": [
+    "--help",
+    "-h"
+   ],
+   "dest": "print_help",
+   "kind": "true",
+   "type": null,
+   "const": null,
+   "metavar": null,
+   "default": null,
+   "help": "Print this help text and exit",
+   "group": "General Options",
+   "choices": null,
+   "hidden": false
+  },
+  {
+   "flags": [
+    "--proxy"
+   ],
+   "dest": "proxy",
+   "kind": "value",
+   "type": "string",
+   "const": null,
+   "metavar": "URL",
+   "default": null,
+   "help": "Use the specified HTTP/HTTPS/SOCKS proxy. To enable SOCKS proxy, specify a proper scheme, e.g. socks5://user:pass@127...",
+   "group": "Network Options",
+   "choices": null,
+   "hidden": false
+  },
+  {
+   "flags": [
+    "--match-filters"
+   ],
+   "dest": "match_filter",
+   "kind": "append",
+   "type": "string",
+   "const": null,
+   "metavar": "FILTER",
+   "default": null,
+   "help": "Generic video filter. Any \"OUTPUT TEMPLATE\" field can be compared with a number or a string using the operators defin...",
+   "group": "Video Selection",
+   "choices": null,
+   "hidden": false
+  },
+  {
+   "flags": [
+    "--no-match-filters"
+   ],
+   "dest": "match_filter",
+   "kind": "const",
+   "type": null,
+   "const": null,
+   "metavar": null,
+   "default": null,
+   "help": "Do not use any --match-filters (default)",
+   "group": "Video Selection",
+   "choices": null,
+   "hidden": false
+  },
+  {
+   "flags": [
+    "--download-archive"
+   ],
+   "dest": "download_archive",
+   "kind": "value",
+   "type": "string",
+   "const": null,
+   "metavar": "FILE",
+   "default": null,
+   "help": "Download only videos not listed in the archive file. Record the IDs of all downloaded videos in it",
+   "group": "Video Selection",
+   "choices": null,
+   "hidden": false
+  },
+  {
+   "flags": [
+    "--no-download-archive"
+   ],
+   "dest": "download_archive",
+   "kind": "const",
+   "type": null,
+   "const": null,
+   "metavar": null,
+   "default": null,
+   "help": "Do not use archive file (default)",
+   "group": "Video Selection",
+   "choices": null,
+   "hidden": false
+  },
+  {
+   "flags": [
+    "--concurrent-fragments",
+    "-N"
+   ],
+   "dest": "concurrent_fragment_downloads",
+   "kind": "value",
+   "type": "integer",
+   "const": null,
+   "metavar": "N",
+   "default": 1,
+   "help": "Number of fragments of a dash/hlsnative video that should be downloaded concurrently (default is 1)",
+   "group": "Download Options",
+   "choices": null,
+   "hidden": false
+  },
+  {
+   "flags": [
+    "--limit-rate",
+    "--rate-limit",
+    "-r"
+   ],
+   "dest": "ratelimit",
+   "kind": "value",
+   "type": "string",
+   "const": null,
+   "metavar": "RATE",
+   "default": null,
+   "help": "Maximum download rate in bytes per second, e.g. 50K or 4.2M",
+   "group": "Download Options",
+   "choices": null,
+   "hidden": false
+  },
+  {
+   "flags": [
+    "--mtime"
+   ],
+   "dest": "updatetime",
+   "kind": "true",
+   "type": null,
+   "const": null,
+   "metavar": null,
+   "default": null,
+   "help": "Use the Last-modified header to set the file modification time",
+   "group": "Filesystem Options",
+   "choices": null,
+   "hidden": false
+  },
+  {
+   "flags": [
+    "--no-mtime"
+   ],
+   "dest": "updatetime",
+   "kind": "false",
+   "type": null,
+   "const": null,
+   "metavar": null,
+   "default": null,
+   "help": "Do not use the Last-modified header to set the file modification time (default)",
+   "group": "Filesystem Options",
+   "choices": null,
+   "hidden": false
+  },
+  {
+   "flags": [
+    "--cookies"
+   ],
+   "dest": "cookiefile",
+   "kind": "value",
+   "type": "string",
+   "const": null,
+   "metavar": "FILE",
+   "default": null,
+   "help": "Netscape formatted file to read cookies from and dump cookie jar in",
+   "group": "Filesystem Options",
+   "choices": null,
+   "hidden": false
+  },
+  {
+   "flags": [
+    "--no-cookies"
+   ],
+   "dest": "cookiefile",
+   "kind": "const",
+   "type": null,
+   "const": null,
+   "metavar": "FILE",
+   "default": null,
+   "help": "Do not read/dump cookies from/to file (default)",
+   "group": "Filesystem Options",
+   "choices": null,
+   "hidden": false
+  },
+  {
+   "flags": [
+    "--write-all-thumbnails"
+   ],
+   "dest": "writethumbnail",
+   "kind": "const",
+   "type": null,
+   "const": "all",
+   "metavar": null,
+   "default": null,
+   "help": "Write all thumbnail image formats to disk",
+   "group": "Thumbnail Options",
+   "choices": null,
+   "hidden": false
+  },
+  {
+   "flags": [
+    "--sleep-interval",
+    "--min-sleep-interval"
+   ],
+   "dest": "sleep_interval",
+   "kind": "value",
+   "type": "number",
+   "const": null,
+   "metavar": "SECONDS",
+   "default": null,
+   "help": "Number of seconds to sleep before each download. This is the minimum time to sleep when used along with --max-sleep-i...",
+   "group": "Workarounds",
+   "choices": null,
+   "hidden": false
+  },
+  {
+   "flags": [
+    "--format",
+    "-f"
+   ],
+   "dest": "format",
+   "kind": "value",
+   "type": "string",
+   "const": null,
+   "metavar": "FORMAT",
+   "default": null,
+   "help": "Video format code, see \"FORMAT SELECTION\" for more details",
+   "group": "Video Format Options",
+   "choices": null,
+   "hidden": false
+  },
+  {
+   "flags": [
+    "--all-formats"
+   ],
+   "dest": "format",
+   "kind": "const",
+   "type": null,
+   "const": "all",
+   "metavar": null,
+   "default": null,
+   "help": null,
+   "group": "Video Format Options",
+   "choices": null,
+   "hidden": true
+  },
+  {
+   "flags": [
+    "--list-formats",
+    "-F"
+   ],
+   "dest": "listformats",
+   "kind": "true",
+   "type": null,
+   "const": null,
+   "metavar": null,
+   "default": null,
+   "help": "List available formats of each video. Simulate unless --no-simulate is used",
+   "group": "Video Format Options",
+   "choices": null,
+   "hidden": false
+  },
+  {
+   "flags": [
+    "--write-subs",
+    "--write-srt"
+   ],
+   "dest": "writesubtitles",
+   "kind": "true",
+   "type": null,
+   "const": null,
+   "metavar": null,
+   "default": false,
+   "help": "Write subtitle file",
+   "group": "Subtitle Options",
+   "choices": null,
+   "hidden": false
+  },
+  {
+   "flags": [
+    "--no-write-subs",
+    "--no-write-srt"
+   ],
+   "dest": "writesubtitles",
+   "kind": "false",
+   "type": null,
+   "const": null,
+   "metavar": null,
+   "default": null,
+   "help": "Do not write subtitle file (default)",
+   "group": "Subtitle Options",
+   "choices": null,
+   "hidden": false
+  },
+  {
+   "flags": [
+    "--fixup"
+   ],
+   "dest": "fixup",
+   "kind": "value",
+   "type": "string",
+   "const": null,
+   "metavar": "POLICY",
+   "default": null,
+   "help": "Automatically correct known faults of the file. One of never (do nothing), warn (only emit a warning), detect_or_warn...",
+   "group": "Post-Processing Options",
+   "choices": [
+    "never",
+    "ignore",
+    "warn",
+    "detect_or_warn",
+    "force"
+   ],
+   "hidden": false
+  },
+  {
+   "flags": [
+    "--exec"
+   ],
+   "dest": "exec_cmd",
+   "kind": "other",
+   "type": null,
+   "const": null,
+   "metavar": "[WHEN:]CMD",
+   "default": {},
+   "help": "Execute a command, optionally prefixed with when to execute it, separated by a \":\". Supported values of \"WHEN\" are th...",
+   "group": "Post-Processing Options",
+   "choices": null,
+   "hidden": false
+  }
+ ]
+}

@@ -1,0 +1,159 @@
+{
+ "version": "2026.01.01-test",
+ "options": [
+  {
+   "flags": [
+    "--directory",
+    "-D"
+   ],
+   "dest": "directory",
+   "kind": "value",
+   "type": "string",
+   "const": null,
+   "metavar": "PATH",
+   "default": null,
+   "help": "Exact location for file downloads",
+   "group": "General Options",
+   "choices": null,
+   "hidden": false
+  },
+  {
+   "flags": [
+    "--retries",
+    "-R"
+   ],
+   "dest": "retries",
+   "kind": "value",
+   "type": "integer",
+   "const": null,
+   "metavar": "N",
+   "default": null,
+   "help": "Maximum number of retries for failed HTTP requests or -1 for infinite retries (default: 4)",
+   "group": "Networking Options",
+   "choices": null,
+   "hidden": false
+  },
+  {
+   "flags": [
+    "--proxy"
+   ],
+   "dest": "proxy",
+   "kind": "value",
+   "type": "string",
+   "const": null,
+   "metavar": "URL",
+   "default": null,
+   "help": "Use the specified proxy",
+   "group": "Networking Options",
+   "choices": null,
+   "hidden": false
+  },
+  {
+   "flags": [
+    "--limit-rate",
+    "-r"
+   ],
+   "dest": "rate",
+   "kind": "value",
+   "type": "string",
+   "const": null,
+   "metavar": "RATE",
+   "default": null,
+   "help": "Maximum download rate (e.g. 500k, 2.5M, or 800k-2M)",
+   "group": "Downloader Options",
+   "choices": null,
+   "hidden": false
+  },
+  {
+   "flags": [
+    "--no-part"
+   ],
+   "dest": "part",
+   "kind": "false",
+   "type": null,
+   "const": null,
+   "metavar": null,
+   "default": null,
+   "help": "Do not use .part files",
+   "group": "Downloader Options",
+   "choices": null,
+   "hidden": false
+  },
+  {
+   "flags": [
+    "--sleep"
+   ],
+   "dest": "sleep",
+   "kind": "value",
+   "type": "string",
+   "const": null,
+   "metavar": "SECONDS",
+   "default": null,
+   "help": "Number of seconds to wait before each download. This can be either a constant value or a range (e.g. 2.7 or 2.0-3.5)",
+   "group": "Sleep Options",
+   "choices": null,
+   "hidden": false
+  },
+  {
+   "flags": [
+    "--filter"
+   ],
+   "dest": "file-filter",
+   "kind": "value",
+   "type": "string",
+   "const": null,
+   "metavar": "EXPR",
+   "default": null,
+   "help": "Python expression controlling which files to download. Files for which the expression evaluates to False are ignored....",
+   "group": "Selection Options",
+   "choices": null,
+   "hidden": false
+  },
+  {
+   "flags": [
+    "--file-filter",
+    "--image-filter"
+   ],
+   "dest": "file-filter",
+   "kind": "value",
+   "type": "string",
+   "const": null,
+   "metavar": null,
+   "default": null,
+   "help": null,
+   "group": "Selection Options",
+   "choices": null,
+   "hidden": true
+  },
+  {
+   "flags": [
+    "--zip"
+   ],
+   "dest": "postprocessors",
+   "kind": "const",
+   "type": null,
+   "const": "zip",
+   "metavar": null,
+   "default": null,
+   "help": "Store downloaded files in a ZIP archive",
+   "group": "Post-processing Options",
+   "choices": null,
+   "hidden": false
+  },
+  {
+   "flags": [
+    "--exec"
+   ],
+   "dest": "postprocessors",
+   "kind": "other",
+   "type": null,
+   "const": null,
+   "metavar": "CMD",
+   "default": null,
+   "help": "Execute CMD for each downloaded file. Supported replacement fields are {} or {_path}, {_temppath}, {_directory}, {_fi...",
+   "group": "Post-processing Options",
+   "choices": null,
+   "hidden": false
+  }
+ ]
+}

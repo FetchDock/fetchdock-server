@@ -15,7 +15,7 @@ final readonly class EffectiveSettings
         public bool $sendReferrer,
         /** Downloader identifier, or null when no downloader supports the URL */
         public ?string $downloader,
-        /** Extra downloader options (#22, phase 3) */
+        /** Command line options of the downloader (see GET /downloaders/{id}/options-schema) */
         #[ApiProperty(openapiContext: ['type' => 'object', 'additionalProperties' => true])]
         public \ArrayObject $downloaderOptions = new \ArrayObject(),
     ) {
