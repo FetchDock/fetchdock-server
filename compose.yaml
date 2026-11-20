@@ -42,8 +42,13 @@ services:
   worker:
     image: ${IMAGES_PREFIX:-}-api # Actually worker, but it uses the same image as php
     depends_on:
-      - api
-      - database
+      # Wait until the api has finished starting (composer install, migrations). Both containers run
+      # "composer install" from the entrypoint into the shared /app, and running them in parallel races
+      # on assets:install (public/bundles), which made the api container fail in CI.
+      api:
+        condition: service_healthy
+      database:
+        condition: service_started
     restart: unless-stopped
     environment:
       MERCURE_PUBLISHER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET:-!ChangeThisMercureHubJWTSecretKey!}

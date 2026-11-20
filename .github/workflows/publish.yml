@@ -16,6 +16,35 @@ jobs:
             id-token: write
         steps:
         -
+            # docker/metadata-action derives the image tags from the tag name only, not from the
+            # release's "pre-release" flag. A pre-release without a pre-release suffix (e.g. 0.7.0)
+            # would move the major.minor and latest image tags, and a non-semver tag produces no tags.
+            name: Validate release tag
+            env:
+              TAG: ${{ github.event.release.tag_name }}
+              PRERELEASE: ${{ github.event.release.prerelease }}
+            run: |
+              set -eu
+              # Semantic version, optionally prefixed with "v" (as accepted by docker/metadata-action type=semver)
+              semver='^v?(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$'
+              prerelease_suffix='^v?[0-9]+\.[0-9]+\.[0-9]+-[0-9A-Za-z.-]+'
+
+              if ! printf '%s' "$TAG" | grep -Eq "$semver"; then
+                echo "::error title=Invalid release tag::Tag '$TAG' is not a semantic version (e.g. 0.7.0 or 0.7.0-rc.1). No image tags would be generated."
+                exit 1
+              fi
+
+              if [ "$PRERELEASE" = "true" ] && ! printf '%s' "$TAG" | grep -Eq "$prerelease_suffix"; then
+                echo "::error title=Pre-release without pre-release tag::Release is marked as pre-release, but tag '$TAG' has no pre-release suffix. It would move the major.minor and latest image tags. Use e.g. '$TAG-rc.1'."
+                exit 1
+              fi
+
+              if [ "$PRERELEASE" = "false" ] && printf '%s' "$TAG" | grep -Eq "$prerelease_suffix"; then
+                echo "::warning title=Pre-release tag on a stable release::Tag '$TAG' has a pre-release suffix but the release isn't marked as pre-release. Only the '$TAG' image tag will be published."
+              fi
+
+              echo "Release tag '$TAG' (pre-release: $PRERELEASE) is valid."
+        -
             name: Checkout
             uses: actions/checkout@v6
         -
