@@ -29,10 +29,6 @@ interface DownloaderInterface
      */
     public function getSupportedDomains(): array;
 
-    /**
-     * @param DownloadJobInterface $downloadJob
-     * @return bool
-     */
     public function supportsDownloadJob(DownloadJobInterface $downloadJob): bool;
 
     /**

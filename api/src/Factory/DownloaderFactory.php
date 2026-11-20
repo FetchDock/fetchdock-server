@@ -61,7 +61,7 @@ class DownloaderFactory
     public function getDownloadersByDownloadJob(DownloadJobInterface $downloadJob): iterable
     {
         $this->logger->debug('Looking for download jobs supporting download job', [
-            'uri' => $downloadJob->getUrl()
+            'uri' => $downloadJob->getUrl(),
         ]);
         /** @var DownloaderInterface $downloader */
         foreach ($this->downloaders as $downloader) {

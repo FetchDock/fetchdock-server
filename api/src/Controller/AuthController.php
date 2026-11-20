@@ -243,7 +243,7 @@ final class AuthController extends AbstractController
         }
 
         $body = json_decode($request->getContent(), true);
-        if (json_last_error() !== JSON_ERROR_NONE) {
+        if (JSON_ERROR_NONE !== json_last_error()) {
             return new JsonResponse(
                 new ErrorResponse('Invalid JSON body'),
                 Response::HTTP_BAD_REQUEST
@@ -287,15 +287,17 @@ final class AuthController extends AbstractController
             'Token endpoint response',
             [
                 'status_code' => $response->getStatusCode(),
-                'headers' => $response->getHeaders()
+                'headers' => $response->getHeaders(),
             ]
         );
 
         try {
             $decodedContent = json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR);
+
             return new JsonResponse($decodedContent, $response->getStatusCode());
         } catch (\JsonException $e) {
             $this->logger->error('Failed to decode token endpoint response', ['error' => $e->getMessage()]);
+
             return new JsonResponse(
                 new ErrorResponse('Failed to decode token endpoint response'),
                 Response::HTTP_INTERNAL_SERVER_ERROR
@@ -310,7 +312,6 @@ final class AuthController extends AbstractController
      *
      * Therefor the token endpoint is proxied to the server.
      *
-     * @param Request $request
      * @return Response
      */
     #[Route('/auth/token', name: 'app_auth_token', methods: ['POST'])]
@@ -377,11 +378,12 @@ final class AuthController extends AbstractController
     {
         try {
             $response = $this->httpClient->request('GET', $this->wellKnownUrl);
-            if ($response->getStatusCode() !== 200) {
+            if (200 !== $response->getStatusCode()) {
                 return null;
             }
 
             $data = json_decode($response->getContent(), true);
+
             return $data['token_endpoint'] ?? null;
         } catch (\Exception $e) {
             // Log the exception or handle it as needed

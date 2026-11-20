@@ -28,7 +28,7 @@ class DownloadJobTest extends TestCase
         $this->assertSame(64, strlen($this->downloadJob->getToken())); // 32 bytes = 64 hex chars
         $this->assertNull($this->downloadJob->getUri());
         $this->assertNull($this->downloadJob->getUserAgent());
-        $this->assertSame([],$this->downloadJob->getCookies());
+        $this->assertSame([], $this->downloadJob->getCookies());
         $this->assertNull($this->downloadJob->getState());
         $this->assertNull($this->downloadJob->getDownloader());
         $this->assertCount(0, $this->downloadJob->getDownloadJobEvents());
@@ -63,7 +63,7 @@ class DownloadJobTest extends TestCase
 
     public function testSetAndGetCookies(): void
     {
-        //$cookies = ['session' => 'abc123', 'token' => 'xyz456'];
+        // $cookies = ['session' => 'abc123', 'token' => 'xyz456'];
         $cookies = [
             new CookieDTO(),
             new CookieDTO(),
@@ -289,7 +289,7 @@ class DownloadJobTest extends TestCase
         $this->downloadJob->setCookies(
             [
                 new CookieDTO(),
-                "string"
+                'string',
             ]
         );
     }

@@ -13,7 +13,7 @@ use App\State\UserStatsProvider;
         new Get(
             uriTemplate: '/user/stats',
             provider: UserStatsProvider::class,
-        )
+        ),
     ]
 )]
 class UserStats
@@ -23,8 +23,7 @@ class UserStats
     public static function getStatsForUser(
         OidcSubjectIdentifier $user,
         UserDownloadStatsRepository $downloadStatsRepository,
-    ): self
-    {
+    ): self {
         $stats = new self();
         $stats->downloadStats = $downloadStatsRepository->findOneBy(['owner' => $user]);
 

@@ -84,11 +84,10 @@ class CurrentUserExtensionTest extends TestCase
 
     private function setAddWhereAssertions(string $rootAlias, bool $expectGetIdOnOidc = false): void
     {
-
         $userIdentifier = 'foo';
 
         $oidcSubjectIdentifier = $this->createMock(OidcSubjectIdentifier::class);
-        if($expectGetIdOnOidc) {
+        if ($expectGetIdOnOidc) {
             $oidcSubjectIdentifier->expects($this->atLeastOnce())
                 ->method('getId')
                 ->willReturn(1);
@@ -97,7 +96,7 @@ class CurrentUserExtensionTest extends TestCase
         $this->oidcSubjectIdentifierRepository->expects($this->once())
             ->method('findOneBy')
             ->with([
-                'subject' => $userIdentifier
+                'subject' => $userIdentifier,
             ])
             ->willReturn($oidcSubjectIdentifier);
 
@@ -131,7 +130,6 @@ class CurrentUserExtensionTest extends TestCase
 
 class OwnerFilterableTestClass implements OwnerFilterableInterface
 {
-
     public static function getOwnerQueryBuilder(QueryBuilder $queryBuilder, string $ownerIdentifier): QueryBuilder
     {
         // TODO: Implement getOwnerQueryBuilder() method.

@@ -45,7 +45,7 @@ final class DownloadController extends AbstractController
         if (!file_exists($file->getPath() ?: '')) {
             $this->logger->error('File not found', [
                 'file' => $file->getPath(),
-                'downloadJob' => $downloadJob
+                'downloadJob' => $downloadJob,
             ]);
             throw new NotFoundHttpException('File not found on server.');
         }
@@ -55,7 +55,7 @@ final class DownloadController extends AbstractController
         switch ($downloadJob->getDownloader()) {
             case 'yt-dlp-cli':
                 $metadata = $file->getMetadata();
-                if (isset($metadata['title'], $metadata['ext']) && $metadata['title'] !== '' && $metadata['ext'] !== '') {
+                if (isset($metadata['title'], $metadata['ext']) && '' !== $metadata['title'] && '' !== $metadata['ext']) {
                     $filename = $metadata['title'].'.'.$metadata['ext'];
                 } else {
                     $filename = basename($file->getPath() ?: 'downloaded_file');

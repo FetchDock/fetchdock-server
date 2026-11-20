@@ -11,9 +11,8 @@ class CleanupListener
 {
     public function __construct(
         private EntityManagerInterface $entityManager,
-        private LoggerInterface $logger
-    )
-    {
+        private LoggerInterface $logger,
+    ) {
     }
 
     #[AsEventListener(event: JobCompletedEvent::class)]

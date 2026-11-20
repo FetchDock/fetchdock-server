@@ -3,14 +3,9 @@
 namespace App\Tests\Unit\Command;
 
 use App\Command\UrlDownloadCommand;
-use App\Entity\DownloadJob;
 use App\Factory\DownloaderFactory;
 use App\Service\Downloader\DownloaderInterface;
-use GuzzleHttp\Psr7\Uri;
-use \RuntimeException;
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\Console\Input\StringInput;
-use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\Console\Tester\CommandTester;
 
 class UrlDownloadCommandTest extends TestCase
@@ -138,7 +133,7 @@ class UrlDownloadCommandTest extends TestCase
         $this->downloader
             ->expects($this->once())
             ->method('download')
-            ->willThrowException(new RuntimeException());
+            ->willThrowException(new \RuntimeException());
 
         $statusCode = $this->commandTester->execute(['url' => $url]);
 

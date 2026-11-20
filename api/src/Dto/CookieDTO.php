@@ -2,8 +2,6 @@
 
 namespace App\Dto;
 
-use Uri\Rfc3986\Uri;
-
 final class CookieDTO
 {
     public string $domain;
@@ -29,8 +27,9 @@ final class CookieDTO
                 // Try to parse the expirationDate string as a date string
                 try {
                     $dto->expirationDate = new \DateTimeImmutable($data['expirationDate']);
-                } catch (\Exception $e) {}
-            } elseif (is_array($data['expirationDate']) && array_key_exists("timezone_type", $data['expirationDate'])) {
+                } catch (\Exception $e) {
+                }
+            } elseif (is_array($data['expirationDate']) && array_key_exists('timezone_type', $data['expirationDate'])) {
                 // $data is most likely a serialized DateTime object
                 // Which contains a "date", "timezone" and "timezone_type" key
                 // Where "timezone" is the timezone name ("z") and "timezone_type" is the type of timezone (3 = PHP_INT_MAX)
@@ -38,7 +37,7 @@ final class CookieDTO
             }
         }
 
-        if(isset($data['hostOnly'])) {
+        if (isset($data['hostOnly'])) {
             $dto->hostOnly = $data['hostOnly'];
         }
         $dto->httpOnly = $data['httpOnly'];
@@ -46,7 +45,7 @@ final class CookieDTO
         $dto->path = $data['path'];
         $dto->sameSite = $data['sameSite'];
         $dto->secure = $data['secure'];
-        if(isset($data['value'])) {
+        if (isset($data['value'])) {
             $dto->value = $data['value'];
         }
 
@@ -58,8 +57,6 @@ final class CookieDTO
      *
      * @see https://datatracker.ietf.org/doc/html/rfc6265
      * @see https://curl.se/docs/http-cookies.html
-     *
-     * @return string
      */
     public function toNetscapeCookieLine(): string
     {
@@ -75,12 +72,13 @@ final class CookieDTO
             $this->value,
         ];
 
-        $lineString = implode("\t", array_map(static function($item) {
+        $lineString = implode("\t", array_map(static function ($item) {
             if (is_bool($item)) {
                 return $item ? 'TRUE' : 'FALSE';
             }
-            return (string)$item;
-        }, $lineArray)) . "\n";
+
+            return (string) $item;
+        }, $lineArray))."\n";
 
         return $lineString;
     }

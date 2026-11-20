@@ -39,5 +39,4 @@ class OidcSubjectIdentifierTest extends TestCase
         $this->assertNotContains($downloadJobOne, $subjectIdentifier->getDownloadJobs());
         $this->assertContains($downloadJobTwo, $subjectIdentifier->getDownloadJobs());
     }
-
 }

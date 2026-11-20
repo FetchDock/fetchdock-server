@@ -15,9 +15,8 @@ class CurrentUserExtension implements QueryCollectionExtensionInterface, QueryIt
 {
     public function __construct(
         private Security $security,
-        private OidcSubjectIdentifierRepository $oidcSubjectIdentifierRepository
-    )
-    {
+        private OidcSubjectIdentifierRepository $oidcSubjectIdentifierRepository,
+    ) {
     }
 
     public function applyToCollection(QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass, ?Operation $operation = null, array $context = []): void
@@ -41,7 +40,7 @@ class CurrentUserExtension implements QueryCollectionExtensionInterface, QueryIt
                 return;
             }
 
-            /** @var OwnerFilterableInterface $resourceClass */
+            /* @var OwnerFilterableInterface $resourceClass */
             $resourceClass::getOwnerQueryBuilder($queryBuilder, $oidcUser->getId());
         }
     }

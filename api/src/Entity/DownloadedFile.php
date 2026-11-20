@@ -20,7 +20,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ApiResource(
     uriTemplate: '/download_jobs/{downloadJobUuid}/files.{_format}',
     operations: [new GetCollection(
-//        normalizationContext: ['groups' => ['downloadedFile:read']]
+        //        normalizationContext: ['groups' => ['downloadedFile:read']]
     )],
     uriVariables: [
         'downloadJobUuid' => new Link(

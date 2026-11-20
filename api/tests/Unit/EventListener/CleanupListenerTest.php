@@ -5,7 +5,6 @@ namespace App\Tests\Unit\EventListener;
 use App\Entity\DownloadJob;
 use App\Event\JobCompletedEvent;
 use App\EventListener\CleanupListener;
-use App\Model\DownloadJobInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;

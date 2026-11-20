@@ -93,7 +93,6 @@ class CookieDTOTest extends TestCase
         $this->assertSame('2026-04-20T00:00:00+00:00', $this->dto->expirationDate->format('c'));
         $this->assertFalse($this->dto->secure);
 
-
         $expectedNetscapeLine = "example.com\tFALSE\t/\tFALSE\t1776643200\ttest_cookie\ttest_value\n";
         $this->assertSame($expectedNetscapeLine, $this->dto->toNetscapeCookieLine());
     }
@@ -116,7 +115,6 @@ class CookieDTOTest extends TestCase
         $this->assertSame('/', $this->dto->path);
         $this->assertNull($this->dto->expirationDate);
         $this->assertFalse($this->dto->secure);
-
 
         $expectedNetscapeLine = "example.com\tFALSE\t/\tFALSE\t0\ttest_cookie\ttest_value\n";
         $this->assertSame($expectedNetscapeLine, $this->dto->toNetscapeCookieLine());

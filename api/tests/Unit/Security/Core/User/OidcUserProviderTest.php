@@ -48,11 +48,11 @@ class OidcUserProviderTest extends TestCase
             'groups' => [
                 'user',
                 'test',
-                'admin'
+                'admin',
             ],
             'name' => 'Test User',
             'given_name' => 'Test',
-            'nickname' => 'Testy McTestface'
+            'nickname' => 'Testy McTestface',
         ];
 
         $this->oidcSubjectIdentifierRepository->expects($this->once())
@@ -112,5 +112,4 @@ class OidcUserProviderTest extends TestCase
     {
         $this->assertFalse($this->oidcUserProvider->supportsClass('NonOidcUser'));
     }
-
 }

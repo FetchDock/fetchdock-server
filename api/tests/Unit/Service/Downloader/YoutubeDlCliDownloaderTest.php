@@ -171,7 +171,7 @@ class YoutubeDlCliDownloaderTest extends TestCase
     public function testDownloadRetriesWithoutArchiveWhenSkippedByDownloadArchive(): void
     {
         [$downloader, $invocationLog] = $this->createDownloaderWithFakeBinary(
-            "[download] video-id: Video has already been recorded in the archive"
+            '[download] video-id: Video has already been recorded in the archive'
         );
 
         $this->assertTrue($downloader->download(new DownloadJob()->setUri('https://example.com/video')));

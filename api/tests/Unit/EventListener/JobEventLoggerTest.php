@@ -3,7 +3,6 @@
 namespace App\Tests\Unit\EventListener;
 
 use App\Entity\DownloadJob;
-use App\Entity\DownloadJobEvent;
 use App\Event\JobCompletedEvent;
 use App\Event\JobFailedEvent;
 use App\Event\JobPickedUpEvent;

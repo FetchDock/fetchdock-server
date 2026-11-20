@@ -36,12 +36,12 @@ FROM
 GROUP BY
     owner_id;
 EOL
-);
+        );
         $this->addSql(<<<EOL
 CREATE RULE ignore_delete_user_download_stats AS ON DELETE TO user_download_stats
 DO INSTEAD NOTHING;
 EOL
-);
+        );
     }
 
     public function down(Schema $schema): void
