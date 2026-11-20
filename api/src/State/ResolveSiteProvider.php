@@ -9,6 +9,8 @@ use App\Dto\RequestContextDTO;
 use App\Dto\SiteReferenceDTO;
 use App\Factory\DownloaderFactory;
 use App\Resource\SiteResolution;
+use App\Security\CurrentOwner;
+use App\Service\Settings\CurrentClient;
 use App\Service\Settings\EffectiveSettingsResolver;
 use App\Service\Site\SiteResolver;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -28,6 +30,8 @@ final readonly class ResolveSiteProvider implements ProviderInterface
         private DownloaderFactory $downloaderFactory,
         private Security $security,
         private RateLimiterFactoryInterface $siteResolveLimiter,
+        private CurrentOwner $currentOwner,
+        private CurrentClient $currentClient,
     ) {
     }
 
@@ -58,6 +62,8 @@ final readonly class ResolveSiteProvider implements ProviderInterface
         $settings = $this->effectiveSettingsResolver->resolve(
             $site,
             array_values(array_unique(array_map(static fn (ExtractorReferenceDTO $e): string => $e->downloader, $extractors))),
+            $this->currentOwner->find(),
+            $this->currentClient->get(),
         );
 
         $resolution = new SiteResolution();

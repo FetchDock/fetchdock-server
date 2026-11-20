@@ -306,6 +306,10 @@ class YoutubeDlCliDownloader extends AbstractCliDownloader implements CliDownloa
             $commandOptions = array_merge($commandOptions, ['--user-agent', $downloadJob->getUserAgent()]);
         }
 
+        if ($downloadJob->getReferrer()) {
+            $commandOptions = array_merge($commandOptions, ['--referer', $downloadJob->getReferrer()]);
+        }
+
         return $commandOptions;
     }
 

@@ -293,4 +293,18 @@ class YoutubeDlCliDownloaderTest extends TestCase
             rmdir($directory);
         }
     }
+
+    public function testCommandOptionsIncludeUserAgentAndReferrer(): void
+    {
+        $job = new DownloadJob()->setUri('https://example.com/media')->setUserAgent('UA/1.0')->setReferrer('https://example.com/page');
+
+        $this->assertSame(['--user-agent', 'UA/1.0', '--referer', 'https://example.com/page'], new \ReflectionMethod($this->downloader, 'getCommandOptions')->invoke($this->downloader, $job));
+    }
+
+    public function testCommandOptionsOmitMissingReferrer(): void
+    {
+        $job = new DownloadJob()->setUri('https://example.com/media');
+
+        $this->assertSame([], new \ReflectionMethod($this->downloader, 'getCommandOptions')->invoke($this->downloader, $job));
+    }
 }

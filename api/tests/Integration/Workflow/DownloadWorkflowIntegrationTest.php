@@ -12,7 +12,13 @@ use App\Factory\DownloaderFactory;
 use App\Handler\DownloadJobHandler;
 use App\Repository\DownloadJobRepository;
 use App\Repository\OidcSubjectIdentifierRepository;
+use App\Repository\UserDownloaderSettingRepository;
+use App\Repository\UserSettingRepository;
+use App\Repository\UserSiteSettingRepository;
 use App\Service\Downloader\MockDownloader;
+use App\Service\Settings\CurrentClient;
+use App\Service\Settings\EffectiveSettingsResolver;
+use App\Service\Site\SiteResolver;
 use App\State\DownloadJobQueuedProcessor;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
@@ -80,7 +86,15 @@ class DownloadWorkflowIntegrationTest extends TestCase
             $this->cache,
             $this->security,
             $this->oidcSubjectIdentifierRepository,
-            $this->downloadJobRepository
+            $this->downloadJobRepository,
+            $this->createStub(SiteResolver::class),
+            new EffectiveSettingsResolver(
+                $this->downloaderFactory,
+                $this->createStub(UserSettingRepository::class),
+                $this->createStub(UserDownloaderSettingRepository::class),
+                $this->createStub(UserSiteSettingRepository::class),
+            ),
+            $this->createStub(CurrentClient::class),
         );
 
         $this->handler = new DownloadJobHandler(

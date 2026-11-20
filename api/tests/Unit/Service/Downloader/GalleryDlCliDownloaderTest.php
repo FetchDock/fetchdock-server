@@ -2,6 +2,7 @@
 
 namespace App\Tests\Unit\Service\Downloader;
 
+use App\Entity\DownloadJob;
 use App\Repository\DownloadedFileRepository;
 use App\Service\Downloader\CliDownloaderInterface;
 use App\Service\Downloader\GalleryDlCliDownloader;
@@ -58,5 +59,19 @@ class GalleryDlCliDownloaderTest extends TestCase
 
         $this->assertSame($expectedArgs, $actualArgs);
         $this->assertCount(5, $actualArgs);
+    }
+
+    public function testCommandOptionsIncludeUserAgentAndReferrer(): void
+    {
+        $job = new DownloadJob()->setUri('https://example.com/media')->setUserAgent('UA/1.0')->setReferrer('https://example.com/page');
+
+        $this->assertSame(['--user-agent', 'UA/1.0', '--option', 'referer=https://example.com/page'], new \ReflectionMethod($this->downloader, 'getCommandOptions')->invoke($this->downloader, $job));
+    }
+
+    public function testCommandOptionsOmitMissingReferrer(): void
+    {
+        $job = new DownloadJob()->setUri('https://example.com/media');
+
+        $this->assertSame([], new \ReflectionMethod($this->downloader, 'getCommandOptions')->invoke($this->downloader, $job));
     }
 }

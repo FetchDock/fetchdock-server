@@ -5,6 +5,8 @@ namespace App\Tests\Unit\State;
 use ApiPlatform\Metadata\Get;
 use App\Factory\DownloaderFactory;
 use App\Model\EffectiveSettings;
+use App\Security\CurrentOwner;
+use App\Service\Settings\CurrentClient;
 use App\Service\Settings\EffectiveSettingsResolver;
 use App\Service\Site\SiteResolver;
 use App\State\ResolveSiteProvider;
@@ -70,6 +72,8 @@ class ResolveSiteProviderTest extends TestCase
             $this->createStub(DownloaderFactory::class),
             $security,
             new RateLimiterFactory(['id' => 'site_resolve', 'policy' => 'fixed_window', 'limit' => $limit, 'interval' => '1 minute'], new InMemoryStorage()),
+            $this->createStub(CurrentOwner::class),
+            $this->createStub(CurrentClient::class),
         );
     }
 

@@ -12,21 +12,14 @@ use Doctrine\ORM\Mapping as ORM;
  * (one default per site, many user overrides per site).
  */
 #[ORM\MappedSuperclass]
-abstract class AbstractSiteSetting
+abstract class AbstractSiteSetting implements SettingsLayerInterface
 {
+    use RequestContextSettingsTrait;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     protected ?int $id = null;
-
-    #[ORM\Column(nullable: true)]
-    protected ?bool $sendCookies = null;
-
-    #[ORM\Column(nullable: true)]
-    protected ?bool $sendUserAgent = null;
-
-    #[ORM\Column(nullable: true)]
-    protected ?bool $sendReferrer = null;
 
     #[ORM\Column(length: 255, nullable: true)]
     protected ?string $downloader = null;
@@ -40,42 +33,6 @@ abstract class AbstractSiteSetting
 
     abstract public function setSite(Site $site): static;
 
-    public function isSendCookies(): ?bool
-    {
-        return $this->sendCookies;
-    }
-
-    public function setSendCookies(?bool $sendCookies): static
-    {
-        $this->sendCookies = $sendCookies;
-
-        return $this;
-    }
-
-    public function isSendUserAgent(): ?bool
-    {
-        return $this->sendUserAgent;
-    }
-
-    public function setSendUserAgent(?bool $sendUserAgent): static
-    {
-        $this->sendUserAgent = $sendUserAgent;
-
-        return $this;
-    }
-
-    public function isSendReferrer(): ?bool
-    {
-        return $this->sendReferrer;
-    }
-
-    public function setSendReferrer(?bool $sendReferrer): static
-    {
-        $this->sendReferrer = $sendReferrer;
-
-        return $this;
-    }
-
     public function getDownloader(): ?string
     {
         return $this->downloader;
@@ -86,5 +43,10 @@ abstract class AbstractSiteSetting
         $this->downloader = $downloader;
 
         return $this;
+    }
+
+    public function getPreferredDownloader(): ?string
+    {
+        return $this->downloader;
     }
 }

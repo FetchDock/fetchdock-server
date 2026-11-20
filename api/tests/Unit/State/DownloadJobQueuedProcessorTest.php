@@ -14,9 +14,13 @@ use App\Enum\DownloadStateEnum;
 use App\Enum\JobTypeEnum;
 use App\Factory\DownloaderFactory;
 use App\Model\DownloadJobInterface;
+use App\Model\EffectiveSettings;
 use App\Repository\DownloadJobRepository;
 use App\Repository\OidcSubjectIdentifierRepository;
 use App\Service\Downloader\DownloaderInterface;
+use App\Service\Settings\CurrentClient;
+use App\Service\Settings\EffectiveSettingsResolver;
+use App\Service\Site\SiteResolver;
 use App\State\DownloadJobQueuedProcessor;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -37,6 +41,7 @@ class DownloadJobQueuedProcessorTest extends TestCase
     private Security $security;
     private DownloadJobRepository $downloadJobRepository;
     private OidcSubjectIdentifierRepository $oidcSubjectIdentifierRepository;
+    private EffectiveSettingsResolver $effectiveSettingsResolver;
     /** @var list<string> */
     private array $temporaryFiles = [];
 
@@ -52,6 +57,13 @@ class DownloadJobQueuedProcessorTest extends TestCase
         $this->downloadJobRepository = $this->createMock(DownloadJobRepository::class);
         $this->oidcSubjectIdentifierRepository = $this->createMock(OidcSubjectIdentifierRepository::class);
 
+        // No known site and default settings: the downloader is probed, the request context is kept
+        $siteResolver = $this->createStub(SiteResolver::class);
+        $siteResolver->method('resolve')->willReturn(null);
+        $this->effectiveSettingsResolver = $this->createStub(EffectiveSettingsResolver::class);
+        $this->effectiveSettingsResolver->method('resolve')->willReturn(new EffectiveSettings(true, true, true, null));
+        $this->effectiveSettingsResolver->method('isDownloaderEnabled')->willReturn(true);
+
         $this->processor = new DownloadJobQueuedProcessor(
             $this->persistProcessor,
             $this->messengerProcessor,
@@ -60,7 +72,10 @@ class DownloadJobQueuedProcessorTest extends TestCase
             $this->cache,
             $this->security,
             $this->oidcSubjectIdentifierRepository,
-            $this->downloadJobRepository
+            $this->downloadJobRepository,
+            $siteResolver,
+            $this->effectiveSettingsResolver,
+            $this->createStub(CurrentClient::class),
         );
     }
 
