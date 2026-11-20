@@ -16,7 +16,8 @@ use Doctrine\ORM\Mapping as ORM;
         new Get(),
         new GetCollection(),
     ],
-    mercure: true,
+    // No Mercure updates: public updates can't be received without anonymous subscribers, and no client uses them.
+    // If live catalog updates are needed, publish them privately and grant their topic in subscriber tokens.
     order: [
         'name' => 'ASC',
     ]

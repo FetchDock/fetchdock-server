@@ -36,8 +36,9 @@
 		publisher_jwt {env.MERCURE_PUBLISHER_JWT_KEY} {env.MERCURE_PUBLISHER_JWT_ALG}
 		# Subscriber JWT key
 		subscriber_jwt {env.MERCURE_SUBSCRIBER_JWT_KEY} {env.MERCURE_SUBSCRIBER_JWT_ALG}
-		# Allow anonymous subscribers (double-check that it's what you want)
-		anonymous
+		# No anonymous subscribers: every subscriber needs a token from POST /users/me/subscription-token, which only
+		# covers the user's own topics. Don't re-enable "anonymous": any update that isn't private would then be readable
+		# by anyone (see GHSA-m2vr-gj6r-hf63). Tests guard that all updates are private (MercurePrivacyTest).
 		# Enable the subscription API (double-check that it's what you want)
 		subscriptions
 		# Extra directives

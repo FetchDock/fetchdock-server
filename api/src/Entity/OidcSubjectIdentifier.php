@@ -9,7 +9,9 @@ use App\Repository\OidcSubjectIdentifierRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Types\UuidType;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity(repositoryClass: OidcSubjectIdentifierRepository::class)]
 #[UniqueEntity(fields: ['subject'], message: 'This OIDC subject identifier is already in use.')]
@@ -29,6 +31,12 @@ class OidcSubjectIdentifier
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
+
+    /**
+     * Stable, non-sequential identifier, e.g. for the user's Mercure topics (see App\Mercure\UserTopics).
+     */
+    #[ORM\Column(type: UuidType::NAME, unique: true)]
+    private ?Uuid $uuid = null;
 
     #[ORM\Column(length: 255)]
     private ?string $subject = null;
@@ -50,6 +58,7 @@ class OidcSubjectIdentifier
 
     public function __construct()
     {
+        $this->uuid = Uuid::v4();
         $this->downloadJobs = new ArrayCollection();
         $this->userSiteSettings = new ArrayCollection();
     }
@@ -57,6 +66,11 @@ class OidcSubjectIdentifier
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function getUuid(): ?Uuid
+    {
+        return $this->uuid;
     }
 
     public function getSubject(): ?string
