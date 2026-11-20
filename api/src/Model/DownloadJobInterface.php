@@ -24,6 +24,11 @@ interface DownloadJobInterface
     public function getUserAgent(): ?string;
 
     /**
+     * The page the URL was found on, if the effective settings allow sending it.
+     */
+    public function getReferrer(): ?string;
+
+    /**
      * @return CookieDTO[]|null
      */
     public function getCookies(): ?array;

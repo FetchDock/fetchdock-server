@@ -17,6 +17,9 @@ use App\Factory\DownloaderFactory;
 use App\Model\DownloadJobInterface;
 use App\Repository\DownloadJobRepository;
 use App\Repository\OidcSubjectIdentifierRepository;
+use App\Service\Settings\CurrentClient;
+use App\Service\Settings\EffectiveSettingsResolver;
+use App\Service\Site\SiteResolver;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -41,6 +44,9 @@ class DownloadJobQueuedProcessor implements ProcessorInterface
         private Security $security,
         private OidcSubjectIdentifierRepository $oidcSubjectIdentifierRepository,
         private DownloadJobRepository $downloadJobRepository,
+        private SiteResolver $siteResolver,
+        private EffectiveSettingsResolver $effectiveSettingsResolver,
+        private CurrentClient $currentClient,
     ) {
     }
 
@@ -80,6 +86,8 @@ class DownloadJobQueuedProcessor implements ProcessorInterface
             'context' => $context,
         ]);
 
+        $preferredDownloader = $this->applyEffectiveSettings($downloadJob);
+
         // Validate downloader
         if (isset($data->downloader) && !$this->downloaderFactory->isValidDownloader($data->downloader)) {
             throw new BadRequestException('Invalid downloader specified. Possible values: '.implode(', ', array_map(fn ($d) => $d->getIdentifier(), $this->downloaderFactory->getEnabledDownloaders())));
@@ -99,6 +107,10 @@ class DownloadJobQueuedProcessor implements ProcessorInterface
 
         if (isset($data->downloader)) {
             $downloadJob->setDownloader($data->downloader);
+        } elseif (false === $preferredDownloader) {
+            throw new BadRequestException('All downloaders supporting the given URI are disabled in your settings.');
+        } elseif (null !== $preferredDownloader) {
+            $downloadJob->setDownloader($preferredDownloader);
         } else {
             $downloaderKey = $this->cache->get($this->getDomainProbeCacheKey($downloadJob), function (ItemInterface $item) use ($downloadJob) {
                 $item->expiresAfter(3600); // Cache for 1 hour
@@ -124,6 +136,10 @@ class DownloadJobQueuedProcessor implements ProcessorInterface
 
                 return false; // No downloader found
             });
+
+            if ($downloaderKey && !$this->effectiveSettingsResolver->isDownloaderEnabled($downloaderKey, $downloadJob->getOwner())) {
+                throw new BadRequestException(sprintf('The downloader "%s" supporting the given URI is disabled in your settings.', $downloaderKey));
+            }
 
             if ($downloaderKey) {
                 $downloadJob->setDownloader($downloaderKey);
@@ -155,6 +171,48 @@ class DownloadJobQueuedProcessor implements ProcessorInterface
             ->setJobUuid($downloadJob->getUuid()->toRfc4122())
             ->setToken($downloadJob->getToken())
             ->setJobType(JobTypeEnum::DOWNLOAD);
+    }
+
+    /**
+     * Drops the request context (cookies, user agent, referrer) the effective settings don't allow
+     * and picks the downloader from the settings layers.
+     *
+     * @return string|false|null the downloader to use; false if the URI's site is known but all its
+     *                           downloaders are disabled; null if unknown (probe the downloaders)
+     */
+    private function applyEffectiveSettings(DownloadJob $downloadJob): string|false|null
+    {
+        try {
+            $site = $this->siteResolver->resolve($downloadJob->getUri());
+        } catch (\RuntimeException $e) {
+            $this->logger->warning('Unable to resolve the site of a download job, using default settings', ['uri' => $downloadJob->getUri(), 'exception' => $e]);
+            $site = null;
+        }
+
+        $availableDownloaders = [];
+        foreach ($site?->getExtractors() ?? [] as $extractor) {
+            if ($this->downloaderFactory->isValidDownloader($extractor->getDownloader())) {
+                $availableDownloaders[$extractor->getDownloader()] = $extractor->getDownloader();
+            }
+        }
+
+        $settings = $this->effectiveSettingsResolver->resolve($site, array_values($availableDownloaders), $downloadJob->getOwner(), $this->currentClient->get());
+
+        if (!$settings->sendCookies) {
+            $downloadJob->setCookies(null);
+        }
+        if (!$settings->sendUserAgent) {
+            $downloadJob->setUserAgent(null);
+        }
+        if (!$settings->sendReferrer) {
+            $downloadJob->setReferrer(null);
+        }
+
+        if (null === $settings->downloader && [] !== $availableDownloaders) {
+            return false;
+        }
+
+        return $settings->downloader;
     }
 
     private function checkForExistingDownloadJobs(DownloadJob $downloadJob): void
