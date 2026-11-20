@@ -10,6 +10,8 @@ Usage:
     resolve_url.py resolve <url>
         Offline. If nothing matches the URL, retries with the www. and parent-domain variants of its host
         (fr.vimeo.com -> www.fr.vimeo.com, vimeo.com, www.vimeo.com): extractor patterns often omit regional subdomains.
+        If no URL matches (e.g. a front page: patterns describe media pages), returns the extractors whose known
+        URLs (gallery-dl roots and examples, yt-dlp test URLs) are on the host or one of its variants.
         -> {"extractors": [{"tool": "gallery-dl", "key": "twitter", "family": "twitter"}, ...]}
     resolve_url.py probe <url>
         Network. Fetches the page with yt-dlp's generic extractor (embedded players, video tags, ...).
@@ -112,8 +114,43 @@ def resolve(url):
                 logger.debug('Host variant %s matched', variant)
                 break
 
+    if not extractors and host and not _is_ip(host):
+        extractors = _match_host(host)
+
     logger.debug('Resolution completed with %d extractors', len(extractors))
     return {'extractors': extractors}
+
+
+def _match_host(host):
+    """Extractors whose known URLs are on the host or one of its variants (front pages, other non-media pages)."""
+    logger.debug('No URL match; looking up extractors by host')
+    index = {}
+
+    try:
+        for cls in _gallery_dl_classes():
+            for url in (getattr(cls, 'root', None), getattr(cls, 'example', None)):
+                if isinstance(url, str) and (known := _host(url)):
+                    index.setdefault(known, {})[('gallery-dl', cls.category)] = cls.category
+    except ImportError:
+        logger.debug('gallery-dl is not available')
+
+    try:
+        for cls in _yt_dlp_classes():
+            for test in cls.get_testcases(include_onlymatching=True):
+                url = test.get('url')
+                # Only URLs the extractor itself accepts: tests may start from other hosts
+                if isinstance(url, str) and (known := _host(url)) and cls.suitable(url):
+                    index.setdefault(known, {})[('yt-dlp', cls.ie_key())] = _yt_dlp_family(cls)
+    except ImportError:
+        logger.debug('yt-dlp is not available')
+
+    for candidate in [host, *_host_variants(host)]:
+        if candidate in index:
+            logger.debug('Host %s is known to %d extractors', candidate, len(index[candidate]))
+            return [{'tool': tool, 'key': key, 'family': family} for (tool, key), family in sorted(index[candidate].items())]
+
+    logger.debug('Host is not known to any extractor')
+    return []
 
 
 def _match(url):

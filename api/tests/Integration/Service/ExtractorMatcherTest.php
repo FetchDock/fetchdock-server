@@ -52,6 +52,26 @@ class ExtractorMatcherTest extends KernelTestCase
         );
     }
 
+    public static function frontPages(): iterable
+    {
+        yield 'front page' => ['https://vimeo.com/'];
+        yield 'regional front page' => ['https://fr.vimeo.com/'];
+    }
+
+    #[DataProvider('frontPages')]
+    public function testFrontPageMatchesTheExtractorsKnownForItsHost(string $url): void
+    {
+        $matches = $this->matcher->match($url);
+
+        $this->assertContainsEquals(new ExtractorMatch('yt-dlp-cli', 'Vimeo', 'vimeo'), $matches);
+        $this->assertSame(['vimeo'], array_values(array_unique(array_map(static fn (ExtractorMatch $m): string => $m->family, $matches))));
+    }
+
+    public function testFrontPageOfAnUnknownHostDoesNotMatch(): void
+    {
+        $this->assertSame([], $this->matcher->match('https://example.com/'));
+    }
+
     public static function unprobeableUrls(): iterable
     {
         yield 'loopback' => ['http://127.0.0.1/', 'host resolves to a non-public address'];
