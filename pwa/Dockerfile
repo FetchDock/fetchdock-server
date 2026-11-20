@@ -50,7 +50,10 @@ ENV APP_VERSION=${APP_VERSION}
 COPY --link pnpm-lock.yaml ./
 COPY --link . .
 
-RUN	pnpm install --frozen-lockfile --prod && \
+# Install devDependencies too: they're needed to build (e.g. @types/node, an optional peer of sharp >= 0.35
+# that next depends on; without it, prerendering fails with "NextRouter was not mounted", see #66).
+# They don't end up in the prod image, which only copies the standalone output.
+RUN	pnpm install --frozen-lockfile && \
 	pnpm run build
 
 
