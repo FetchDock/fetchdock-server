@@ -7,7 +7,9 @@ use ApiPlatform\Doctrine\Orm\Util\QueryNameGeneratorInterface;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Link;
+use App\Dto\DownloadedFileOutput;
 use App\Repository\DownloadedFileRepository;
+use App\State\DownloadedFileCollectionProvider;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -15,12 +17,13 @@ use Doctrine\ORM\Mapping as ORM;
 use Doctrine\ORM\QueryBuilder;
 use Gedmo\Mapping\Annotation as Gedmo;
 use Gedmo\SoftDeleteable\Traits\SoftDeleteableEntity;
-use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ApiResource(
     uriTemplate: '/download_jobs/{downloadJobUuid}/files.{_format}',
     operations: [new GetCollection(
-        //        normalizationContext: ['groups' => ['downloadedFile:read']]
+        // Only the owner of the job in the URI gets its files, each built for that job (see DownloadedFileOutput)
+        output: DownloadedFileOutput::class,
+        provider: DownloadedFileCollectionProvider::class,
     )],
     uriVariables: [
         'downloadJobUuid' => new Link(
@@ -40,7 +43,6 @@ class DownloadedFile
 {
     use SoftDeleteableEntity;
 
-    #[Groups(['downloadedFile:read'])]
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -49,7 +51,6 @@ class DownloadedFile
     /**
      * @var Collection<int, DownloadJob>
      */
-    #[Groups(['downloadedFile:read'])]
     #[ORM\ManyToMany(targetEntity: DownloadJob::class, inversedBy: 'files')]
     private Collection $downloadJob;
 
@@ -59,7 +60,6 @@ class DownloadedFile
     #[ORM\Column]
     private array $metadata = [];
 
-    #[Groups(['downloadedFile:read'])]
     #[ORM\Column]
     private ?bool $visible = null;
 
@@ -129,17 +129,9 @@ class DownloadedFile
         return $this;
     }
 
-    #[Groups(['downloadedFile:read'])]
     public function getFilename(): ?string
     {
         return $this->path ? basename($this->path) : null;
-    }
-
-    #[Groups(['downloadedFile:read'])]
-    public function getDownloadUri(): ?string
-    {
-        // /downloads/{downloadJobId}/files/{downloadedFileId}/{token}/download
-        return '/download/'.$this->getDownloadJob()->first()->getUuid().'/'.$this->getDownloadJob()->first()->getToken().'/files/'.$this->getId();
     }
 
     /**

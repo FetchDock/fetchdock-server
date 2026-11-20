@@ -9,6 +9,7 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Post;
 use App\Dto\CookieDTO;
+use App\Dto\DownloadedFileOutput;
 use App\Dto\DownloadJobDTO;
 use App\Dto\JobAcceptedDTO;
 use App\Enum\DownloadStateEnum;
@@ -30,6 +31,7 @@ use GuzzleHttp\Psr7\Uri;
 use Psr\Http\Message\UriInterface;
 use Symfony\Bridge\Doctrine\Types\UuidType;
 use Symfony\Component\Serializer\Attribute\Ignore;
+use Symfony\Component\Serializer\Attribute\SerializedName;
 use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity(repositoryClass: DownloadJobRepository::class)]
@@ -325,9 +327,21 @@ class DownloadJob implements DownloadJobInterface, OwnerFilterableInterface
     /**
      * @return Collection<int, DownloadedFile>
      */
+    #[Ignore]
     public function getFiles(): Collection
     {
         return $this->files;
+    }
+
+    /**
+     * The job's files as its owner sees them: without server paths or other jobs' tokens.
+     *
+     * @return list<DownloadedFileOutput>
+     */
+    #[SerializedName('files')]
+    public function getFileOutputs(): array
+    {
+        return array_values(array_map(fn (DownloadedFile $file): DownloadedFileOutput => DownloadedFileOutput::forJob($file, $this), $this->files->toArray()));
     }
 
     public function addFile(DownloadedFile $downloadedFile): static
