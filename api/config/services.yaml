@@ -6,6 +6,10 @@
 parameters:
     locale: 'en'
     app.download_dir: '/downloads'
+
+    # Lifetime in seconds of Mercure subscriber tokens issued to clients (POST /users/me/subscription-token)
+    env(MERCURE_SUBSCRIPTION_TOKEN_TTL): '3600'
+    app.mercure.subscription_token_ttl: '%env(int:MERCURE_SUBSCRIPTION_TOKEN_TTL)%'
     downloader.gallery_dl_web.enabled: false
     downloader.gallery_dl_web.host: 'http://gallery-dl:9080'
 

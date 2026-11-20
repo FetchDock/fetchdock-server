@@ -1,6 +1,18 @@
 #!/bin/sh
 set -e
 
+# In production, refuse to start with a missing or placeholder Mercure JWT key: anyone knowing the key can issue
+# themselves subscriber tokens for any user's topics. Set CADDY_MERCURE_JWT_SECRET to a strong secret.
+if [ "${APP_ENV:-}" = 'prod' ]; then
+	for key_var in MERCURE_PUBLISHER_JWT_KEY MERCURE_SUBSCRIBER_JWT_KEY; do
+		eval "key_value=\${$key_var:-}"
+		if [ -z "$key_value" ] || [ "$key_value" = '!ChangeThisMercureHubJWTSecretKey!' ]; then
+			echo "ERROR: $key_var is empty or the default placeholder. Set CADDY_MERCURE_JWT_SECRET to a strong secret." >&2
+			exit 1
+		fi
+	done
+fi
+
 # Start cron (non-critical - only used for auto-updating downloaders)
 cron &
 sleep 1

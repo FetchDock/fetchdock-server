@@ -64,6 +64,9 @@ const dataProvider = (setRedirectToLogin: (arg0: boolean) => void) =>
     entrypoint: window.origin,
     httpClient: fetchHydra,
     useEmbedded: true,
+    // Mercure updates are private per user (topics "/users/{uuid}/..."), and the admin builds its topics from resource
+    // IRIs ("/download_jobs/..."), which a user's subscriber token doesn't cover. Live updates for admins: see #55.
+    mercure: false,
     apiDocumentationParser: apiDocumentationParser(setRedirectToLogin)
   })
 

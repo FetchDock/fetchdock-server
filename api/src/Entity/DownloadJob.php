@@ -13,6 +13,7 @@ use App\Dto\DownloadJobDTO;
 use App\Dto\JobAcceptedDTO;
 use App\Enum\DownloadStateEnum;
 use App\Interface\OwnerFilterableInterface;
+use App\Mercure\UserTopics;
 use App\Model\DownloadJobInterface;
 use App\Repository\DownloadJobRepository;
 use App\State\DownloadJobDeleteProcessor;
@@ -53,7 +54,8 @@ use Symfony\Component\Uid\Uuid;
             processor: DownloadJobDeleteProcessor::class
         ),
     ],
-    mercure: true
+    // Updates are published privately to the owner's topics only, see mercureOptions()
+    mercure: 'object.mercureOptions()'
 )]
 #[Gedmo\SoftDeleteable(fieldName: 'deletedAt', timeAware: false, hardDelete: false)]
 class DownloadJob implements DownloadJobInterface, OwnerFilterableInterface
@@ -341,4 +343,24 @@ class DownloadJob implements DownloadJobInterface, OwnerFilterableInterface
 
         return $lineString;
     }
+
+    /**
+     * Mercure options for API Platform's updates of this resource (see the "mercure" option of #[ApiResource]).
+     *
+     * Updates are always private and published to the owner's topic, so only the owner's authorized clients receive
+     * them. Jobs without an owner get no updates, as no topic can be built for them. Not prefixed with "get", so the
+     * serializer doesn't expose it.
+     *
+     * @return array{private: true, topics: list<string>}|false
+     */
+    public function mercureOptions(): array|false
+    {
+        $topic = UserTopics::downloadJob($this);
+        if (null === $topic) {
+            return false;
+        }
+
+        return ['private' => true, 'topics' => [$topic]];
+    }
+
 }
