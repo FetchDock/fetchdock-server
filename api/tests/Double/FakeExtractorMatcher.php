@@ -12,6 +12,7 @@ use App\Service\Site\ExtractorMatcherInterface;
 final class FakeExtractorMatcher implements ExtractorMatcherInterface
 {
     public static int $matchCalls = 0;
+    public static int $probeCalls = 0;
 
     public function match(string $url): array
     {
@@ -27,6 +28,16 @@ final class FakeExtractorMatcher implements ExtractorMatcherInterface
             is_string($host) && str_ends_with($host, 'unmapped.test') => [new ExtractorMatch('gallery-dl-cli', 'unmappedfamily', 'unmappedfamily')],
             default => [],
         };
+    }
+
+    public function probe(string $url): array
+    {
+        ++self::$probeCalls;
+        $host = parse_url($url, PHP_URL_HOST);
+
+        return is_string($host) && str_ends_with($host, 'generic.test')
+            ? [new ExtractorMatch('yt-dlp-cli', 'Generic:generic.test', 'generic.test')]
+            : [];
     }
 
     public function catalog(array $families): array

@@ -18,12 +18,21 @@ use Symfony\Contracts\Cache\TagAwareCacheInterface;
  *
  * Extractors that aren't mapped yet are grouped into an automatically created site (one per
  * extractor family), and resolved hosts are added to the site's domains.
+ *
+ * When the offline matcher finds nothing, callers may opt in to the network probe (yt-dlp's generic
+ * extractor). Probing fetches the page from the server: only rate-limited endpoints should opt in.
  */
 class SiteResolver
 {
     public const string CACHE_TAG = 'site_resolve';
     private const int HOST_TTL = 86400;
     private const int UNSUPPORTED_URL_TTL = 3600;
+    /**
+     * Failed probes are retried sooner than offline misses (the page may have been temporarily
+     * unreachable), but are still cached: re-probing on every request would let clients make the
+     * server fetch arbitrary pages at the rate limiter's pace.
+     */
+    private const int FAILED_PROBE_TTL = 300;
 
     public function __construct(
         private readonly ExtractorMatcherInterface $extractorMatcher,
@@ -45,48 +54,84 @@ class SiteResolver
         return rtrim(strtolower($host), '.');
     }
 
-    public function resolve(string $url): ?Site
+    /**
+     * @param bool $probe whether to fall back to the network probe when no extractor matches offline
+     */
+    public function resolve(string $url, bool $probe = false): ?Site
     {
         $host = self::getHost($url);
         if (null === $host) {
+            $this->logger->debug('Cannot resolve site: URL has no host');
+
             return null;
         }
 
+        $this->logger->debug('Resolving site', ['host' => $host]);
+
         // A host belongs to one site, whatever the path: cache only positive results per host.
-        $slug = $this->cache->get(self::hostCacheKey($host), function (ItemInterface $item, bool &$save) use ($url, $host): ?string {
+        $slug = $this->cache->get(self::hostCacheKey($host), function (ItemInterface $item, bool &$save) use ($url, $host, $probe): ?string {
+            $this->logger->debug('Site host cache miss', ['host' => $host]);
             $item->expiresAfter(self::HOST_TTL);
             $item->tag(self::CACHE_TAG);
-            $slug = $this->resolveUncached($url, $host)?->getSlug();
+            $slug = $this->resolveUncached($url, $host, $probe)?->getSlug();
             $save = null !== $slug;
+
+            $this->logger->debug('Site host cache lookup completed', ['host' => $host, 'slug' => $slug, 'cached' => $save]);
 
             return $slug;
         });
 
+        $this->logger->debug('Site host cache returned', ['host' => $host, 'slug' => $slug]);
         $site = null !== $slug ? $this->siteRepository->findOneBySlug($slug) : null;
         if (null === $site && null !== $slug) {
             // The site was removed since it was cached
+            $this->logger->debug('Cached site no longer exists; resolving again', ['host' => $host, 'slug' => $slug]);
             $this->cache->delete(self::hostCacheKey($host));
-            $site = $this->resolveUncached($url, $host);
+            $site = $this->resolveUncached($url, $host, $probe);
         }
+
+        $this->logger->debug('Site resolution completed', [
+            'host' => $host,
+            'slug' => $site?->getSlug(),
+            'enabled' => $site?->isEnabled(),
+        ]);
 
         return $site?->isEnabled() ? $site : null;
     }
 
-    private function resolveUncached(string $url, string $host): ?Site
+    private function resolveUncached(string $url, string $host, bool $probe): ?Site
     {
         $site = $this->siteRepository->findOneByDomain($host);
         if (null !== $site) {
+            $this->logger->debug('Site found by domain', ['host' => $host, 'slug' => $site->getSlug()]);
+
             return $site;
         }
 
+        $this->logger->debug('No site found by domain; checking extractors', ['host' => $host]);
         // Unsupported URLs on a host may still have supported paths: cache them per URL, briefly.
-        $matches = $this->cache->get(self::urlCacheKey($url), function (ItemInterface $item) use ($url): array {
+        $matches = $this->cache->get(self::urlCacheKey($url), function (ItemInterface $item) use ($url, $host): array {
+            $this->logger->debug('Extractor match cache miss', ['host' => $host]);
             $item->expiresAfter(self::UNSUPPORTED_URL_TTL);
             $item->tag(self::CACHE_TAG);
 
             return $this->extractorMatcher->match($url);
         });
+        $this->logger->debug('Extractor matches returned', ['host' => $host, 'count' => count($matches)]);
+        if ([] === $matches && $probe) {
+            $matches = $this->cache->get(self::probeCacheKey($url), function (ItemInterface $item) use ($url, $host): array {
+                $this->logger->debug('Probe cache miss; probing generic support', ['host' => $host]);
+                $matches = $this->extractorMatcher->probe($url);
+                $item->expiresAfter([] === $matches ? self::FAILED_PROBE_TTL : self::UNSUPPORTED_URL_TTL);
+                $item->tag(self::CACHE_TAG);
+
+                return $matches;
+            });
+            $this->logger->debug('Probe matches returned', ['host' => $host, 'count' => count($matches)]);
+        }
         if ([] === $matches) {
+            $this->logger->debug('No extractors matched; site is unsupported', ['host' => $host]);
+
             return null;
         }
 
@@ -94,12 +139,18 @@ class SiteResolver
         foreach ($matches as $match) {
             if (null === $this->siteExtractorRepository->findOneByDownloaderAndKey($match->downloader, $match->key)) {
                 $site->addExtractor(new SiteExtractor($match->downloader, $match->key));
+                $this->logger->debug('Added extractor to site', [
+                    'slug' => $site->getSlug(),
+                    'downloader' => $match->downloader,
+                    'key' => $match->key,
+                ]);
             }
         }
         $site->addDomain($host);
 
         $this->entityManager->persist($site);
         $this->entityManager->flush();
+        $this->logger->debug('Saved site resolution', ['host' => $host, 'slug' => $site->getSlug()]);
 
         return $site;
     }
@@ -112,6 +163,12 @@ class SiteResolver
         foreach ($matches as $match) {
             $site = $this->siteExtractorRepository->findOneByDownloaderAndKey($match->downloader, $match->key)?->getSite();
             if (null !== $site) {
+                $this->logger->debug('Site found by extractor', [
+                    'slug' => $site->getSlug(),
+                    'downloader' => $match->downloader,
+                    'key' => $match->key,
+                ]);
+
                 return $site;
             }
         }
@@ -119,6 +176,8 @@ class SiteResolver
         foreach ($matches as $match) {
             $site = $this->siteRepository->findOneBySlug(self::slugify($match->family));
             if (null !== $site) {
+                $this->logger->debug('Site found by extractor family', ['slug' => $site->getSlug(), 'family' => $match->family]);
+
                 return $site;
             }
         }
@@ -148,5 +207,10 @@ class SiteResolver
     private static function urlCacheKey(string $url): string
     {
         return 'site_resolve_url.'.sha1($url);
+    }
+
+    private static function probeCacheKey(string $url): string
+    {
+        return 'site_resolve_probe.'.sha1($url);
     }
 }

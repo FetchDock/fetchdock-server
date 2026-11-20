@@ -45,7 +45,8 @@ final readonly class ResolveSiteProvider implements ProviderInterface
         $this->consumeRateLimit($request);
 
         try {
-            $site = $this->siteResolver->resolve($url);
+            // Rate limited above, so this endpoint may fetch the page when the offline matcher finds nothing
+            $site = $this->siteResolver->resolve($url, probe: true);
         } catch (\RuntimeException $e) {
             throw new ServiceUnavailableHttpException(30, 'Unable to resolve the URL right now.', $e);
         }

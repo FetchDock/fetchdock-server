@@ -10,7 +10,8 @@ use Symfony\Component\Process\Process;
 
 /**
  * Runs bin/resolve_url.py, which inspects the extractor classes of the installed gallery-dl and
- * yt-dlp versions. The URL is passed as an argv element, never through a shell.
+ * yt-dlp versions, or probes the page with yt-dlp's generic extractor. The URL is passed as an argv
+ * element, never through a shell.
  */
 final class ExtractorMatcher implements ExtractorMatcherInterface
 {
@@ -23,6 +24,7 @@ final class ExtractorMatcher implements ExtractorMatcherInterface
     ];
 
     private const int TIMEOUT_SECONDS = 30;
+    private const int MAX_KEY_LENGTH = 128;
 
     public function __construct(
         private readonly LoggerInterface $logger,
@@ -35,6 +37,13 @@ final class ExtractorMatcher implements ExtractorMatcherInterface
     public function match(string $url): array
     {
         $output = $this->run('resolve', $url);
+
+        return array_values(array_filter(array_map($this->toMatch(...), $output['extractors'] ?? [])));
+    }
+
+    public function probe(string $url): array
+    {
+        $output = $this->run('probe', $url);
 
         return array_values(array_filter(array_map($this->toMatch(...), $output['extractors'] ?? [])));
     }
@@ -61,7 +70,9 @@ final class ExtractorMatcher implements ExtractorMatcherInterface
     private function toMatch(mixed $extractor): ?ExtractorMatch
     {
         $downloader = self::DOWNLOADERS[$extractor['tool'] ?? ''] ?? null;
-        if (null === $downloader || !is_string($extractor['key'] ?? null) || !is_string($extractor['family'] ?? null)) {
+        if (null === $downloader || !is_string($extractor['key'] ?? null) || !is_string($extractor['family'] ?? null)
+            // SiteExtractor.extractorKey column length; generic keys embed a domain
+            || mb_strlen($extractor['key']) > self::MAX_KEY_LENGTH) {
             return null;
         }
 
@@ -76,7 +87,15 @@ final class ExtractorMatcher implements ExtractorMatcherInterface
         try {
             $process->mustRun();
 
-            return json_decode($process->getOutput(), true, 16, JSON_THROW_ON_ERROR);
+            $output = json_decode($process->getOutput(), true, 16, JSON_THROW_ON_ERROR);
+            if ('' !== $process->getErrorOutput()) {
+                $this->logger->debug('Extractor matcher diagnostics', [
+                    'command' => $command,
+                    'output' => $process->getErrorOutput(),
+                ]);
+            }
+
+            return $output;
         } catch (ProcessExceptionInterface|\JsonException $e) {
             $this->logger->error('Extractor matcher failed', [
                 'command' => $command,

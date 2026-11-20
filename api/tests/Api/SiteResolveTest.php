@@ -113,6 +113,27 @@ class SiteResolveTest extends ApiTestCase
         $this->assertTrue($site->hasDomain($host));
     }
 
+    public function testGenericProbeCreatesADomainSite(): void
+    {
+        $host = 'a'.bin2hex(random_bytes(4)).'.generic.test';
+
+        $data = $this->resolve('https://'.$host.'/video/1');
+
+        $this->assertSame('generic-test', $data['site']['slug']);
+        $this->assertSame([['downloader' => 'yt-dlp-cli', 'key' => 'Generic:generic.test']], $data['extractors']);
+    }
+
+    public function testFailedProbeIsCached(): void
+    {
+        $url = 'https://'.bin2hex(random_bytes(4)).'.example.com/nothing';
+        FakeExtractorMatcher::$probeCalls = 0;
+
+        $this->resolve($url);
+        $this->resolve($url);
+
+        $this->assertSame(1, FakeExtractorMatcher::$probeCalls);
+    }
+
     public function testSiteDefaultsApply(): void
     {
         $this->setTwitterDefaults(new SiteSetting()->setSendCookies(false)->setSendReferrer(true)->setDownloader('yt-dlp-cli'));
