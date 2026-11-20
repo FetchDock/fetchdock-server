@@ -9,7 +9,9 @@ use ApiPlatform\Metadata\GetCollection;
 use App\State\VersionProvider;
 
 #[ApiResource(
-    shortName: 'Downloader versions',
+    // No spaces: the short name becomes a JSON-LD term (and IRI) in the entrypoint context, which JSON-LD clients
+    // such as the admin's api-doc-parser reject when it contains whitespace
+    shortName: 'DownloaderVersion',
     description: 'Information about the current and latest versions of available downloaders.',
     operations: [
         new Get(
