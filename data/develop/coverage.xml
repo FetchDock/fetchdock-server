@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage line-rate="0.82712369597615" branch-rate="0" lines-covered="2220" lines-valid="2684" branches-covered="0" branches-valid="0" complexity="1058" version="0.4" timestamp="1795204544">
+<coverage line-rate="0.82931286549708" branch-rate="0" lines-covered="2269" lines-valid="2736" branches-covered="0" branches-valid="0" complexity="1084" version="0.4" timestamp="1795211588">
   <sources>
     <source>/app/src</source>
   </sources>
@@ -1668,6 +1668,78 @@
             <line number="168" hits="2"/>
             <line number="169" hits="2"/>
             <line number="170" hits="2"/>
+          </lines>
+        </class>
+      </classes>
+    </package>
+    <package name="Entity/ClientPreference.php" line-rate="0.76923076923077" branch-rate="0" complexity="9">
+      <classes>
+        <class name="App\Entity\ClientPreference" filename="Entity/ClientPreference.php" line-rate="0.76923076923077" branch-rate="0" complexity="9">
+          <methods>
+            <method name="__construct" signature="" line-rate="1" branch-rate="0" complexity="1">
+              <lines>
+                <line number="45" hits="12"/>
+              </lines>
+            </method>
+            <method name="getId" signature="" line-rate="0" branch-rate="0" complexity="1">
+              <lines>
+                <line number="50" hits="0"/>
+              </lines>
+            </method>
+            <method name="getOwner" signature="" line-rate="0" branch-rate="0" complexity="1">
+              <lines>
+                <line number="55" hits="0"/>
+              </lines>
+            </method>
+            <method name="setOwner" signature="OidcSubjectIdentifier $owner" line-rate="1" branch-rate="0" complexity="1">
+              <lines>
+                <line number="60" hits="12"/>
+                <line number="62" hits="12"/>
+              </lines>
+            </method>
+            <method name="getClientType" signature="" line-rate="0" branch-rate="0" complexity="1">
+              <lines>
+                <line number="67" hits="0"/>
+              </lines>
+            </method>
+            <method name="setClientType" signature="string $clientType" line-rate="1" branch-rate="0" complexity="1">
+              <lines>
+                <line number="72" hits="12"/>
+                <line number="74" hits="12"/>
+              </lines>
+            </method>
+            <method name="getData" signature="" line-rate="1" branch-rate="0" complexity="1">
+              <lines>
+                <line number="82" hits="5"/>
+              </lines>
+            </method>
+            <method name="setData" signature="string $data" line-rate="1" branch-rate="0" complexity="1">
+              <lines>
+                <line number="87" hits="5"/>
+                <line number="88" hits="5"/>
+                <line number="90" hits="5"/>
+              </lines>
+            </method>
+            <method name="getUpdatedAt" signature="" line-rate="1" branch-rate="0" complexity="1">
+              <lines>
+                <line number="95" hits="5"/>
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="45" hits="12"/>
+            <line number="50" hits="0"/>
+            <line number="55" hits="0"/>
+            <line number="60" hits="12"/>
+            <line number="62" hits="12"/>
+            <line number="67" hits="0"/>
+            <line number="72" hits="12"/>
+            <line number="74" hits="12"/>
+            <line number="82" hits="5"/>
+            <line number="87" hits="5"/>
+            <line number="88" hits="5"/>
+            <line number="90" hits="5"/>
+            <line number="95" hits="5"/>
           </lines>
         </class>
       </classes>
@@ -3493,19 +3565,19 @@
           <methods>
             <method name="__construct" signature="CurrentClient $currentClient" line-rate="1" branch-rate="0" complexity="1">
               <lines>
-                <line number="19" hits="75"/>
+                <line number="19" hits="89"/>
               </lines>
             </method>
             <method name="__invoke" signature="ControllerEvent $event" line-rate="1" branch-rate="0" complexity="3">
               <lines>
-                <line number="23" hits="75"/>
+                <line number="23" hits="89"/>
                 <line number="24" hits="4"/>
               </lines>
             </method>
           </methods>
           <lines>
-            <line number="19" hits="75"/>
-            <line number="23" hits="75"/>
+            <line number="19" hits="89"/>
+            <line number="23" hits="89"/>
             <line number="24" hits="4"/>
           </lines>
         </class>
@@ -4235,13 +4307,29 @@
         </class>
       </classes>
     </package>
+    <package name="Repository/ClientPreferenceRepository.php" line-rate="1" branch-rate="0" complexity="1">
+      <classes>
+        <class name="App\Repository\ClientPreferenceRepository" filename="Repository/ClientPreferenceRepository.php" line-rate="1" branch-rate="0" complexity="1">
+          <methods>
+            <method name="__construct" signature="ManagerRegistry $registry" line-rate="1" branch-rate="0" complexity="1">
+              <lines>
+                <line number="16" hits="13"/>
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="16" hits="13"/>
+          </lines>
+        </class>
+      </classes>
+    </package>
     <package name="Repository/ClientRepository.php" line-rate="1" branch-rate="0" complexity="3">
       <classes>
         <class name="App\Repository\ClientRepository" filename="Repository/ClientRepository.php" line-rate="1" branch-rate="0" complexity="3">
           <methods>
             <method name="__construct" signature="ManagerRegistry $registry" line-rate="1" branch-rate="0" complexity="1">
               <lines>
-                <line number="18" hits="75"/>
+                <line number="18" hits="89"/>
               </lines>
             </method>
             <method name="findOneByIdAndOwner" signature="string $id, OidcSubjectIdentifier $owner" line-rate="1" branch-rate="0" complexity="2">
@@ -4253,7 +4341,7 @@
             </method>
           </methods>
           <lines>
-            <line number="18" hits="75"/>
+            <line number="18" hits="89"/>
             <line number="26" hits="5"/>
             <line number="27" hits="1"/>
             <line number="30" hits="5"/>
@@ -4461,12 +4549,12 @@
           <methods>
             <method name="__construct" signature="ManagerRegistry $registry" line-rate="1" branch-rate="0" complexity="1">
               <lines>
-                <line number="16" hits="80"/>
+                <line number="16" hits="94"/>
               </lines>
             </method>
           </methods>
           <lines>
-            <line number="16" hits="80"/>
+            <line number="16" hits="94"/>
           </lines>
         </class>
       </classes>
@@ -4701,6 +4789,40 @@
             <line number="75" hits="4"/>
             <line number="76" hits="4"/>
             <line number="78" hits="4"/>
+          </lines>
+        </class>
+      </classes>
+    </package>
+    <package name="Resource/Settings/ClientPreferences.php" line-rate="1" branch-rate="0" complexity="4">
+      <classes>
+        <class name="App\Resource\Settings\ClientPreferences" filename="Resource/Settings/ClientPreferences.php" line-rate="1" branch-rate="0" complexity="4">
+          <methods>
+            <method name="fromEntity" signature="string $clientType, ?ClientPreference $preference" line-rate="1" branch-rate="0" complexity="1">
+              <lines>
+                <line number="59" hits="13"/>
+                <line number="60" hits="13"/>
+                <line number="61" hits="13"/>
+                <line number="62" hits="13"/>
+                <line number="64" hits="13"/>
+              </lines>
+            </method>
+            <method name="toArrayObject" signature="mixed $value" line-rate="1" branch-rate="0" complexity="3">
+              <lines>
+                <line number="72" hits="13"/>
+                <line number="73" hits="13"/>
+                <line number="76" hits="5"/>
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="59" hits="13"/>
+            <line number="60" hits="13"/>
+            <line number="61" hits="13"/>
+            <line number="62" hits="13"/>
+            <line number="64" hits="13"/>
+            <line number="72" hits="13"/>
+            <line number="73" hits="13"/>
+            <line number="76" hits="5"/>
           </lines>
         </class>
       </classes>
@@ -5163,30 +5285,30 @@
           <methods>
             <method name="__construct" signature="Security $security, OidcSubjectIdentifierRepository $oidcSubjectIdentifierRepository" line-rate="1" branch-rate="0" complexity="1">
               <lines>
-                <line number="19" hits="75"/>
+                <line number="19" hits="89"/>
               </lines>
             </method>
             <method name="find" signature="" line-rate="0.75" branch-rate="0" complexity="2">
               <lines>
-                <line number="23" hits="37"/>
-                <line number="24" hits="37"/>
+                <line number="23" hits="50"/>
+                <line number="24" hits="50"/>
                 <line number="25" hits="0"/>
-                <line number="28" hits="37"/>
+                <line number="28" hits="50"/>
               </lines>
             </method>
             <method name="get" signature="" line-rate="1" branch-rate="0" complexity="1">
               <lines>
-                <line number="33" hits="27"/>
+                <line number="33" hits="40"/>
               </lines>
             </method>
           </methods>
           <lines>
-            <line number="19" hits="75"/>
-            <line number="23" hits="37"/>
-            <line number="24" hits="37"/>
+            <line number="19" hits="89"/>
+            <line number="23" hits="50"/>
+            <line number="24" hits="50"/>
             <line number="25" hits="0"/>
-            <line number="28" hits="37"/>
-            <line number="33" hits="27"/>
+            <line number="28" hits="50"/>
+            <line number="33" hits="40"/>
           </lines>
         </class>
       </classes>
@@ -6846,7 +6968,7 @@
           <methods>
             <method name="__construct" signature="RequestStack $requestStack, CurrentOwner $currentOwner, ClientRepository $clientRepository, ClockInterface $clock, LoggerInterface $logger" line-rate="1" branch-rate="0" complexity="1">
               <lines>
-                <line number="35" hits="75"/>
+                <line number="35" hits="89"/>
               </lines>
             </method>
             <method name="get" signature="" line-rate="1" branch-rate="0" complexity="2">
@@ -6859,8 +6981,8 @@
             </method>
             <method name="reset" signature="" line-rate="1" branch-rate="0" complexity="1">
               <lines>
-                <line number="49" hits="75"/>
-                <line number="50" hits="75"/>
+                <line number="49" hits="89"/>
+                <line number="50" hits="89"/>
               </lines>
             </method>
             <method name="resolve" signature="" line-rate="0.91666666666667" branch-rate="0" complexity="4">
@@ -6898,13 +7020,13 @@
             </method>
           </methods>
           <lines>
-            <line number="35" hits="75"/>
+            <line number="35" hits="89"/>
             <line number="39" hits="26"/>
             <line number="40" hits="26"/>
             <line number="41" hits="26"/>
             <line number="44" hits="26"/>
-            <line number="49" hits="75"/>
-            <line number="50" hits="75"/>
+            <line number="49" hits="89"/>
+            <line number="50" hits="89"/>
             <line number="55" hits="26"/>
             <line number="56" hits="26"/>
             <line number="57" hits="24"/>
@@ -8097,6 +8219,106 @@
             <line number="87" hits="20"/>
             <line number="89" hits="20"/>
             <line number="90" hits="1"/>
+          </lines>
+        </class>
+      </classes>
+    </package>
+    <package name="State/Settings/ClientPreferencesProcessor.php" line-rate="1" branch-rate="0" complexity="10">
+      <classes>
+        <class name="App\State\Settings\ClientPreferencesProcessor" filename="State/Settings/ClientPreferencesProcessor.php" line-rate="1" branch-rate="0" complexity="10">
+          <methods>
+            <method name="__construct" signature="CurrentOwner $currentOwner, ClientPreferenceRepository $clientPreferenceRepository, EntityManagerInterface $entityManager" line-rate="1" branch-rate="0" complexity="1">
+              <lines>
+                <line number="35" hits="12"/>
+              </lines>
+            </method>
+            <method name="process" signature="mixed $data, Operation $operation, array $uriVariables, array $context" line-rate="1" branch-rate="0" complexity="3">
+              <lines>
+                <line number="39" hits="12"/>
+                <line number="40" hits="12"/>
+                <line number="41" hits="12"/>
+                <line number="43" hits="12"/>
+                <line number="44" hits="1"/>
+                <line number="45" hits="1"/>
+                <line number="46" hits="1"/>
+                <line number="49" hits="1"/>
+                <line number="52" hits="12"/>
+                <line number="53" hits="12"/>
+                <line number="54" hits="5"/>
+                <line number="55" hits="5"/>
+                <line number="57" hits="5"/>
+              </lines>
+            </method>
+            <method name="decodeData" signature="?Request $request, ClientPreferences $resource" line-rate="1" branch-rate="0" complexity="6">
+              <lines>
+                <line number="65" hits="12"/>
+                <line number="66" hits="12"/>
+                <line number="67" hits="1"/>
+                <line number="71" hits="12"/>
+                <line number="72" hits="2"/>
+                <line number="73" hits="2"/>
+                <line number="76" hits="10"/>
+                <line number="77" hits="5"/>
+                <line number="78" hits="5"/>
+                <line number="81" hits="5"/>
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="35" hits="12"/>
+            <line number="39" hits="12"/>
+            <line number="40" hits="12"/>
+            <line number="41" hits="12"/>
+            <line number="43" hits="12"/>
+            <line number="44" hits="1"/>
+            <line number="45" hits="1"/>
+            <line number="46" hits="1"/>
+            <line number="49" hits="1"/>
+            <line number="52" hits="12"/>
+            <line number="53" hits="12"/>
+            <line number="54" hits="5"/>
+            <line number="55" hits="5"/>
+            <line number="57" hits="5"/>
+            <line number="65" hits="12"/>
+            <line number="66" hits="12"/>
+            <line number="67" hits="1"/>
+            <line number="71" hits="12"/>
+            <line number="72" hits="2"/>
+            <line number="73" hits="2"/>
+            <line number="76" hits="10"/>
+            <line number="77" hits="5"/>
+            <line number="78" hits="5"/>
+            <line number="81" hits="5"/>
+          </lines>
+        </class>
+      </classes>
+    </package>
+    <package name="State/Settings/ClientPreferencesProvider.php" line-rate="1" branch-rate="0" complexity="2">
+      <classes>
+        <class name="App\State\Settings\ClientPreferencesProvider" filename="State/Settings/ClientPreferencesProvider.php" line-rate="1" branch-rate="0" complexity="2">
+          <methods>
+            <method name="__construct" signature="CurrentOwner $currentOwner, ClientPreferenceRepository $clientPreferenceRepository" line-rate="1" branch-rate="0" complexity="1">
+              <lines>
+                <line number="20" hits="13"/>
+              </lines>
+            </method>
+            <method name="provide" signature="Operation $operation, array $uriVariables, array $context" line-rate="1" branch-rate="0" complexity="1">
+              <lines>
+                <line number="24" hits="13"/>
+                <line number="26" hits="13"/>
+                <line number="27" hits="13"/>
+                <line number="28" hits="13"/>
+                <line number="29" hits="13"/>
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="20" hits="13"/>
+            <line number="24" hits="13"/>
+            <line number="26" hits="13"/>
+            <line number="27" hits="13"/>
+            <line number="28" hits="13"/>
+            <line number="29" hits="13"/>
           </lines>
         </class>
       </classes>
