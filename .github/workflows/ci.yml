@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - develop
+      - release/** # maintenance branches for older versions, e.g. release/0.6
   pull_request: ~
   workflow_dispatch: ~
 
