@@ -29,6 +29,13 @@ interface DownloadJobInterface
     public function getReferrer(): ?string;
 
     /**
+     * Command line options for the downloader (see App\Service\Downloader\Options\OptionsArgumentsBuilder).
+     *
+     * @return array<string, mixed>
+     */
+    public function getDownloaderOptions(): array;
+
+    /**
      * @return CookieDTO[]|null
      */
     public function getCookies(): ?array;

@@ -135,6 +135,33 @@ class EffectiveSettingsResolverTest extends TestCase
         $this->assertSame('gallery-dl-cli', $this->resolver()->resolve($this->site, self::BOTH, $this->owner)->downloader, 'null priority keeps the server order');
     }
 
+    public function testDownloaderOptionsMergeUserAndSiteLayers(): void
+    {
+        $this->downloaderSettings = [
+            new UserDownloaderSetting()->setDownloader('yt-dlp-cli')->setOptions(['ratelimit' => '1M', 'writesubtitles' => true]),
+            new UserDownloaderSetting()->setDownloader('gallery-dl-cli')->setOptions(['rate' => '5M']),
+        ];
+        $this->userSiteSetting = new UserSiteSetting()->setDownloaderOptions(['yt-dlp-cli' => ['ratelimit' => '2M', 'fixup' => 'warn']]);
+
+        $this->assertSame(
+            ['ratelimit' => '2M', 'writesubtitles' => true, 'fixup' => 'warn'],
+            $this->resolver()->resolveDownloaderOptions($this->site, 'yt-dlp-cli', $this->owner),
+        );
+        $this->assertSame(['rate' => '5M'], $this->resolver()->resolveDownloaderOptions($this->site, 'gallery-dl-cli', $this->owner));
+        $this->assertSame([], $this->resolver()->resolveDownloaderOptions($this->site, 'yt-dlp-cli', null), 'anonymous jobs have no options');
+    }
+
+    public function testEffectiveSettingsContainTheOptionsOfTheChosenDownloader(): void
+    {
+        $this->downloaderSettings = [new UserDownloaderSetting()->setDownloader('yt-dlp-cli')->setOptions(['ratelimit' => '1M'])->setPriority(1)];
+
+        $settings = $this->resolver()->resolve($this->site, self::BOTH, $this->owner);
+
+        $this->assertSame('yt-dlp-cli', $settings->downloader);
+        $this->assertSame(['ratelimit' => '1M'], $settings->downloaderOptions->getArrayCopy());
+        $this->assertCount(0, $this->resolver()->resolve($this->site, [], $this->owner)->downloaderOptions);
+    }
+
     private function resolver(): EffectiveSettingsResolver
     {
         $downloaders = [];

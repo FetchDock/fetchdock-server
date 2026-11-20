@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Interface\OwnerFilterableInterface;
 use App\Repository\UserSiteSettingRepository;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\ORM\QueryBuilder;
 
@@ -21,6 +22,15 @@ class UserSiteSetting extends AbstractSiteSetting implements OwnerFilterableInte
     #[ORM\ManyToOne(inversedBy: 'userSiteSettings')]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?OidcSubjectIdentifier $owner = null;
+
+    /**
+     * Command line options by downloader identifier, overriding the user's downloader options for
+     * this site (see GET /downloaders/{id}/options-schema). Null = none.
+     *
+     * @var array<string, array<string, mixed>>|null
+     */
+    #[ORM\Column(type: Types::JSON, nullable: true, options: ['jsonb' => true])]
+    private ?array $downloaderOptions = null;
 
     public function getSite(): ?Site
     {
@@ -42,6 +52,24 @@ class UserSiteSetting extends AbstractSiteSetting implements OwnerFilterableInte
     public function setOwner(?OidcSubjectIdentifier $owner): static
     {
         $this->owner = $owner;
+
+        return $this;
+    }
+
+    /**
+     * @return array<string, array<string, mixed>>|null
+     */
+    public function getDownloaderOptions(): ?array
+    {
+        return $this->downloaderOptions;
+    }
+
+    /**
+     * @param array<string, array<string, mixed>>|null $downloaderOptions
+     */
+    public function setDownloaderOptions(?array $downloaderOptions): static
+    {
+        $this->downloaderOptions = [] === $downloaderOptions ? null : $downloaderOptions;
 
         return $this;
     }

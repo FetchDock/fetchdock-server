@@ -1,0 +1,73 @@
+# Which downloader command line options users may configure (#22).
+#
+# Options are keyed like the properties of GET /downloaders/{id}/options-schema: by their parser
+# "dest", or by their long flag without "--" for flags that set a constant (e.g. "zip").
+#
+# An option is exposed when its group is listed in "groups" or its key in "options", and it isn't
+# in "deny". Options not covered here (e.g. new options after a tool update) stay hidden.
+# Admins can expose or hide options at runtime (DownloaderOptionPolicy), but never the options
+# denied in code (App\Service\Downloader\Options\OptionsPolicy::HARD_DENY): output paths, config
+# files, commands, proxies, cookies and anything else reading or writing server files.
+#
+# "overrides" set a label and/or the JSON type ("string", "integer" or "number") of a value option.
+parameters:
+    app.downloader_options_policy:
+        yt-dlp-cli:
+            groups:
+                - 'Geo-restriction'
+                - 'Video Selection'
+                - 'Download Options'
+                - 'Thumbnail Options'
+                - 'Workarounds'
+                - 'Video Format Options'
+                - 'Subtitle Options'
+                - 'Post-Processing Options'
+                - 'SponsorBlock Options'
+                - 'Extractor Options'
+            options:
+                - live_from_start
+                - wait_for_video
+                - no-wait-for-video
+                - flat-playlist
+                - restrictfilenames
+                - windowsfilenames
+                - trim_file_name
+                - writedescription
+                - getcomments
+                - impersonate
+                - socket_timeout
+            deny:
+                # Only list information, nothing is downloaded
+                - listformats
+                - listsubtitles
+                - list_thumbnails
+                # Breaks the parsing of the command output
+                - encoding
+                # Server-side requests to arbitrary hosts
+                - sponsorblock_api
+                # Every download of the job is merged into one file the server doesn't track
+                - concat_playlist
+            overrides:
+                format: { label: 'Format' }
+                ratelimit: { label: 'Download rate limit' }
+                concurrent_fragment_downloads: { label: 'Concurrent fragments' }
+                sleep_interval: { label: 'Minimum sleep between downloads' }
+                max_sleep_interval: { label: 'Maximum sleep between downloads' }
+        gallery-dl-cli:
+            groups:
+                - 'Downloader Options'
+                - 'Sleep Options'
+                - 'Selection Options'
+                - 'Post-processing Options'
+            options:
+                - retries
+                - timeout
+                - geo-bypass
+                - verify
+            deny:
+                # Nothing is downloaded
+                - download
+            overrides:
+                rate: { label: 'Download rate limit' }
+                timeout: { label: 'HTTP timeout' }
+                verify: { label: 'Verify HTTPS certificates' }

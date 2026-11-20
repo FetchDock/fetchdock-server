@@ -7,6 +7,7 @@ use App\Entity\OidcSubjectIdentifier;
 use App\Entity\SettingsLayerInterface;
 use App\Entity\Site;
 use App\Entity\UserDownloaderSetting;
+use App\Entity\UserSiteSetting;
 use App\Factory\DownloaderFactory;
 use App\Model\EffectiveSettings;
 use App\Repository\UserDownloaderSettingRepository;
@@ -19,8 +20,11 @@ use App\Repository\UserSiteSettingRepository;
  *
  *   SiteSetting → UserSetting → UserDownloaderSetting → UserSiteSetting → ClientSetting
  *
- * UserDownloaderSetting only affects the downloader choice: disabled downloaders are never chosen,
+ * UserDownloaderSetting affects the downloader choice: disabled downloaders are never chosen,
  * and without a preferred downloader the one with the lowest priority (then server order) wins.
+ *
+ * Downloader options of the chosen downloader: UserDownloaderSetting.options, then per option
+ * UserSiteSetting.downloaderOptions[downloader].
  */
 class EffectiveSettingsResolver
 {
@@ -46,11 +50,13 @@ class EffectiveSettingsResolver
             $client = null;
         }
 
+        $userSiteSetting = $this->userSiteSetting($site, $owner);
+
         /** @var list<SettingsLayerInterface> $layers */
         $layers = array_values(array_filter([
             $site?->getDefaultSetting(),
             null !== $owner ? $this->userSettingRepository->findOneBy(['owner' => $owner]) : null,
-            null !== $owner && null !== $site?->getId() ? $this->userSiteSettingRepository->findOneBy(['owner' => $owner, 'site' => $site]) : null,
+            $userSiteSetting,
             $client?->getSetting(),
         ]));
 
@@ -59,7 +65,8 @@ class EffectiveSettingsResolver
         $sendReferrer = self::DEFAULT_SEND_REFERRER;
         $preferredDownloader = null;
 
-        $candidates = $this->orderedCandidates($availableDownloaders, $this->downloaderSettings($owner));
+        $downloaderSettings = $this->downloaderSettings($owner);
+        $candidates = $this->orderedCandidates($availableDownloaders, $downloaderSettings);
 
         foreach ($layers as $layer) {
             $sendCookies = $layer->isSendCookies() ?? $sendCookies;
@@ -70,12 +77,51 @@ class EffectiveSettingsResolver
             }
         }
 
+        $downloader = $preferredDownloader ?? $candidates[0] ?? null;
+
         return new EffectiveSettings(
             sendCookies: $sendCookies,
             sendUserAgent: $sendUserAgent,
             sendReferrer: $sendReferrer,
-            downloader: $preferredDownloader ?? $candidates[0] ?? null,
+            downloader: $downloader,
+            downloaderOptions: new \ArrayObject(null !== $downloader ? self::mergeOptions($downloader, $downloaderSettings, $userSiteSetting) : []),
         );
+    }
+
+    /**
+     * The downloader options for a download: the owner's options for the downloader, overridden
+     * per option by the owner's options for the site and downloader.
+     *
+     * @return array<string, mixed>
+     */
+    public function resolveDownloaderOptions(?Site $site, string $downloader, ?OidcSubjectIdentifier $owner): array
+    {
+        if (null === $owner) {
+            return [];
+        }
+
+        return self::mergeOptions($downloader, $this->downloaderSettings($owner), $this->userSiteSetting($site, $owner));
+    }
+
+    /**
+     * @param array<string, UserDownloaderSetting> $downloaderSettings
+     *
+     * @return array<string, mixed>
+     */
+    private static function mergeOptions(string $downloader, array $downloaderSettings, ?UserSiteSetting $userSiteSetting): array
+    {
+        $siteOptions = $userSiteSetting?->getDownloaderOptions()[$downloader] ?? [];
+
+        return array_replace(($downloaderSettings[$downloader] ?? null)?->getOptions() ?? [], is_array($siteOptions) ? $siteOptions : []);
+    }
+
+    private function userSiteSetting(?Site $site, ?OidcSubjectIdentifier $owner): ?UserSiteSetting
+    {
+        if (null === $owner || null === $site?->getId()) {
+            return null;
+        }
+
+        return $this->userSiteSettingRepository->findOneBy(['owner' => $owner, 'site' => $site]);
     }
 
     /**

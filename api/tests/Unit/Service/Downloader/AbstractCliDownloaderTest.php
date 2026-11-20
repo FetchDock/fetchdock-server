@@ -4,8 +4,10 @@ namespace App\Tests\Unit\Service\Downloader;
 
 use App\Entity\DownloadJob;
 use App\Enum\DownloaderTypeEnum;
+use App\Event\CliProcessStartEvent;
 use App\Model\DownloadJobInterface;
 use App\Service\Downloader\AbstractCliDownloader;
+use App\Service\Downloader\Options\OptionsArgumentsBuilder;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
@@ -341,6 +343,32 @@ class AbstractCliDownloaderTest extends TestCase
 
         $this->assertNotNull($downloader->lastCookieFile);
         $this->assertFileDoesNotExist($downloader->lastCookieFile);
+    }
+
+    public function testUserOptionsArePassedAfterTheConfigAndBeforeTheUrl(): void
+    {
+        $downloader = $this->createCookieDownloader('/bin/true');
+        $builder = $this->createMock(OptionsArgumentsBuilder::class);
+        $builder->expects($this->once())->method('build')->with('test-cookie-downloader', ['ratelimit' => '1M'])->willReturn(['--limit-rate=1M']);
+        $downloader->setOptionsArgumentsBuilder($builder);
+
+        $command = null;
+        $this->eventDispatcher->method('dispatch')->willReturnCallback(static function (object $event) use (&$command) {
+            if ($event instanceof CliProcessStartEvent) {
+                $command = $event->command;
+            }
+
+            return $event;
+        });
+
+        $downloadJob = $this->createStub(DownloadJobInterface::class);
+        $downloadJob->method('getUrl')->willReturn(new \GuzzleHttp\Psr7\Uri('https://test.com/video'));
+        $downloadJob->method('getCookiesNetscapeFileContent')->willReturn('');
+        $downloadJob->method('getDownloaderOptions')->willReturn(['ratelimit' => '1M']);
+
+        $downloader->download($downloadJob);
+
+        $this->assertMatchesRegularExpression("~'--verbose' '--limit-rate=1M' 'https://test.com/video'$~", (string) $command);
     }
 
     private function createCookieDownloadJob(): DownloadJobInterface

@@ -11,6 +11,7 @@ use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Put;
 use App\Entity\Site;
 use App\Entity\UserSiteSetting;
+use App\Service\Downloader\Options\OptionsValidator;
 use App\State\Settings\UserSiteSettingsProcessor;
 use App\State\Settings\UserSiteSettingsProvider;
 use App\Validator\SelectDownloader;
@@ -63,6 +64,16 @@ final class UserSiteSettings
     #[Groups(['user_settings:read', 'user_settings:write'])]
     public ?string $downloader = null;
 
+    /**
+     * Command line options by downloader identifier, overriding the user's downloader options for this site.
+     * Each object is validated against GET /downloaders/{id}/options-schema. Null = none.
+     *
+     * @var array<string, array<string, mixed>>|null
+     */
+    #[ApiProperty(openapiContext: ['type' => ['object', 'null'], 'additionalProperties' => ['type' => 'object', 'additionalProperties' => true]])]
+    #[Groups(['user_settings:read', 'user_settings:write'])]
+    public ?array $downloaderOptions = null;
+
     public static function fromEntity(Site $site, ?UserSiteSetting $setting): self
     {
         $settings = new self();
@@ -72,6 +83,7 @@ final class UserSiteSettings
         $settings->sendUserAgent = $setting?->isSendUserAgent();
         $settings->sendReferrer = $setting?->isSendReferrer();
         $settings->downloader = $setting?->getDownloader();
+        $settings->downloaderOptions = $setting?->getDownloaderOptions();
 
         return $settings;
     }
@@ -93,7 +105,26 @@ final class UserSiteSettings
         if (null === $fields || in_array('downloader', $fields, true)) {
             $setting->setDownloader($this->downloader);
         }
+        if (null === $fields || in_array('downloaderOptions', $fields, true)) {
+            $setting->setDownloaderOptions($this->normalizedDownloaderOptions());
+        }
 
         return $setting;
+    }
+
+    /**
+     * @return array<string, array<string, mixed>>
+     */
+    public function normalizedDownloaderOptions(): array
+    {
+        $normalized = [];
+        foreach ($this->downloaderOptions ?? [] as $downloader => $options) {
+            $options = is_array($options) ? OptionsValidator::normalize($options) : $options;
+            if ([] !== $options && null !== $options) {
+                $normalized[(string) $downloader] = $options;
+            }
+        }
+
+        return $normalized;
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\UserDownloaderSettingRepository;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -32,6 +33,14 @@ class UserDownloaderSetting
      */
     #[ORM\Column(nullable: true)]
     private ?int $priority = null;
+
+    /**
+     * Command line options for this downloader (see GET /downloaders/{id}/options-schema). Null = none.
+     *
+     * @var array<string, mixed>|null
+     */
+    #[ORM\Column(type: Types::JSON, nullable: true, options: ['jsonb' => true])]
+    private ?array $options = null;
 
     public function getId(): ?int
     {
@@ -82,6 +91,24 @@ class UserDownloaderSetting
     public function setPriority(?int $priority): static
     {
         $this->priority = $priority;
+
+        return $this;
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    public function getOptions(): ?array
+    {
+        return $this->options;
+    }
+
+    /**
+     * @param array<string, mixed>|null $options
+     */
+    public function setOptions(?array $options): static
+    {
+        $this->options = [] === $options ? null : $options;
 
         return $this;
     }

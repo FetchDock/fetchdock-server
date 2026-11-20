@@ -71,15 +71,15 @@ class UserSettingsTest extends ApiTestCase
 
     public function testDownloaderSettingsListEveryDownloader(): void
     {
-        $this->put('/users/settings/downloaders/yt-dlp-cli', ['enabled' => false, 'priority' => 5]);
+        $this->put('/users/settings/downloaders/yt-dlp-cli', ['enabled' => false, 'priority' => 5, 'options' => null]);
 
         $members = $this->get('/users/settings/downloaders')['member'];
         $byDownloader = array_column($members, null, 'downloader');
 
         $this->assertArrayHasKey('gallery-dl-cli', $byDownloader);
-        $this->assertSame(['downloader' => 'gallery-dl-cli', 'enabled' => null, 'priority' => null], $byDownloader['gallery-dl-cli']);
-        $this->assertSame(['downloader' => 'yt-dlp-cli', 'enabled' => false, 'priority' => 5], $byDownloader['yt-dlp-cli']);
-        $this->assertSame(['downloader' => 'yt-dlp-cli', 'enabled' => null, 'priority' => null], array_column($this->get('/users/settings/downloaders', 'admin')['member'], null, 'downloader')['yt-dlp-cli']);
+        $this->assertSame(['downloader' => 'gallery-dl-cli', 'enabled' => null, 'priority' => null, 'options' => null], $byDownloader['gallery-dl-cli']);
+        $this->assertSame(['downloader' => 'yt-dlp-cli', 'enabled' => false, 'priority' => 5, 'options' => null], $byDownloader['yt-dlp-cli']);
+        $this->assertSame(['downloader' => 'yt-dlp-cli', 'enabled' => null, 'priority' => null, 'options' => null], array_column($this->get('/users/settings/downloaders', 'admin')['member'], null, 'downloader')['yt-dlp-cli']);
     }
 
     public function testUnknownDownloaderIsNotFound(): void
@@ -94,14 +94,14 @@ class UserSettingsTest extends ApiTestCase
     public function testSiteOverrides(): void
     {
         $this->assertSame([], $this->get('/users/settings/sites')['member']);
-        $this->assertSame(['slug' => 'twitter', 'name' => 'Twitter / X', 'sendCookies' => null, 'sendUserAgent' => null, 'sendReferrer' => null, 'downloader' => null], $this->get('/users/settings/sites/twitter'));
+        $this->assertSame(['slug' => 'twitter', 'name' => 'Twitter / X', 'sendCookies' => null, 'sendUserAgent' => null, 'sendReferrer' => null, 'downloader' => null, 'downloaderOptions' => null], $this->get('/users/settings/sites/twitter'));
 
         $this->put('/users/settings/sites/twitter', ['sendCookies' => false, 'downloader' => 'yt-dlp-cli']);
         $this->assertResponseIsSuccessful();
 
         $members = $this->get('/users/settings/sites')['member'];
         $this->assertCount(1, $members);
-        $this->assertSame(['slug' => 'twitter', 'name' => 'Twitter / X', 'sendCookies' => false, 'sendUserAgent' => null, 'sendReferrer' => null, 'downloader' => 'yt-dlp-cli'], $members[0]);
+        $this->assertSame(['slug' => 'twitter', 'name' => 'Twitter / X', 'sendCookies' => false, 'sendUserAgent' => null, 'sendReferrer' => null, 'downloader' => 'yt-dlp-cli', 'downloaderOptions' => null], $members[0]);
         $this->assertSame([], $this->get('/users/settings/sites', 'admin')['member']);
         $this->assertNull($this->get('/users/settings/sites/twitter', 'admin')['sendCookies']);
 

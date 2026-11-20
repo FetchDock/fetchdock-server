@@ -9,6 +9,7 @@ use App\Factory\DownloaderFactory;
 use App\Repository\UserDownloaderSettingRepository;
 use App\Resource\Settings\UserDownloaderSettings;
 use App\Security\CurrentOwner;
+use App\Service\Downloader\Options\OptionsValidator;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -22,6 +23,7 @@ final readonly class UserDownloaderSettingsProcessor implements ProcessorInterfa
         private DownloaderFactory $downloaderFactory,
         private UserDownloaderSettingRepository $userDownloaderSettingRepository,
         private EntityManagerInterface $entityManager,
+        private DownloaderOptionsGuard $optionsGuard,
     ) {
     }
 
@@ -36,7 +38,12 @@ final readonly class UserDownloaderSettingsProcessor implements ProcessorInterfa
         $setting = $this->userDownloaderSettingRepository->findOneBy(['owner' => $owner, 'downloader' => $downloader])
             ?? new UserDownloaderSetting()->setOwner($owner)->setDownloader($downloader);
 
-        $this->entityManager->persist($data->applyTo($setting, PatchedFields::fromContext($operation, $context)));
+        $fields = PatchedFields::fromContext($operation, $context);
+        if (null === $fields || in_array('options', $fields, true)) {
+            $this->optionsGuard->assertValid($downloader, OptionsValidator::normalize($data->options), $data, 'options');
+        }
+
+        $this->entityManager->persist($data->applyTo($setting, $fields));
         $this->entityManager->flush();
 
         return UserDownloaderSettings::fromEntity($downloader, $setting);

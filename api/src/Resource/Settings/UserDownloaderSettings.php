@@ -9,6 +9,7 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Put;
 use App\Entity\UserDownloaderSetting;
+use App\Service\Downloader\Options\OptionsValidator;
 use App\State\Settings\UserDownloaderSettingsProcessor;
 use App\State\Settings\UserDownloaderSettingsProvider;
 use Symfony\Component\Serializer\Attribute\Groups;
@@ -51,12 +52,22 @@ final class UserDownloaderSettings
     #[Groups(['user_settings:read', 'user_settings:write'])]
     public ?int $priority = null;
 
+    /**
+     * Command line options, validated against GET /downloaders/{id}/options-schema. Null values are dropped, null = none.
+     *
+     * @var array<string, mixed>|null
+     */
+    #[ApiProperty(openapiContext: ['type' => ['object', 'null'], 'additionalProperties' => true])]
+    #[Groups(['user_settings:read', 'user_settings:write'])]
+    public ?array $options = null;
+
     public static function fromEntity(string $downloader, ?UserDownloaderSetting $setting): self
     {
         $settings = new self();
         $settings->downloader = $downloader;
         $settings->enabled = $setting?->isEnabled();
         $settings->priority = $setting?->getPriority();
+        $settings->options = $setting?->getOptions();
 
         return $settings;
     }
@@ -71,6 +82,9 @@ final class UserDownloaderSettings
         }
         if (null === $fields || in_array('priority', $fields, true)) {
             $setting->setPriority($this->priority);
+        }
+        if (null === $fields || in_array('options', $fields, true)) {
+            $setting->setOptions(OptionsValidator::normalize($this->options));
         }
 
         return $setting;

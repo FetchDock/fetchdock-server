@@ -11,6 +11,7 @@ use App\Dto\JobAcceptedDTO;
 use App\Entity\DownloadedFile;
 use App\Entity\DownloadJob;
 use App\Entity\DownloadJobEvent;
+use App\Entity\Site;
 use App\Enum\DownloadStateEnum;
 use App\Enum\JobTypeEnum;
 use App\Factory\DownloaderFactory;
@@ -86,7 +87,8 @@ class DownloadJobQueuedProcessor implements ProcessorInterface
             'context' => $context,
         ]);
 
-        $preferredDownloader = $this->applyEffectiveSettings($downloadJob);
+        $site = $this->resolveSite($downloadJob);
+        $preferredDownloader = $this->applyEffectiveSettings($downloadJob, $site);
 
         // Validate downloader
         if (isset($data->downloader) && !$this->downloaderFactory->isValidDownloader($data->downloader)) {
@@ -154,6 +156,9 @@ class DownloadJobQueuedProcessor implements ProcessorInterface
             }
         }
 
+        // The owner's options for the downloader that runs the job
+        $downloadJob->setDownloaderOptions($this->effectiveSettingsResolver->resolveDownloaderOptions($site, (string) $downloadJob->getDownloader(), $downloadJob->getOwner()));
+
         // Try converting the uri to a valid URI
         // If it fails, throw a 400 error
         if (false === filter_var($downloadJob->getUri(), FILTER_VALIDATE_URL)) {
@@ -180,15 +185,8 @@ class DownloadJobQueuedProcessor implements ProcessorInterface
      * @return string|false|null the downloader to use; false if the URI's site is known but all its
      *                           downloaders are disabled; null if unknown (probe the downloaders)
      */
-    private function applyEffectiveSettings(DownloadJob $downloadJob): string|false|null
+    private function applyEffectiveSettings(DownloadJob $downloadJob, ?Site $site): string|false|null
     {
-        try {
-            $site = $this->siteResolver->resolve($downloadJob->getUri());
-        } catch (\RuntimeException $e) {
-            $this->logger->warning('Unable to resolve the site of a download job, using default settings', ['uri' => $downloadJob->getUri(), 'exception' => $e]);
-            $site = null;
-        }
-
         $availableDownloaders = [];
         foreach ($site?->getExtractors() ?? [] as $extractor) {
             if ($this->downloaderFactory->isValidDownloader($extractor->getDownloader())) {
@@ -213,6 +211,17 @@ class DownloadJobQueuedProcessor implements ProcessorInterface
         }
 
         return $settings->downloader;
+    }
+
+    private function resolveSite(DownloadJob $downloadJob): ?Site
+    {
+        try {
+            return $this->siteResolver->resolve($downloadJob->getUri());
+        } catch (\RuntimeException $e) {
+            $this->logger->warning('Unable to resolve the site of a download job, using default settings', ['uri' => $downloadJob->getUri(), 'exception' => $e]);
+
+            return null;
+        }
     }
 
     private function checkForExistingDownloadJobs(DownloadJob $downloadJob): void

@@ -23,6 +23,7 @@ final readonly class UserSiteSettingsProcessor implements ProcessorInterface
         private SiteRepository $siteRepository,
         private UserSiteSettingRepository $userSiteSettingRepository,
         private EntityManagerInterface $entityManager,
+        private DownloaderOptionsGuard $optionsGuard,
     ) {
     }
 
@@ -43,9 +44,14 @@ final readonly class UserSiteSettingsProcessor implements ProcessorInterface
             return null;
         }
 
+        $fields = PatchedFields::fromContext($operation, $context);
+        if (null === $fields || in_array('downloaderOptions', $fields, true)) {
+            $this->optionsGuard->assertValidByDownloader($data->normalizedDownloaderOptions(), $data, 'downloaderOptions');
+        }
+
         $setting ??= new UserSiteSetting()->setSite($site);
         $owner->addUserSiteSetting($setting);
-        $this->entityManager->persist($data->applyTo($setting, PatchedFields::fromContext($operation, $context)));
+        $this->entityManager->persist($data->applyTo($setting, $fields));
         $this->entityManager->flush();
 
         return UserSiteSettings::fromEntity($site, $setting);
