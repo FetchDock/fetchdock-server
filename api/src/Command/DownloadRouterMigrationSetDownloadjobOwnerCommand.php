@@ -5,7 +5,6 @@ namespace App\Command;
 use App\Entity\OidcSubjectIdentifier;
 use App\Repository\DownloadJobRepository;
 use App\Repository\OidcSubjectIdentifierRepository;
-use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -25,7 +24,6 @@ class DownloadRouterMigrationSetDownloadjobOwnerCommand extends Command
     public function __construct(
         private DownloadJobRepository $downloadJobRepository,
         private OidcSubjectIdentifierRepository $oidcSubjectIdentifierRepository,
-        private EntityManagerInterface $entityManager,
         private LoggerInterface $logger,
     )
     {
@@ -73,24 +71,37 @@ class DownloadRouterMigrationSetDownloadjobOwnerCommand extends Command
         return Command::SUCCESS;
     }
 
-    private function setOwnerOnDownloadJobs(OidcSubjectIdentifier $owner, bool $dryRun = false) {
-        $this->logger->debug('Setting owner on download jobs', ['owner' => $owner->getSubject()]);
-        $downloadJobs = $this->downloadJobRepository->findBy(['owner' => null]);
+    /**
+     * Assigns all download jobs without an owner to the given owner.
+     *
+     * Uses a single DQL bulk update instead of loading the jobs as entities: there can be tens of thousands of them
+     * (memory), and updating them through the entity manager would trigger the entity listeners for every job, such
+     * as API Platform's Mercure publisher and Timestampable.
+     */
+    private function setOwnerOnDownloadJobs(OidcSubjectIdentifier $owner, bool $dryRun = false): void
+    {
+        $count = (int) $this->downloadJobRepository->createQueryBuilder('d')
+            ->select('COUNT(d.id)')
+            ->where('d.owner IS NULL')
+            ->getQuery()
+            ->getSingleScalarResult();
 
-        foreach ($downloadJobs as $downloadJob) {
-            $this->logger->debug('Setting owner on download job', ['downloadJobId' => $downloadJob->getId(), 'owner' => $owner->getSubject()]);
-            $downloadJob->setOwner($owner);
-            if (!$dryRun) {
-                $this->entityManager->persist($downloadJob);
-            } else {
-                $this->io->note(sprintf('Would set owner %s on download job %s', $owner->getSubject(), $downloadJob->getId()));
-            }
+        if ($dryRun) {
+            $this->io->note(sprintf('Would set owner %s on %d download job(s) without an owner', $owner->getSubject(), $count));
+
+            return;
         }
 
+        $this->logger->info('Setting owner on download jobs without an owner', ['owner' => $owner->getSubject(), 'count' => $count]);
 
-        if(!$dryRun) {
-            $this->logger->debug('Flushing changes');
-            $this->entityManager->flush();
-        }
+        $updated = $this->downloadJobRepository->createQueryBuilder('d')
+            ->update()
+            ->set('d.owner', ':owner')
+            ->where('d.owner IS NULL')
+            ->setParameter('owner', $owner)
+            ->getQuery()
+            ->execute();
+
+        $this->io->success(sprintf('Set owner %s on %d download job(s)', $owner->getSubject(), $updated));
     }
 }
