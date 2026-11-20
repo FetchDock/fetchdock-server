@@ -35,17 +35,23 @@ final readonly class DownloadedFileOutput
 
     public static function forJob(DownloadedFile $file, DownloadJob $job): self
     {
-        $metadata = array_filter(
-            array_intersect_key($file->getMetadata(), array_flip(self::METADATA_KEYS)),
-            static fn (mixed $value): bool => is_scalar($value),
-        );
-
         return new self(
             id: $file->getId(),
             filename: $file->getFilename(),
             visible: (bool) $file->isVisible(),
-            metadata: $metadata,
+            metadata: self::filterMetadata($file->getMetadata()),
             downloadUri: '/download/'.$job->getUuid()->toRfc4122().'/'.$job->getToken().'/files/'.$file->getId(),
+        );
+    }
+
+    /**
+     * @return array<string, scalar> the descriptive, scalar metadata values
+     */
+    public static function filterMetadata(array $metadata): array
+    {
+        return array_filter(
+            array_intersect_key($metadata, array_flip(self::METADATA_KEYS)),
+            static fn (mixed $value): bool => is_scalar($value),
         );
     }
 }
