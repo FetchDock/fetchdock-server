@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage line-rate="0.84689471936234" branch-rate="0" lines-covered="2550" lines-valid="3011" branches-covered="0" branches-valid="0" complexity="1169" version="0.4" timestamp="1795217366">
+<coverage line-rate="0.84689471936234" branch-rate="0" lines-covered="2550" lines-valid="3011" branches-covered="0" branches-valid="0" complexity="1169" version="0.4" timestamp="1795219096">
   <sources>
     <source>/app/src</source>
   </sources>
@@ -3689,19 +3689,19 @@
           <methods>
             <method name="__construct" signature="CurrentClient $currentClient" line-rate="1" branch-rate="0" complexity="1">
               <lines>
-                <line number="19" hits="108"/>
+                <line number="19" hits="109"/>
               </lines>
             </method>
             <method name="__invoke" signature="ControllerEvent $event" line-rate="1" branch-rate="0" complexity="3">
               <lines>
-                <line number="23" hits="108"/>
+                <line number="23" hits="109"/>
                 <line number="24" hits="4"/>
               </lines>
             </method>
           </methods>
           <lines>
-            <line number="19" hits="108"/>
-            <line number="23" hits="108"/>
+            <line number="19" hits="109"/>
+            <line number="23" hits="109"/>
             <line number="24" hits="4"/>
           </lines>
         </class>
@@ -4453,7 +4453,7 @@
           <methods>
             <method name="__construct" signature="ManagerRegistry $registry" line-rate="1" branch-rate="0" complexity="1">
               <lines>
-                <line number="18" hits="108"/>
+                <line number="18" hits="109"/>
               </lines>
             </method>
             <method name="findOneByIdAndOwner" signature="string $id, OidcSubjectIdentifier $owner" line-rate="1" branch-rate="0" complexity="2">
@@ -4465,7 +4465,7 @@
             </method>
           </methods>
           <lines>
-            <line number="18" hits="108"/>
+            <line number="18" hits="109"/>
             <line number="26" hits="5"/>
             <line number="27" hits="1"/>
             <line number="30" hits="5"/>
@@ -4673,12 +4673,12 @@
           <methods>
             <method name="__construct" signature="ManagerRegistry $registry" line-rate="1" branch-rate="0" complexity="1">
               <lines>
-                <line number="16" hits="113"/>
+                <line number="16" hits="114"/>
               </lines>
             </method>
           </methods>
           <lines>
-            <line number="16" hits="113"/>
+            <line number="16" hits="114"/>
           </lines>
         </class>
       </classes>
@@ -5341,12 +5341,12 @@
           <methods>
             <method name="__construct" signature="string $id, string $version, string $currentVersion, string $latestVersion" line-rate="1" branch-rate="0" complexity="1">
               <lines>
-                <line number="33" hits="9"/>
+                <line number="35" hits="9"/>
               </lines>
             </method>
           </methods>
           <lines>
-            <line number="33" hits="9"/>
+            <line number="35" hits="9"/>
           </lines>
         </class>
       </classes>
@@ -5525,7 +5525,7 @@
           <methods>
             <method name="__construct" signature="Security $security, OidcSubjectIdentifierRepository $oidcSubjectIdentifierRepository" line-rate="1" branch-rate="0" complexity="1">
               <lines>
-                <line number="19" hits="108"/>
+                <line number="19" hits="109"/>
               </lines>
             </method>
             <method name="find" signature="" line-rate="0.75" branch-rate="0" complexity="2">
@@ -5543,7 +5543,7 @@
             </method>
           </methods>
           <lines>
-            <line number="19" hits="108"/>
+            <line number="19" hits="109"/>
             <line number="23" hits="57"/>
             <line number="24" hits="57"/>
             <line number="25" hits="0"/>
@@ -7208,7 +7208,7 @@
           <methods>
             <method name="__construct" signature="RequestStack $requestStack, CurrentOwner $currentOwner, ClientRepository $clientRepository, ClockInterface $clock, LoggerInterface $logger" line-rate="1" branch-rate="0" complexity="1">
               <lines>
-                <line number="35" hits="108"/>
+                <line number="35" hits="109"/>
               </lines>
             </method>
             <method name="get" signature="" line-rate="1" branch-rate="0" complexity="2">
@@ -7221,8 +7221,8 @@
             </method>
             <method name="reset" signature="" line-rate="1" branch-rate="0" complexity="1">
               <lines>
-                <line number="49" hits="108"/>
-                <line number="50" hits="108"/>
+                <line number="49" hits="109"/>
+                <line number="50" hits="109"/>
               </lines>
             </method>
             <method name="resolve" signature="" line-rate="0.91666666666667" branch-rate="0" complexity="4">
@@ -7260,13 +7260,13 @@
             </method>
           </methods>
           <lines>
-            <line number="35" hits="108"/>
+            <line number="35" hits="109"/>
             <line number="39" hits="28"/>
             <line number="40" hits="28"/>
             <line number="41" hits="28"/>
             <line number="44" hits="28"/>
-            <line number="49" hits="108"/>
-            <line number="50" hits="108"/>
+            <line number="49" hits="109"/>
+            <line number="50" hits="109"/>
             <line number="55" hits="28"/>
             <line number="56" hits="28"/>
             <line number="57" hits="26"/>
