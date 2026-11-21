@@ -37,10 +37,10 @@ class WellKnownControllerTest extends TestCase
         $this->assertInstanceOf(JsonResponse::class, $response);
         $this->assertSame(200, $response->getStatusCode());
         $data = json_decode($response->getContent(), true);
-        $this->assertSame('oauth2', $data['auth_mode']);
         $this->assertSame('dev', $data['version']);
-        $this->assertArrayHasKey('oauth2', $data);
-        $oauth2 = $data['oauth2'];
+        $this->assertTrue($data['authentication']['enabled']);
+        $this->assertSame('oauth2', $data['authentication']['mode']);
+        $oauth2 = $data['authentication']['oauth2'];
         $this->assertSame(self::CLIENT_ID, $oauth2['client_id']);
         $this->assertSame('https://localhost/auth/start-oauth2-flow', $oauth2['authorization_endpoint']);
         $this->assertArrayHasKey('token_endpoint', $oauth2);
@@ -49,6 +49,11 @@ class WellKnownControllerTest extends TestCase
         $this->assertArrayHasKey('profile', $oauth2['scopes']);
         $this->assertArrayHasKey('email', $oauth2['scopes']);
         $this->assertArrayHasKey('offline_access', $oauth2['scopes']);
+
+        // Deprecated since 0.6.0, removed in 0.7.0: replaced by authentication.mode and authentication.oauth2
+        $this->assertArrayNotHasKey('auth_mode', $data);
+        $this->assertArrayNotHasKey('oauth2', $data);
+        $this->assertSame([], $data['DEPRECATION_WARNINGS']);
     }
 
     public function testScopesConstantContainsRequiredScopes(): void
