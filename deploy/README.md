@@ -71,7 +71,8 @@ Mercure (Server-Sent Events). TLS ends at the proxy; the containers serve HTTP o
 | `CADDY_MERCURE_JWT_SECRET` | **Different** per stack |
 | `CADDY_MERCURE_PUBLIC_URL` | Optional, defaults to `https://${SERVER_NAME}/.well-known/mercure` |
 | `TRUSTED_PROXIES`, `TRUSTED_HOSTS`, `CORS_ALLOW_ORIGIN` | As before |
-| `POSTGRES_HOST`, `POSTGRES_PORT`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, `POSTGRES_VERSION` | Staging: the staging role and database |
+| `POSTGRES_HOST`, `POSTGRES_PORT`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` | Staging: the staging role and database |
+| `POSTGRES_VERSION` | Server **major** version, e.g. `17` (default `16`). Used for Doctrine's `serverVersion` and, on staging, for the `db-refresh` image: `pg_dump` must match the server |
 | `OIDC_*`, `NEXT_PUBLIC_OIDC_*` | Staging: the staging OIDC application |
 | `GALLERY_DL_CONFIG` | Host path of the gallery-dl `config.json` |
 | `DOWNLOADS_PATH` | Host path mounted at `/downloads`. Staging: a **separate** directory |

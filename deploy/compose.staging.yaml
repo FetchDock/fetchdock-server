@@ -53,6 +53,20 @@ services:
            AND NOT (SELECT rolsuper FROM pg_roles WHERE rolname = current_user);
         SQL
         )
+        # pg_dump/psql must match the servers' major version (POSTGRES_VERSION selects this image).
+        client_major=$$(pg_dump --version | sed -E 's/[^0-9]*([0-9]+).*/\1/')
+        for side in source target; do
+          if [ "$$side" = source ]; then
+            server_major=$$(PGHOST="$$SOURCE_PGHOST" PGPORT="$$SOURCE_PGPORT" PGUSER="$$SOURCE_PGUSER" PGPASSWORD="$$SOURCE_PGPASSWORD" \
+              psql -At -d "$$SOURCE_PGDATABASE" -c "SELECT current_setting('server_version_num')::int / 10000")
+          else
+            server_major=$$(psql -At -d postgres -c "SELECT current_setting('server_version_num')::int / 10000")
+          fi
+          if [ "$$server_major" != "$$client_major" ]; then
+            problems="$${problems:+$$problems
+        }$$side server runs PostgreSQL $$server_major but this image has $$client_major. Set POSTGRES_VERSION=$$server_major in the stack."
+          fi
+        done
         if [ -n "$$problems" ]; then
           echo "$$problems" | sed 's/^/[db-refresh] ERROR: /' >&2
           exit 1
