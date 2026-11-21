@@ -8,6 +8,7 @@ use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use App\Dto\SiteDefaultsDTO;
 use App\Filter\SiteSearchFilter;
 use App\Repository\SiteRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -26,11 +27,11 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ApiResource(
     operations: [
         new GetCollection(
-            normalizationContext: ['groups' => ['site:read']],
+            normalizationContext: ['groups' => ['site:read'], 'skip_null_values' => false],
         ),
         new Get(
             requirements: ['slug' => '(?!resolve$)[a-z0-9][a-z0-9-]*'],
-            normalizationContext: ['groups' => ['site:read', 'site:item']],
+            normalizationContext: ['groups' => ['site:read', 'site:item'], 'skip_null_values' => false],
         ),
     ],
     security: "is_granted('ROLE_USER')",
@@ -224,6 +225,16 @@ class Site
     public function getDefaultSetting(): ?SiteSetting
     {
         return $this->defaultSetting;
+    }
+
+    /**
+     * The site's default settings (admin-managed). Null fields have no site default and inherit.
+     */
+    #[ApiProperty(genId: false)]
+    #[Groups(['site:read'])]
+    public function getDefaults(): SiteDefaultsDTO
+    {
+        return SiteDefaultsDTO::fromSetting($this->defaultSetting);
     }
 
     public function setDefaultSetting(SiteSetting $defaultSetting): static
