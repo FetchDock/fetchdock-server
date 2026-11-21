@@ -20,6 +20,7 @@
 - Implement new downloaders via `DownloaderInterface` in `api/src/Service/Downloader/` and async jobs in `api/src/Handler/`.
 - **Always export `../contracts/openapi.json`** after adding or modifying any API endpoint, filter, or serialization group.
 - **Validation:** Run PHPUnit and `doctrine:schema:validate` after backend/entity changes.
+- **Architecture docs:** if a change affects entities or relations, endpoint groups, messages or handlers, Mercure topics, auth or roles, or settings layers, update `../docs/ARCHITECTURE.md` (and add an ADR in `../docs/adr/` for lasting decisions). After `make openapi`, run `make -C .. contracts:index`.
 - **Destructive commands forbidden:** Never run `docker system prune`, volume wipes, or `--no-cache` full image rebuilds—ask me to run those manually if needed.
 
 ## Token-Saving Rules
