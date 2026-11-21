@@ -37,6 +37,26 @@ services:
         fi
         next="$${TARGET_DB}_next"
         echo "[db-refresh] $$DEPLOY_TAG ($$DEPLOY_ID): copying $$SOURCE_PGDATABASE@$$SOURCE_PGHOST into $$TARGET_DB@$$PGHOST"
+        # Pre-flight: the staging role must be able to drop and recreate both databases.
+        problems=$$(psql -v ON_ERROR_STOP=1 -At -d postgres -v next="$$next" -v target="$$TARGET_DB" <<'SQL'
+        SELECT format('role %I lacks CREATEDB. As a superuser: ALTER ROLE %I CREATEDB;', current_user, current_user)
+          FROM pg_roles WHERE rolname = current_user AND NOT rolcreatedb
+        UNION ALL
+        SELECT format('database %I is owned by %I, not %I. As a superuser: ALTER DATABASE %I OWNER TO %I; (or DROP DATABASE %I;)',
+                      datname, pg_get_userbyid(datdba), current_user, datname, current_user, datname)
+          FROM pg_database WHERE datname IN (:'next', :'target') AND datdba <> (SELECT oid FROM pg_roles WHERE rolname = current_user)
+        UNION ALL
+        SELECT format('superuser %I is connected to %I%s%s; close that session (only superusers can end it)',
+                      a.usename, a.datname, ' (' || nullif(a.application_name, '') || ')', ' from ' || host(a.client_addr))
+          FROM pg_stat_activity a JOIN pg_roles r ON r.oid = a.usesysid
+         WHERE a.datname IN (:'next', :'target') AND r.rolsuper
+           AND NOT (SELECT rolsuper FROM pg_roles WHERE rolname = current_user);
+        SQL
+        )
+        if [ -n "$$problems" ]; then
+          echo "$$problems" | sed 's/^/[db-refresh] ERROR: /' >&2
+          exit 1
+        fi
         psql -v ON_ERROR_STOP=1 -d postgres -c "DROP DATABASE IF EXISTS \"$$next\" WITH (FORCE)" -c "CREATE DATABASE \"$$next\""
         PGHOST="$$SOURCE_PGHOST" PGPORT="$$SOURCE_PGPORT" PGUSER="$$SOURCE_PGUSER" PGPASSWORD="$$SOURCE_PGPASSWORD" \
           pg_dump --no-owner --no-privileges -d "$$SOURCE_PGDATABASE" \
