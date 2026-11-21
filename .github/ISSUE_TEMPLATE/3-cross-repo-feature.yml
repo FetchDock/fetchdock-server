@@ -1,0 +1,58 @@
+name: Cross-repo feature
+description: A feature that needs changes in both fetchdock-server and fetchdock-extension (API contract change).
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Agree on the **contract delta** first. The server implements it and exports `contracts/openapi.json`, then the extension consumes it.
+        File one issue per repo and link them. A full design spec may live in the workspace `docs/features/<slug>.md`.
+  - type: textarea
+    id: goal
+    attributes:
+      label: Goal
+      description: What the user can do afterwards, in 2–3 sentences.
+    validations:
+      required: true
+  - type: textarea
+    id: non-goals
+    attributes:
+      label: Non-goals
+  - type: textarea
+    id: contract
+    attributes:
+      label: Contract delta
+      description: New or changed endpoints, schemas and fields, Mercure topics, and error codes. Mark breaking changes with **BREAKING**.
+      value: |
+        | Method | Path | Request | Response | Notes |
+        |---|---|---|---|---|
+        |  |  |  |  |  |
+    validations:
+      required: true
+  - type: textarea
+    id: tasks
+    attributes:
+      label: Tasks in this repo
+      placeholder: |
+        - [ ] …
+  - type: input
+    id: counterpart
+    attributes:
+      label: Counterpart issue
+      description: The linked issue in fetchdock-extension.
+      placeholder: FetchDock/fetchdock-extension#123
+  - type: input
+    id: spec
+    attributes:
+      label: Design spec (optional)
+      placeholder: docs/features/server-123-slug.md
+  - type: textarea
+    id: decisions
+    attributes:
+      label: Decisions already made / open questions
+  - type: input
+    id: compat
+    attributes:
+      label: Compatibility
+      description: Do older servers or extensions need a fallback? Which version ships it? (Server and extension share major.minor.)
+      placeholder: Breaking → 0.8 on both sides; extension falls back on 404

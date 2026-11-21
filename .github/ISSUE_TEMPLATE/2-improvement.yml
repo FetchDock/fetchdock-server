@@ -1,0 +1,60 @@
+name: Improvement (this repo only)
+description: A change contained in fetchdock-server, with no API contract change.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: goal
+    attributes:
+      label: Goal
+      description: The outcome from the user's or operator's point of view, in 1–2 sentences.
+      placeholder: As a user I can … so that …
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: How we know it's done. One checkable line each.
+      placeholder: |
+        - [ ] …
+        - [ ] …
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Constraints / non-goals
+      placeholder: |
+        - No change to the API contract
+        - Not the …
+  - type: textarea
+    id: decisions
+    attributes:
+      label: Decisions already made
+      description: Choices you have already made, so the implementer won't re-litigate them.
+  - type: textarea
+    id: open
+    attributes:
+      label: Open questions
+  - type: dropdown
+    id: component
+    attributes:
+      label: Area
+      options:
+        - API
+        - Worker / downloaders
+        - Admin PWA
+        - Mercure / live updates
+        - Auth
+        - Deployment / Docker / Helm
+        - Other
+  - type: input
+    id: target
+    attributes:
+      label: Target version
+      placeholder: 0.7.x patch / 0.8
+  - type: textarea
+    id: pointers
+    attributes:
+      label: Pointers (optional)
+      description: Related issues, files, screenshots or prior art.

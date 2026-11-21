@@ -1,0 +1,65 @@
+name: Bug report
+description: Something is broken or behaves unexpectedly.
+labels: [bug]
+body:
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: The smallest sequence that triggers it.
+      placeholder: |
+        1. POST /download_jobs with uri=https://example.com/… (or: start a download from the extension)
+        2. …
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected vs. actual
+      placeholder: |
+        Expected: …
+        Actual: …
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: Error text, log lines, HTTP status + response body, job UUID, screenshots.
+      render: text
+  - type: dropdown
+    id: component
+    attributes:
+      label: Area
+      options:
+        - API
+        - Worker / downloaders
+        - Admin PWA
+        - Mercure / live updates
+        - Auth
+        - Deployment / Docker / Helm
+        - Other
+  - type: input
+    id: version
+    attributes:
+      label: Server version / branch
+      placeholder: 0.7.0 (image tag) or develop @ <sha>
+    validations:
+      required: true
+  - type: input
+    id: other-version
+    attributes:
+      label: Extension version (if involved)
+  - type: dropdown
+    id: frequency
+    attributes:
+      label: Reproducibility
+      options:
+        - Always
+        - Sometimes
+        - Once
+  - type: textarea
+    id: notes
+    attributes:
+      label: Suspected cause / pointers (optional)
+      description: Files, classes, related issues or PRs, a recent change that may have caused it.
