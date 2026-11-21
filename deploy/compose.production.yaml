@@ -1,0 +1,9 @@
+# Production additions on top of deploy/compose.yaml.
+services:
+  php:
+    volumes:
+      # Download destinations outside /downloads (per-user/site settings may point into /mnt).
+      - /mnt:/mnt
+  worker:
+    volumes:
+      - /mnt:/mnt
