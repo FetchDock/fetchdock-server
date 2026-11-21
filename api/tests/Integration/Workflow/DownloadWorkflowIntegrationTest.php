@@ -20,6 +20,7 @@ use App\Service\Settings\CurrentClient;
 use App\Service\Settings\EffectiveSettingsResolver;
 use App\Service\Site\SiteResolver;
 use App\State\DownloadJobQueuedProcessor;
+use App\Tests\Double\CanonicalKeyGenerators;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -95,6 +96,7 @@ class DownloadWorkflowIntegrationTest extends TestCase
                 $this->createStub(UserSiteSettingRepository::class),
             ),
             $this->createStub(CurrentClient::class),
+            CanonicalKeyGenerators::create(),
         );
 
         $this->handler = new DownloadJobHandler(
@@ -384,8 +386,9 @@ class DownloadWorkflowIntegrationTest extends TestCase
             ->willReturn($oidcSubject);
 
         $this->downloadJobRepository->expects($this->once())
-            ->method('findByUrlAndOwner')
+            ->method('findByCanonicalKeyAndOwner')
             ->with(
+                $this->stringStartsWith('url:'),
                 $dto->uri,
                 $oidcSubject
             )

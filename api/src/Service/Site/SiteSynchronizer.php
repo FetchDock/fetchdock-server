@@ -8,6 +8,7 @@ use App\Entity\SiteSetting;
 use App\Entity\UserSiteSetting;
 use App\Repository\SiteExtractorRepository;
 use App\Repository\SiteRepository;
+use App\Service\Canonical\CanonicalProfileRegistry;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -29,6 +30,7 @@ class SiteSynchronizer
         private readonly EntityManagerInterface $entityManager,
         private readonly TagAwareCacheInterface $cache,
         private readonly LoggerInterface $logger,
+        private readonly CanonicalProfileRegistry $canonicalProfileRegistry,
         #[Autowire('%kernel.project_dir%/config/sites.yaml')]
         private readonly string $configPath,
     ) {
@@ -53,7 +55,8 @@ class SiteSynchronizer
             $site
                 ->setName($definition['name'])
                 ->setCurated(true)
-                ->setEnabled($definition['enabled']);
+                ->setEnabled($definition['enabled'])
+                ->setCanonicalization($definition['canonicalization']);
 
             $domains = [...$site->getDomains(), ...$definition['domains']];
             $keys = $definition['extractors'];
@@ -140,7 +143,7 @@ class SiteSynchronizer
     }
 
     /**
-     * @return array<string, array{name: string, domains: list<string>, families: list<string>, extractors: array<string, list<string>>, enabled: bool, defaults: ?array}>
+     * @return array<string, array{name: string, domains: list<string>, families: list<string>, extractors: array<string, list<string>>, enabled: bool, defaults: ?array, canonicalization: ?array}>
      */
     private function loadDefinitions(): array
     {
@@ -159,6 +162,18 @@ class SiteSynchronizer
                 throw new \InvalidArgumentException(sprintf('Site "%s" has unknown defaults; allowed: %s.', $slug, implode(', ', self::SETTING_FIELDS)));
             }
 
+            $canonicalization = $site['canonicalization'] ?? null;
+            if (null !== $canonicalization) {
+                if (!is_array($canonicalization)) {
+                    throw new \InvalidArgumentException(sprintf('Site "%s" canonicalization must be a map.', $slug));
+                }
+                try {
+                    $this->canonicalProfileRegistry->validate($canonicalization);
+                } catch (\InvalidArgumentException $e) {
+                    throw new \InvalidArgumentException(sprintf('Site "%s" has invalid canonicalization: %s', $slug, $e->getMessage()), previous: $e);
+                }
+            }
+
             $definitions[$slug] = [
                 'name' => $site['name'],
                 'domains' => array_map(strtolower(...), $site['domains'] ?? []),
@@ -166,6 +181,7 @@ class SiteSynchronizer
                 'extractors' => $site['extractors'] ?? [],
                 'enabled' => (bool) ($site['enabled'] ?? true),
                 'defaults' => $defaults,
+                'canonicalization' => $canonicalization,
             ];
         }
 

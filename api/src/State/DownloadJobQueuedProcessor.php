@@ -18,6 +18,7 @@ use App\Factory\DownloaderFactory;
 use App\Model\DownloadJobInterface;
 use App\Repository\DownloadJobRepository;
 use App\Repository\OidcSubjectIdentifierRepository;
+use App\Service\Canonical\CanonicalKeyGenerator;
 use App\Service\Settings\CurrentClient;
 use App\Service\Settings\EffectiveSettingsResolver;
 use App\Service\Site\SiteResolver;
@@ -48,6 +49,7 @@ class DownloadJobQueuedProcessor implements ProcessorInterface
         private SiteResolver $siteResolver,
         private EffectiveSettingsResolver $effectiveSettingsResolver,
         private CurrentClient $currentClient,
+        private CanonicalKeyGenerator $canonicalKeyGenerator,
     ) {
     }
 
@@ -73,10 +75,6 @@ class DownloadJobQueuedProcessor implements ProcessorInterface
                 throw new \RuntimeException('OIDC subject identifier not found. Subject: '.$securityUser->getUserIdentifier());
             }
             $downloadJob->setOwner($oidcSubjectIdentifier);
-
-            if (!$data->force) {
-                $this->checkForExistingDownloadJobs($downloadJob);
-            }
         }
 
         $this->logger->debug('Processing new download job', [
@@ -87,7 +85,19 @@ class DownloadJobQueuedProcessor implements ProcessorInterface
             'context' => $context,
         ]);
 
+        // The site selects the canonicalization profile, so it's resolved before the duplicate check
         $site = $this->resolveSite($downloadJob);
+        $canonicalKey = $this->canonicalKeyGenerator->generate($downloadJob->getUri(), $site);
+        $downloadJob->setCanonicalKey($canonicalKey->key);
+        $this->logger->debug('Derived the canonical key of the download job', [
+            'layer' => $canonicalKey->layer,
+            'profile' => $canonicalKey->profile,
+        ]);
+
+        if (null !== $downloadJob->getOwner() && !$data->force) {
+            $this->checkForExistingDownloadJobs($downloadJob);
+        }
+
         $preferredDownloader = $this->applyEffectiveSettings($downloadJob, $site);
 
         // Validate downloader
@@ -95,7 +105,7 @@ class DownloadJobQueuedProcessor implements ProcessorInterface
             throw new BadRequestException('Invalid downloader specified. Possible values: '.implode(', ', array_map(fn ($d) => $d->getIdentifier(), $this->downloaderFactory->getEnabledDownloaders())));
         }
 
-        // If this URI was downloaded before (e.g. by another user) and its files still exist,
+        // If this media was downloaded before (e.g. by another user, under any URL spelling) and its files still exist,
         // link those files to a new job instead of downloading again.
         // "force" explicitly requests a fresh download.
         if (!$data->force && $this->reusePreviousDownload($downloadJob, $data->downloader ?? null)) {
@@ -226,8 +236,9 @@ class DownloadJobQueuedProcessor implements ProcessorInterface
 
     private function checkForExistingDownloadJobs(DownloadJob $downloadJob): void
     {
-        $result = $this->downloadJobRepository->findByUrlAndOwner(
-            $downloadJob->getUri(),
+        $result = $this->downloadJobRepository->findByCanonicalKeyAndOwner(
+            (string) $downloadJob->getCanonicalKey(),
+            (string) $downloadJob->getUri(),
             $downloadJob->getOwner()
         );
 
@@ -246,7 +257,8 @@ class DownloadJobQueuedProcessor implements ProcessorInterface
     }
 
     /**
-     * Turn the new job into an ALREADY_EXISTS job linked to the files of a previous download of the same URI.
+     * Turn the new job into an ALREADY_EXISTS job linked to the files of a previous download of the same media
+     * (same canonical key, whatever the URL spelling).
      *
      * Only the files are shared. Nothing else from the previous job (its event log, cookies,
      * user agent or owner) is copied, as that may contain another user's data.
@@ -255,7 +267,7 @@ class DownloadJobQueuedProcessor implements ProcessorInterface
      */
     private function reusePreviousDownload(DownloadJob $downloadJob, ?string $requestedDownloader): bool
     {
-        foreach ($this->downloadJobRepository->findReusableByUri($downloadJob->getUri()) as $previousJob) {
+        foreach ($this->downloadJobRepository->findReusableByCanonicalKey((string) $downloadJob->getCanonicalKey(), (string) $downloadJob->getUri()) as $previousJob) {
             $previousDownloader = $previousJob->getDownloader();
             if (null === $previousDownloader) {
                 continue;

@@ -2,6 +2,7 @@
 
 namespace App\Service\Site;
 
+use App\Model\CanonicalExtractorMatch;
 use App\Model\ExtractorMatch;
 
 interface ExtractorMatcherInterface
@@ -32,4 +33,23 @@ interface ExtractorMatcherInterface
      * @return list<array{match: ExtractorMatch, hosts: list<string>}>
      */
     public function catalog(array $families): array;
+
+    /**
+     * Offline lookup of the media identity the tools derive from the URL (yt-dlp extractor ID,
+     * gallery-dl extractor and pattern groups), for duplicate detection.
+     *
+     * @throws \RuntimeException when the helper fails
+     */
+    public function canonical(string $url): CanonicalExtractorMatch;
+
+    /**
+     * canonical() for many URLs in one helper run.
+     *
+     * @param list<string> $urls
+     *
+     * @return array<string, CanonicalExtractorMatch> keyed by URL; URLs that aren't valid UTF-8 are left out
+     *
+     * @throws \RuntimeException when the helper fails
+     */
+    public function canonicalBatch(array $urls): array;
 }

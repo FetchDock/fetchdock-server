@@ -22,6 +22,7 @@ use App\Service\Settings\CurrentClient;
 use App\Service\Settings\EffectiveSettingsResolver;
 use App\Service\Site\SiteResolver;
 use App\State\DownloadJobQueuedProcessor;
+use App\Tests\Double\CanonicalKeyGenerators;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -76,6 +77,7 @@ class DownloadJobQueuedProcessorTest extends TestCase
             $siteResolver,
             $this->effectiveSettingsResolver,
             $this->createStub(CurrentClient::class),
+            CanonicalKeyGenerators::create(),
         );
     }
 
@@ -384,8 +386,8 @@ class DownloadJobQueuedProcessorTest extends TestCase
         $data->userAgent = 'UserB/1.0';
 
         $this->downloadJobRepository->expects($this->once())
-            ->method('findReusableByUri')
-            ->with('https://example.com/video')
+            ->method('findReusableByCanonicalKey')
+            ->with('url:https://example.com/video', 'https://example.com/video')
             ->willReturn([$previousJob]);
 
         // No probing and no queued download: the job is complete on creation
@@ -437,7 +439,7 @@ class DownloadJobQueuedProcessorTest extends TestCase
         $data = new DownloadJobDTO();
         $data->uri = 'https://example.com/video';
 
-        $this->downloadJobRepository->method('findReusableByUri')->willReturn([$previousJob]);
+        $this->downloadJobRepository->method('findReusableByCanonicalKey')->willReturn([$previousJob]);
         $this->messengerProcessor->expects($this->never())->method('process');
         $this->persistProcessor->expects($this->once())
             ->method('process')
@@ -459,7 +461,7 @@ class DownloadJobQueuedProcessorTest extends TestCase
         $data->downloader = 'mock';
 
         $this->downloaderFactory->method('isValidDownloader')->willReturn(true);
-        $this->downloadJobRepository->method('findReusableByUri')->willReturn([$previousJob]);
+        $this->downloadJobRepository->method('findReusableByCanonicalKey')->willReturn([$previousJob]);
 
         $this->persistProcessor->expects($this->once())
             ->method('process')
@@ -479,7 +481,7 @@ class DownloadJobQueuedProcessorTest extends TestCase
         $data->force = true;
 
         $this->downloaderFactory->method('isValidDownloader')->willReturn(true);
-        $this->downloadJobRepository->expects($this->never())->method('findReusableByUri');
+        $this->downloadJobRepository->expects($this->never())->method('findReusableByCanonicalKey');
 
         $this->persistProcessor->expects($this->once())
             ->method('process')
@@ -498,13 +500,35 @@ class DownloadJobQueuedProcessorTest extends TestCase
         $data->downloader = 'mock';
 
         $this->downloaderFactory->method('isValidDownloader')->willReturn(true);
-        $this->downloadJobRepository->method('findReusableByUri')->willReturn([$previousJob]);
+        $this->downloadJobRepository->method('findReusableByCanonicalKey')->willReturn([$previousJob]);
 
         $this->persistProcessor->expects($this->once())
             ->method('process')
             ->with($this->callback(fn (DownloadJob $job) => DownloadStateEnum::PENDING === $job->getState()
                 && 'mock' === $job->getDownloader()
                 && $job->getFiles()->isEmpty()));
+        $this->messengerProcessor->expects($this->once())->method('process');
+
+        $this->processor->process($data, $this->operation);
+    }
+
+    public function testProcessLooksUpPreviousDownloadsByCanonicalKey(): void
+    {
+        $data = new DownloadJobDTO();
+        $data->uri = 'https://youtu.be/dQw4w9WgXcQ?si=share-token';
+        $data->downloader = 'mock';
+
+        $this->downloaderFactory->method('isValidDownloader')->willReturn(true);
+        $this->downloadJobRepository->expects($this->once())
+            ->method('findReusableByCanonicalKey')
+            ->with('ytdlp:Youtube:dQw4w9WgXcQ', 'https://youtu.be/dQw4w9WgXcQ?si=share-token')
+            ->willReturn([]);
+
+        $this->persistProcessor->expects($this->once())
+            ->method('process')
+            ->with($this->callback(fn (DownloadJob $job) => 'ytdlp:Youtube:dQw4w9WgXcQ' === $job->getCanonicalKey()
+                // The submitted URI is kept as is: the key is only used to detect duplicates
+                && 'https://youtu.be/dQw4w9WgXcQ?si=share-token' === $job->getUri()));
         $this->messengerProcessor->expects($this->once())->method('process');
 
         $this->processor->process($data, $this->operation);

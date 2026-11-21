@@ -18,6 +18,15 @@ Usage:
         Refuses non-http(s) URLs and hosts resolving to non-public addresses. A supported page yields one
         extractor per registrable domain, as SiteExtractor keys are unique across sites:
         -> {"extractors": [{"tool": "yt-dlp", "key": "Generic:example.com", "family": "example.com"}]}
+    resolve_url.py canonical <url>
+        Offline. The media identity the tools derive from the URL, for duplicate detection: the first yt-dlp
+        extractor (Generic excluded) that accepts the URL and yields a non-empty ID, and the gallery-dl extractor
+        with its URL pattern groups. Like "resolve", retries with the host variants when the URL matches nothing.
+        -> {"ytdlp": {"ie": "Twitter", "id": "123"} | null,
+            "gdl": {"category": "twitter", "subcategory": "tweet", "groups": ["user", "123"]} | null}
+    resolve_url.py canonical-batch
+        "canonical" for many URLs: reads one JSON string URL per line on stdin, writes one JSON object per line
+        to stdout, in the same order: {"url": <url>, "ytdlp": ..., "gdl": ...}
     resolve_url.py catalog <json: ["twitter", "youtube"]>
         All extractors of the given families, with the hosts known from their roots, examples and tests:
         -> {"extractors": [{"tool": "yt-dlp", "key": "Twitter", "family": "twitter", "hosts": ["x.com", ...]}, ...]}
@@ -183,6 +192,84 @@ def _match(url):
     return extractors
 
 
+def _canonical_ytdlp(url, classes):
+    for cls in classes:
+        if not cls.suitable(url):
+            continue
+        try:
+            media_id = cls._match_id(url)
+        except Exception:  # noqa: BLE001 - patterns without an "id" group, unexpected extractor errors
+            media_id = None
+        if media_id is not None and str(media_id) != '':
+            return {'ie': cls.ie_key(), 'id': str(media_id)}
+    return None
+
+
+def _canonical_gdl(url):
+    from gallery_dl import extractor
+
+    match = extractor.find(url)
+    if match is None:
+        return None
+    groups = getattr(match, 'groups', None)
+    if groups is None:
+        groups = match.match.groups()
+    return {
+        'category': match.category,
+        'subcategory': match.subcategory,
+        'groups': ['' if group is None else str(group) for group in groups],
+    }
+
+
+def _canonical_once(url, ytdlp_classes):
+    result = {'ytdlp': None, 'gdl': None}
+    if ytdlp_classes is not None:
+        result['ytdlp'] = _canonical_ytdlp(url, ytdlp_classes)
+    try:
+        result['gdl'] = _canonical_gdl(url)
+    except ImportError:
+        logger.debug('gallery-dl is not available')
+    return result
+
+
+def canonical(url, ytdlp_classes=None):
+    if ytdlp_classes is None:
+        try:
+            ytdlp_classes = _yt_dlp_classes()
+        except ImportError:
+            logger.debug('yt-dlp is not available')
+
+    result = _canonical_once(url, ytdlp_classes)
+    host = _host(url)
+    if result['ytdlp'] is None and result['gdl'] is None and host and not _is_ip(host):
+        for variant in _host_variants(host):
+            candidate = _canonical_once(_with_host(url, variant), ytdlp_classes)
+            if candidate['ytdlp'] is not None or candidate['gdl'] is not None:
+                logger.debug('Host variant %s matched', variant)
+                return candidate
+
+    logger.debug('Canonical identity: yt-dlp %s, gallery-dl %s', result['ytdlp'] is not None, result['gdl'] is not None)
+    return result
+
+
+def canonical_batch(lines, out):
+    try:
+        ytdlp_classes = _yt_dlp_classes()
+    except ImportError:
+        logger.debug('yt-dlp is not available')
+        ytdlp_classes = None
+
+    for line in lines:
+        line = line.strip()
+        if not line:
+            continue
+        url = json.loads(line)
+        if not isinstance(url, str):
+            raise ValueError('Expected one JSON string per line')
+        out.write(json.dumps({'url': url, **canonical(url, ytdlp_classes)}) + '\n')
+        out.flush()
+
+
 def _public_host_error(url):
     """Why the URL must not be fetched from the server, or None. Redirects are not re-checked."""
     try:
@@ -305,7 +392,11 @@ def catalog(families):
 
 
 def main(argv):
-    if len(argv) != 3 or argv[1] not in ('resolve', 'probe', 'catalog'):
+    if len(argv) == 2 and argv[1] == 'canonical-batch':
+        canonical_batch(sys.stdin, sys.stdout)
+        return 0
+
+    if len(argv) != 3 or argv[1] not in ('resolve', 'probe', 'catalog', 'canonical'):
         print(__doc__, file=sys.stderr)
         return 2
 
@@ -313,6 +404,8 @@ def main(argv):
         output = resolve(argv[2])
     elif argv[1] == 'probe':
         output = probe(argv[2])
+    elif argv[1] == 'canonical':
+        output = canonical(argv[2])
     else:
         output = catalog(json.loads(argv[2]))
 

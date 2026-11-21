@@ -87,6 +87,15 @@ class Site
     #[ORM\OneToOne(mappedBy: 'site', cascade: ['persist', 'remove'])]
     private ?SiteSetting $defaultSetting = null;
 
+    /**
+     * Canonicalization profile settings from config/sites.yaml ("profile" and the fields of
+     * App\Service\Canonical\CanonicalProfile::OVERRIDABLE_FIELDS). Server-only.
+     *
+     * @var array<string, mixed>|null
+     */
+    #[ORM\Column(type: Types::JSON, nullable: true, options: ['jsonb' => true])]
+    private ?array $canonicalization = null;
+
     public function __construct()
     {
         $this->extractors = new ArrayCollection();
@@ -219,6 +228,24 @@ class Site
             $defaultSetting->setSite($this);
         }
         $this->defaultSetting = $defaultSetting;
+
+        return $this;
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    public function getCanonicalization(): ?array
+    {
+        return $this->canonicalization;
+    }
+
+    /**
+     * @param array<string, mixed>|null $canonicalization
+     */
+    public function setCanonicalization(?array $canonicalization): static
+    {
+        $this->canonicalization = [] === $canonicalization ? null : $canonicalization;
 
         return $this;
     }
