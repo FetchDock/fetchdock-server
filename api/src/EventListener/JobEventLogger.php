@@ -2,6 +2,7 @@
 
 namespace App\EventListener;
 
+use App\Entity\DownloadJob;
 use App\Entity\DownloadJobEvent;
 use App\Event\JobCompletedEvent;
 use App\Event\JobFailedEvent;
@@ -43,7 +44,23 @@ class JobEventLogger
 
     private function storeDownloadJobEvent(DownloadJobEvent $jobEvent): void
     {
-        $this->entityManager->persist($jobEvent->getDownloadJob());
+        $downloadJob = $jobEvent->getDownloadJob();
+        if (null !== $downloadJob && !$this->entityManager->contains($downloadJob)) {
+            // Events may carry a copy of the job (e.g. the worker's message). Persisting that copy would schedule an
+            // INSERT of an existing job (duplicate uuid), so link the event to the stored job, or skip it when there
+            // is none: the event is only bookkeeping and must not break the job's own error handling.
+            $stored = null !== $downloadJob->getId() ? $this->entityManager->find(DownloadJob::class, $downloadJob->getId()) : null;
+            if (null === $stored) {
+                $this->logger->warning('Not storing a download job event: the job is not stored', [
+                    'job_uuid' => $downloadJob->getUuid()?->toRfc4122(),
+                    'event' => $jobEvent->getEvent(),
+                ]);
+
+                return;
+            }
+            $jobEvent->setDownloadJob($stored);
+        }
+
         $this->entityManager->persist($jobEvent);
         $this->entityManager->flush();
     }
