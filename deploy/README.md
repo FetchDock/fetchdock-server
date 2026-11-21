@@ -6,7 +6,7 @@ redeploys them through the Portainer API and waits until the app reports the new
 
 | | Production | Staging |
 |---|---|---|
-| Trigger | Stable (non-pre-release) GitHub release, after approval in the `production` environment | Every `develop` commit that passed CI (also manual: *Actions → Staging → Run workflow*) |
+| Trigger | Stable (non-pre-release) GitHub release that is the **highest stable version tag**, after approval in the `production` environment. Maintenance releases of older lines only publish images | Every `develop` commit that passed CI (also manual: *Actions → Staging → Run workflow*) |
 | Workflow | `publish.yml` → `deploy.yml` | `staging.yml` → `deploy.yml` |
 | Images | `X.Y.Z` | `sha-<commit>` (and `develop`); version `X.Y.(Z+1)-dev.<commit>` |
 | Compose files | `deploy/compose.yaml` + `deploy/compose.production.yaml` at `refs/tags/X.Y.Z` | `deploy/compose.yaml` + `deploy/compose.staging.yaml` at `refs/heads/develop` |
@@ -86,6 +86,7 @@ Production also mounts `/mnt`, because download destinations may point there. St
 copied settings may point at production paths. Downloads that target such paths fail on staging.
 
 ## Operations
+- **Maintenance releases:** a stable release whose tag isn't the highest stable semver tag (e.g. 0.7.5 after 0.8.0) publishes its images, but the *Check production eligibility* job skips the deploy and notes it in the run summary.
 - **Roll back production:** re-run the *Production* job of an older release's *Publish Docker images* run,
   or redeploy the stack in Portainer at the older tag with that `DOCKER_TAG`. Migrations are not rolled back.
 - **Refresh staging without a new commit:** *Actions → Staging → Run workflow*.
