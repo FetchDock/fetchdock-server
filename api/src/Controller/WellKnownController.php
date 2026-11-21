@@ -38,8 +38,6 @@ final class WellKnownController extends AbstractController
         return $this->json(
             [
                 'DEPRECATION_WARNINGS' => [
-                    '.auth_mode' => 'WILL BE REMOVED ON NEXT BROWSER EXTENSION UPDATE. USE .auth.mode INSTEAD',
-                    '.oauth2.*' => 'WILL BE REMOVED ON NEXT BROWSER EXTENSION UPDATE. USE .auth.oauth2.* INSTEAD',
                 ],
                 'authentication' => [
                     'enabled' => true,
@@ -56,19 +54,6 @@ final class WellKnownController extends AbstractController
                         ),
                         'scopes' => self::SCOPES,
                     ],
-                ],
-                'auth_mode' => 'oauth2',
-                'oauth2' => [
-                    'client_id' => $this->clientId,
-                    'authorization_endpoint' => $this->generateUrl(
-                        route: 'app_start_oauth2_flow',
-                        referenceType: UrlGeneratorInterface::ABSOLUTE_URL
-                    ),
-                    'token_endpoint' => $this->generateUrl(
-                        route: 'app_auth_token',
-                        referenceType: UrlGeneratorInterface::ABSOLUTE_URL
-                    ),
-                    'scopes' => self::SCOPES,
                 ],
                 'config' => [
                     'mercure' => [
