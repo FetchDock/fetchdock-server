@@ -32,6 +32,8 @@ mercure:
   publicUrl: https://chart-example.local/.well-known/mercure
   # Change me!
   jwtSecret: "!ChangeThisMercureHubJWTSecretKey!"
+  # Optional separate key for subscriber tokens (a leaked subscriber key can't publish); defaults to jwtSecret
+  subscriberJwtSecret: ""
   extraDirectives: cors_origins http://chart-example.local https://chart-example.local
 
 # Full configuration: https://github.com/bitnami/charts/tree/master/bitnami/postgresql
