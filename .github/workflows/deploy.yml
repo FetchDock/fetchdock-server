@@ -1,0 +1,51 @@
+name: Deploy
+
+# Reusable: redeploys the Portainer Git stack of a GitHub environment (production or staging).
+# Per environment, configure in Settings → Environments (see deploy/README.md):
+#   secret   PORTAINER_API_KEY
+#   vars     PORTAINER_URL, PORTAINER_STACK_ID, PORTAINER_ENDPOINT_ID, APP_URL
+on:
+  workflow_call:
+    inputs:
+      environment:
+        type: string
+        required: true
+      git-ref:
+        description: Git ref the stack's compose files are read from, e.g. refs/tags/0.7.2
+        type: string
+        required: true
+      docker-tag:
+        description: Image tag to deploy
+        type: string
+        required: true
+      expected-version:
+        description: Version the app must report on /.well-known/browser-extension
+        type: string
+        required: true
+
+jobs:
+  deploy:
+    name: Deploy to ${{ inputs.environment }}
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ inputs.environment }}
+      url: ${{ vars.APP_URL }}
+    concurrency:
+      group: deploy-${{ inputs.environment }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          sparse-checkout: .github/scripts
+      - name: Redeploy Portainer stack
+        env:
+          PORTAINER_URL: ${{ vars.PORTAINER_URL }}
+          PORTAINER_API_KEY: ${{ secrets.PORTAINER_API_KEY }}
+          PORTAINER_STACK_ID: ${{ vars.PORTAINER_STACK_ID }}
+          PORTAINER_ENDPOINT_ID: ${{ vars.PORTAINER_ENDPOINT_ID }}
+          APP_URL: ${{ vars.APP_URL }}
+          GIT_REF: ${{ inputs.git-ref }}
+          DOCKER_TAG: ${{ inputs.docker-tag }}
+          EXPECTED_VERSION: ${{ inputs.expected-version }}
+          DEPLOY_ID: ${{ github.run_id }}-${{ github.run_attempt }}
+        run: bash .github/scripts/portainer-redeploy.sh

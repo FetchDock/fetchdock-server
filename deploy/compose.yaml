@@ -1,0 +1,90 @@
+# Base stack for Portainer Git stacks (production and staging). See deploy/README.md.
+# Images come from GHCR; everything environment-specific is a stack environment variable in Portainer.
+# Combine with deploy/compose.production.yaml or deploy/compose.staging.yaml ("Additional paths").
+
+x-app-environment: &app-environment
+  # TLS ends at the reverse proxy: Caddy serves plain HTTP on :80 for any host, without automatic HTTPS.
+  # A host name here would make Caddy redirect HTTP to HTTPS and request its own certificate.
+  # The stack's SERVER_NAME is only the public host name (Mercure URL, trusted hosts).
+  SERVER_NAME: ":80"
+  MERCURE_PUBLISHER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET:?}
+  MERCURE_SUBSCRIBER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET:?}
+  MERCURE_JWT_SECRET: ${CADDY_MERCURE_JWT_SECRET:?}
+  CADDY_MERCURE_JWT_SECRET: ${CADDY_MERCURE_JWT_SECRET:?}
+  TRUSTED_PROXIES: ${TRUSTED_PROXIES:-127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16}
+  TRUSTED_HOSTS: ${TRUSTED_HOSTS:-^(${SERVER_NAME:?}|php)$$}
+  DATABASE_URL: postgresql://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:?}@${POSTGRES_HOST:?}:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-app}?serverVersion=${POSTGRES_VERSION:-16}&charset=${POSTGRES_CHARSET:-utf8}
+  MERCURE_URL: ${CADDY_MERCURE_URL:-http://php/.well-known/mercure}
+  MERCURE_PUBLIC_URL: ${CADDY_MERCURE_PUBLIC_URL:-https://${SERVER_NAME:?}/.well-known/mercure}
+
+services:
+  php:
+    image: ${IMAGES_PREFIX:-ghcr.io/fetchdock/fetchdock-server}-api:${DOCKER_TAG:?}
+    restart: unless-stopped
+    environment:
+      <<: *app-environment
+      PWA_UPSTREAM: pwa:3000
+      NODE_MODE: php
+      CORS_ALLOW_ORIGIN: ${CORS_ALLOW_ORIGIN:?}
+      OIDC_ENABLED: ${OIDC_ENABLED:-1}
+      OIDC_CLIENT_ID: ${OIDC_AUDIENCE:?}
+      OIDC_AUDIENCE: ${OIDC_AUDIENCE:?}
+      OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET:?}
+      OIDC_WELL_KNOWN_URL: ${OIDC_WELL_KNOWN_URL:?}
+      OIDC_TOKEN_URL: ${OIDC_TOKEN_URL:?}
+      OIDC_AUTHORIZATION_URL: ${OIDC_AUTHORIZATION_URL:?}
+      OIDC_DISCOVERY_BASE_URI: ${OIDC_DISCOVERY_BASE_URI:?}
+      OIDC_ISSUER: ${OIDC_ISSUER:?}
+      NEXT_PUBLIC_OIDC_ISSUER: ${NEXT_PUBLIC_OIDC_ISSUER:?}
+      NEXT_PUBLIC_OIDC_CLIENT_ID: ${NEXT_PUBLIC_OIDC_CLIENT_ID:?}
+      NEXT_PUBLIC_OIDC_REDIRECT_URI: ${NEXT_PUBLIC_OIDC_REDIRECT_URI:?}
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+      - ${GALLERY_DL_CONFIG:?}:/app/config/gallery-dl/config.json:ro
+      - ${DOWNLOADS_PATH:?}:/downloads
+    ports:
+      # HTTP only: TLS is terminated by the reverse proxy.
+      - target: 80
+        published: ${HTTP_PORT:?}
+        protocol: tcp
+    healthcheck:
+      test: curl --fail http://localhost/docs || exit 1
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+
+  worker:
+    image: ${IMAGES_PREFIX:-ghcr.io/fetchdock/fetchdock-server}-api:${DOCKER_TAG:?}
+    deploy:
+      mode: replicated
+      replicas: ${WORKER_REPLICAS:-10}
+    restart: unless-stopped
+    environment:
+      <<: *app-environment
+      PWA_UPSTREAM: pwa:3000
+      NODE_MODE: worker
+    volumes:
+      - ${GALLERY_DL_CONFIG:?}:/app/config/gallery-dl/config.json:ro
+      - ${DOWNLOADS_PATH:?}:/downloads
+    command: bin/console messenger:consume async --limit=100 -vv
+    healthcheck:
+      test: ["CMD", "true"]
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+
+  pwa:
+    image: ${IMAGES_PREFIX:-ghcr.io/fetchdock/fetchdock-server}-pwa:${DOCKER_TAG:?}
+    restart: unless-stopped
+    environment:
+      NEXT_PUBLIC_ENTRYPOINT: http://php
+    healthcheck:
+      test: curl -f http://localhost:3000 || exit 1
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+
+volumes:
+  caddy_data:
+  caddy_config:
