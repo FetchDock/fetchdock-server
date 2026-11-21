@@ -3,16 +3,19 @@
 # Combine with deploy/compose.production.yaml or deploy/compose.staging.yaml ("Additional paths").
 
 x-app-environment: &app-environment
-  SERVER_NAME: ${SERVER_NAME:-localhost}, php:80
+  # TLS ends at the reverse proxy: Caddy serves plain HTTP on :80 for any host, without automatic HTTPS.
+  # A host name here would make Caddy redirect HTTP to HTTPS and request its own certificate.
+  # The stack's SERVER_NAME is only the public host name (Mercure URL, trusted hosts).
+  SERVER_NAME: ":80"
   MERCURE_PUBLISHER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET:?}
   MERCURE_SUBSCRIBER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET:?}
   MERCURE_JWT_SECRET: ${CADDY_MERCURE_JWT_SECRET:?}
   CADDY_MERCURE_JWT_SECRET: ${CADDY_MERCURE_JWT_SECRET:?}
   TRUSTED_PROXIES: ${TRUSTED_PROXIES:-127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16}
-  TRUSTED_HOSTS: ${TRUSTED_HOSTS:-^${SERVER_NAME:-example\.com|localhost}|php$$}
+  TRUSTED_HOSTS: ${TRUSTED_HOSTS:-^(${SERVER_NAME:?}|php)$$}
   DATABASE_URL: postgresql://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:?}@${POSTGRES_HOST:?}:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-app}?serverVersion=${POSTGRES_VERSION:-16}&charset=${POSTGRES_CHARSET:-utf8}
   MERCURE_URL: ${CADDY_MERCURE_URL:-http://php/.well-known/mercure}
-  MERCURE_PUBLIC_URL: ${CADDY_MERCURE_PUBLIC_URL:-https://${SERVER_NAME:-localhost}/.well-known/mercure}
+  MERCURE_PUBLIC_URL: ${CADDY_MERCURE_PUBLIC_URL:-https://${SERVER_NAME:?}/.well-known/mercure}
 
 services:
   php:

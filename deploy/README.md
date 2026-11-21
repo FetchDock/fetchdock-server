@@ -51,8 +51,9 @@ Note each stack's ID and the environment (endpoint) ID from the stack URL:
 `…/#!/<endpointId>/docker/stacks/<name>?id=<stackId>`.
 
 ### 4. Reverse proxy (nginx-proxy-manager)
-Point a host at `<docker host>:<HTTP_PORT>` for each stack, with WebSockets support and long timeouts for
-Mercure (Server-Sent Events). TLS ends at the proxy; the containers serve HTTP only.
+Point a host at `<docker host>:<HTTP_PORT>` for each stack with scheme **`http`**, with WebSockets support and
+long timeouts for Mercure (Server-Sent Events). TLS ends at the proxy; the containers serve plain HTTP only
+(Caddy listens on `:80` without automatic HTTPS), so `https://<docker host>:<HTTP_PORT>` does not work.
 
 ### 5. GitHub
 *Settings → Environments*, for `production` and `staging`:
@@ -67,10 +68,11 @@ Mercure (Server-Sent Events). TLS ends at the proxy; the containers serve HTTP o
 |---|---|
 | `DOCKER_TAG` | Image tag. Overwritten by every deploy |
 | `HTTP_PORT` | Host port for the reverse proxy, e.g. `4080` (production), `4180` (staging) |
-| `SERVER_NAME` | Public host name |
+| `SERVER_NAME` | Public host name only, e.g. `staging.fetchdock.dev` (no scheme or port). Used for the Mercure URL and trusted hosts; Caddy itself always serves `:80` |
 | `CADDY_MERCURE_JWT_SECRET` | **Different** per stack |
 | `CADDY_MERCURE_PUBLIC_URL` | Optional, defaults to `https://${SERVER_NAME}/.well-known/mercure` |
-| `TRUSTED_PROXIES`, `TRUSTED_HOSTS`, `CORS_ALLOW_ORIGIN` | As before |
+| `TRUSTED_HOSTS` | Optional, defaults to `^(${SERVER_NAME}\|php)$`. Requests by IP (e.g. `http://10.1.4.3:4180`) get a 400 unless you add the IP here |
+| `TRUSTED_PROXIES`, `CORS_ALLOW_ORIGIN` | As before. `TRUSTED_PROXIES` must include the reverse proxy |
 | `POSTGRES_HOST`, `POSTGRES_PORT`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` | Staging: the staging role and database |
 | `POSTGRES_VERSION` | Server **major** version, e.g. `17` (default `16`). Used for Doctrine's `serverVersion` and, on staging, for the `db-refresh` image: `pg_dump` must match the server |
 | `OIDC_*`, `NEXT_PUBLIC_OIDC_*` | Staging: the staging OIDC application |
