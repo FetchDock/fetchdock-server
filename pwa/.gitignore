@@ -26,7 +26,8 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# local env files
+# local env files (.env.dist is the committed template)
+/.env
 .env*.local
 
 # vercel
