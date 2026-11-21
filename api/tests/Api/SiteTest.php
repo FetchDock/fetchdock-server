@@ -4,6 +4,9 @@ namespace App\Tests\Api;
 
 use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
 use ApiPlatform\Symfony\Bundle\Test\Client;
+use App\Entity\Site;
+use App\Entity\SiteSetting;
+use Doctrine\ORM\EntityManagerInterface;
 
 class SiteTest extends ApiTestCase
 {
@@ -33,6 +36,34 @@ class SiteTest extends ApiTestCase
         $this->assertNotContains('example.onion', $twitter['domains'], 'tool host outside the curated domains');
         $this->assertArrayNotHasKey('extractors', $twitter, 'extractors are only in the item');
         $this->assertArrayNotHasKey('id', $twitter);
+    }
+
+    public function testSiteWithoutDefaultsHasNullDefaults(): void
+    {
+        $twitter = $this->findSlug($this->get('/sites', ['itemsPerPage' => 1000])['member'], 'twitter');
+
+        $this->assertSame(['sendCookies' => null, 'sendUserAgent' => null, 'sendReferrer' => null, 'downloader' => null], $twitter['defaults']);
+    }
+
+    public function testExposesSiteDefaults(): void
+    {
+        $em = static::getContainer()->get(EntityManagerInterface::class);
+        $site = $em->getRepository(Site::class)->findOneBy(['slug' => 'twitter']);
+        $site->setDefaultSetting(($site->getDefaultSetting() ?? new SiteSetting())
+            ->setSendCookies(true)
+            ->setSendReferrer(false)
+            ->setDownloader('gallery-dl-cli'));
+        $em->flush();
+
+        try {
+            $expected = ['sendCookies' => true, 'sendUserAgent' => null, 'sendReferrer' => false, 'downloader' => 'gallery-dl-cli'];
+            $this->assertSame($expected, $this->findSlug($this->get('/sites', ['itemsPerPage' => 1000])['member'], 'twitter')['defaults']);
+            $this->assertSame($expected, $this->get('/sites/twitter')['defaults']);
+        } finally {
+            // The database isn't reset between tests, and app:sites:sync keeps defaults that sites.yaml doesn't set
+            $em->createQuery('DELETE FROM '.SiteSetting::class.' s WHERE s.site = :site')->execute(['site' => $site]);
+            $em->clear();
+        }
     }
 
     public function testSearchMatchesNameAndDomain(): void
