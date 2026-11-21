@@ -96,6 +96,10 @@ class Site
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['jsonb' => true])]
     private ?array $canonicalization = null;
 
+    /** Admin override of the canonicalization settings, applied on top of $canonicalization. Server-only. */
+    #[ORM\OneToOne(mappedBy: 'site', cascade: ['persist', 'remove'])]
+    private ?SiteCanonicalizationOverride $canonicalizationOverride = null;
+
     public function __construct()
     {
         $this->extractors = new ArrayCollection();
@@ -246,6 +250,21 @@ class Site
     public function setCanonicalization(?array $canonicalization): static
     {
         $this->canonicalization = [] === $canonicalization ? null : $canonicalization;
+
+        return $this;
+    }
+
+    public function getCanonicalizationOverride(): ?SiteCanonicalizationOverride
+    {
+        return $this->canonicalizationOverride;
+    }
+
+    public function setCanonicalizationOverride(?SiteCanonicalizationOverride $override): static
+    {
+        if (null !== $override && $override->getSite() !== $this) {
+            $override->setSite($this);
+        }
+        $this->canonicalizationOverride = $override;
 
         return $this;
     }

@@ -89,6 +89,8 @@ class SiteSynchronizer
         $this->entityManager->flush();
 
         $this->cache->invalidateTags([SiteResolver::CACHE_TAG]);
+        // Sites' canonicalization settings may have changed
+        $this->canonicalProfileRegistry->invalidate();
 
         return ['sites' => count($definitions), 'extractors' => $extractorCount, 'removedSites' => $removedSites];
     }

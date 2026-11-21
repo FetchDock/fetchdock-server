@@ -16,6 +16,7 @@ import { Resource } from "react-admin";
 import { AdminDownloadJobList, AdminDownloadJobShow } from "./downloads/AdminDownloadJobs";
 import { AdminDownloadedFileList, AdminDownloadedFileShow } from "./downloads/AdminDownloadedFiles";
 import { FILE_RESOURCE, JOB_RESOURCE } from "./downloads/common";
+import { SiteShow } from "./sites/SiteShow";
 
 const fetchHydra = (url: URL, options?: Record<string, any>) =>
   baseFetchHydra(url, {
@@ -128,7 +129,7 @@ const resources = (roles: Permissions) => [
   <ResourceGuesser key="download_jobs" name="download_jobs" />,
   <ResourceGuesser key="downloaders" name="downloaders" />,
   <ResourceGuesser key="versions" name="versions" />,
-  <ResourceGuesser key="sites" name="sites" />,
+  <ResourceGuesser key="sites" name="sites" show={SiteShow} />,
   <ResourceGuesser key="users/clients" name="users/clients" />,
   <ResourceGuesser key="users/settings/downloaders" name="users/settings/downloaders" />,
   <ResourceGuesser key="users/settings/sites" name="users/settings/sites" />,
