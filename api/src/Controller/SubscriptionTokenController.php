@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Mercure\AdminTopics;
 use App\Mercure\UserTopics;
 use App\Repository\OidcSubjectIdentifierRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -14,7 +15,8 @@ use Symfony\Component\Routing\Attribute\Route;
 /**
  * Issues short-lived Mercure subscriber tokens to authenticated clients.
  *
- * A token only allows subscribing to the current user's own topics (see UserTopics) and carries no publish rights.
+ * A token only allows subscribing to the current user's own topics (see UserTopics), plus the admin topics for users
+ * with ROLE_VIEW_ALL_DOWNLOADS (see AdminTopics), and carries no publish rights.
  * Clients present it to the hub as the "authorization" query parameter, an "Authorization: Bearer" header, or a cookie.
  */
 final class SubscriptionTokenController extends AbstractController
@@ -22,6 +24,7 @@ final class SubscriptionTokenController extends AbstractController
     public function __construct(
         private readonly HubInterface $hub,
         private readonly OidcSubjectIdentifierRepository $oidcSubjectIdentifierRepository,
+        private readonly AdminTopics $adminTopics,
         #[Autowire(param: 'app.mercure.subscription_token_ttl')]
         private readonly int $tokenTtl,
     ) {
@@ -38,6 +41,10 @@ final class SubscriptionTokenController extends AbstractController
 
         $factory = $this->hub->getFactory() ?? throw new \LogicException('The Mercure hub has no token factory configured.');
         $topics = [UserTopics::subscribeSelector($user)];
+        if ($this->isGranted('ROLE_VIEW_ALL_DOWNLOADS')) {
+            // All users' download jobs, as the /admin/... resources (see AdminTopics)
+            $topics[] = $this->adminTopics->subscribeSelector();
+        }
         $expiresAt = new \DateTimeImmutable("+{$this->tokenTtl} seconds");
 
         // Subscribe to the user's own topics only; null for publish adds no publish claim at all
