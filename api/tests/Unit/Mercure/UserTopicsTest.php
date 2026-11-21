@@ -18,6 +18,7 @@ class UserTopicsTest extends TestCase
         $this->assertSame($prefix, UserTopics::prefix($owner));
         $this->assertSame($prefix.'/{+path}', UserTopics::subscribeSelector($owner));
         $this->assertSame($prefix.'/download_jobs/'.$job->getUuid()->toRfc4122(), UserTopics::downloadJob($job));
+        $this->assertSame($prefix.'/settings', UserTopics::settings($owner));
         $this->assertSame($prefix.'/download_jobs/'.$job->getUuid()->toRfc4122().'/output', UserTopics::downloadJobOutput($job));
     }
 

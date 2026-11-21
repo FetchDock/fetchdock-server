@@ -7,6 +7,7 @@ use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
 use ApiPlatform\Validator\Exception\ValidationException;
 use App\Entity\ClientPreference;
+use App\Mercure\SettingsChangePublisher;
 use App\Repository\ClientPreferenceRepository;
 use App\Resource\Settings\ClientPreferences;
 use App\Security\CurrentOwner;
@@ -31,6 +32,7 @@ final readonly class ClientPreferencesProcessor implements ProcessorInterface
         private CurrentOwner $currentOwner,
         private ClientPreferenceRepository $clientPreferenceRepository,
         private EntityManagerInterface $entityManager,
+        private SettingsChangePublisher $settingsChangePublisher,
     ) {
     }
 
@@ -44,6 +46,7 @@ final readonly class ClientPreferencesProcessor implements ProcessorInterface
             if (null !== $preference) {
                 $this->entityManager->remove($preference);
                 $this->entityManager->flush();
+                $this->settingsChangePublisher->publish($owner, SettingsChangePublisher::LAYER_CLIENT_PREFERENCES, ['clientType' => $clientType], SettingsChangePublisher::ACTION_DELETED);
             }
 
             return null;
@@ -53,6 +56,7 @@ final readonly class ClientPreferencesProcessor implements ProcessorInterface
         $preference->setData($this->decodeData($context['request'] ?? null, $data));
         $this->entityManager->persist($preference);
         $this->entityManager->flush();
+        $this->settingsChangePublisher->publish($owner, SettingsChangePublisher::LAYER_CLIENT_PREFERENCES, ['clientType' => $clientType]);
 
         return ClientPreferences::fromEntity($clientType, $preference);
     }

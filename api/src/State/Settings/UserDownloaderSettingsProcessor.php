@@ -6,6 +6,7 @@ use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
 use App\Entity\UserDownloaderSetting;
 use App\Factory\DownloaderFactory;
+use App\Mercure\SettingsChangePublisher;
 use App\Repository\UserDownloaderSettingRepository;
 use App\Resource\Settings\UserDownloaderSettings;
 use App\Security\CurrentOwner;
@@ -23,6 +24,7 @@ final readonly class UserDownloaderSettingsProcessor implements ProcessorInterfa
         private DownloaderFactory $downloaderFactory,
         private UserDownloaderSettingRepository $userDownloaderSettingRepository,
         private EntityManagerInterface $entityManager,
+        private SettingsChangePublisher $settingsChangePublisher,
         private DownloaderOptionsGuard $optionsGuard,
     ) {
     }
@@ -45,6 +47,7 @@ final readonly class UserDownloaderSettingsProcessor implements ProcessorInterfa
 
         $this->entityManager->persist($data->applyTo($setting, $fields));
         $this->entityManager->flush();
+        $this->settingsChangePublisher->publish($owner, SettingsChangePublisher::LAYER_DOWNLOADER, ['downloader' => $downloader]);
 
         return UserDownloaderSettings::fromEntity($downloader, $setting);
     }
