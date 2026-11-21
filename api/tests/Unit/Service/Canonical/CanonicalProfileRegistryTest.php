@@ -3,10 +3,13 @@
 namespace App\Tests\Unit\Service\Canonical;
 
 use App\Entity\Site;
+use App\Entity\SiteCanonicalizationOverride;
 use App\Service\Canonical\CanonicalProfileRegistry;
 use App\Tests\Double\CanonicalKeyGenerators;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Cache\Adapter\ArrayAdapter;
+use Symfony\Component\Cache\Adapter\TagAwareAdapter;
 
 class CanonicalProfileRegistryTest extends TestCase
 {
@@ -44,6 +47,39 @@ class CanonicalProfileRegistryTest extends TestCase
         $this->assertTrue($profile->stripTrailingSlash);
         $this->assertContains('sort', $profile->dropParams);
         $this->assertContains('utm_*', $profile->dropParams);
+    }
+
+    public function testAdminOverrideWinsOverSiteSettings(): void
+    {
+        $registry = CanonicalKeyGenerators::profileRegistry();
+        $site = new Site()->setSlug('mirror')->setCanonicalization(['profile' => 'reddit', 'stripWww' => false, 'dropParams' => ['sort']]);
+        $site->setCanonicalizationOverride(new SiteCanonicalizationOverride()->setProfile('twitter')->setStripWww(null)->setUseExtractorId(false)->setDropParams(['page']));
+
+        $profile = $registry->forSite($site);
+
+        $this->assertSame('twitter', $profile->name);
+        // Null inherits: the site setting applies
+        $this->assertFalse($profile->stripWww);
+        $this->assertFalse($profile->useExtractorId);
+        $this->assertContains('sort', $profile->dropParams);
+        $this->assertContains('page', $profile->dropParams);
+        $this->assertSame(['tweet' => [1]], $profile->idGroups);
+    }
+
+    public function testSiteProfilesAreCachedUntilInvalidated(): void
+    {
+        $registry = new CanonicalProfileRegistry(
+            ['default' => [], 'reddit' => ['stripWww' => true]],
+            new TagAwareAdapter(new ArrayAdapter()),
+        );
+        $site = new Site()->setSlug('cached');
+
+        $this->assertFalse($registry->forSite($site)->stripWww);
+        $site->setCanonicalizationOverride(new SiteCanonicalizationOverride()->setProfile('reddit'));
+        $this->assertFalse($registry->forSite($site)->stripWww, 'cached');
+
+        $registry->invalidate();
+        $this->assertTrue($registry->forSite($site)->stripWww);
     }
 
     public function testInvalidStoredSiteSettingsFallBackToTheBaseProfile(): void

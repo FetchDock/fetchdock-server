@@ -4,16 +4,23 @@ namespace App\Service\Canonical;
 
 use App\Entity\Site;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Contracts\Cache\ItemInterface;
+use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 /**
  * The canonicalization profiles: code profiles (config/packages/url_canonicalization.yaml), each
- * extending "default", adjusted per site by Site::getCanonicalization() (config/sites.yaml).
+ * extending "default", adjusted per site by Site::getCanonicalization() (config/sites.yaml), then by
+ * the site's SiteCanonicalizationOverride (admin).
  *
- * A site uses the profile it names ("profile:"), else the code profile named after its slug, else "default".
+ * A site uses the profile its admin override or settings name ("profile"), else the code profile named after
+ * its slug, else "default". Site profiles are cached (tag CACHE_TAG).
  */
 final class CanonicalProfileRegistry
 {
     public const string DEFAULT_PROFILE = 'default';
+    /** Tag of the cached site profiles, invalidated when sites' settings or overrides change */
+    public const string CACHE_TAG = 'canonical_profiles';
+    private const int CACHE_TTL = 86400;
 
     /** @var array<string, CanonicalProfile> */
     private array $profiles = [];
@@ -24,6 +31,7 @@ final class CanonicalProfileRegistry
     public function __construct(
         #[Autowire('%app.url_canonicalization.profiles%')]
         array $profiles,
+        private readonly ?TagAwareCacheInterface $cache = null,
     ) {
         $base = new CanonicalProfile(self::DEFAULT_PROFILE);
         $this->profiles[self::DEFAULT_PROFILE] = $base->with($profiles[self::DEFAULT_PROFILE] ?? [], self::DEFAULT_PROFILE, CanonicalProfile::CODE_FIELDS);
@@ -62,20 +70,49 @@ final class CanonicalProfileRegistry
         if (null === $site) {
             return $this->profiles[self::DEFAULT_PROFILE];
         }
-
-        $overrides = $site->getCanonicalization() ?? [];
-        $base = $this->resolveBase($site->getSlug(), $overrides);
-        unset($overrides['profile']);
-        if ([] === array_filter($overrides, static fn (mixed $value): bool => null !== $value)) {
-            return $base;
+        if (null === $this->cache || null === $site->getSlug()) {
+            return $this->resolveForSite($site);
         }
 
-        try {
-            return $base->with($overrides, $base->name);
-        } catch (\InvalidArgumentException) {
-            // Validated when synchronised; a broken stored value must not break submissions
-            return $base;
+        return $this->cache->get('canonical_profile.'.$site->getSlug(), function (ItemInterface $item) use ($site): CanonicalProfile {
+            $item->expiresAfter(self::CACHE_TTL);
+            $item->tag(self::CACHE_TAG);
+
+            return $this->resolveForSite($site);
+        });
+    }
+
+    /**
+     * Drops the cached site profiles: call after changing sites' canonicalization settings or overrides.
+     */
+    public function invalidate(): void
+    {
+        $this->cache?->invalidateTags([self::CACHE_TAG]);
+    }
+
+    /**
+     * The site's profile: the base profile adjusted by its config/sites.yaml settings, then by its admin override.
+     */
+    private function resolveForSite(Site $site): CanonicalProfile
+    {
+        $layers = [$site->getCanonicalization() ?? [], $site->getCanonicalizationOverride()?->toSettings() ?? []];
+        $profileName = $layers[1]['profile'] ?? $layers[0]['profile'] ?? null;
+        $profile = $this->resolveBase($site->getSlug(), ['profile' => $profileName]);
+
+        foreach ($layers as $settings) {
+            unset($settings['profile']);
+            $settings = array_filter($settings, static fn (mixed $value): bool => null !== $value);
+            if ([] === $settings) {
+                continue;
+            }
+            try {
+                $profile = $profile->with($settings, $profile->name);
+            } catch (\InvalidArgumentException) {
+                // Validated when written; a broken stored value must not break submissions
+            }
         }
+
+        return $profile;
     }
 
     /**
