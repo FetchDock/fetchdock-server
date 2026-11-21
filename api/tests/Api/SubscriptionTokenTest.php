@@ -4,6 +4,7 @@ namespace App\Tests\Api;
 
 use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
 use App\Entity\OidcSubjectIdentifier;
+use App\Mercure\AdminTopics;
 use Doctrine\ORM\EntityManagerInterface;
 
 class SubscriptionTokenTest extends ApiTestCase
@@ -44,6 +45,21 @@ class SubscriptionTokenTest extends ApiTestCase
         $adminTopics = $client->request('POST', '/users/me/subscription-token', ['headers' => $this->auth('admin', 'adminpass')])->toArray()['topics'];
 
         $this->assertNotSame($userTopics, $adminTopics);
+    }
+
+    public function testAdminsAlsoGetTheAdminTopics(): void
+    {
+        $client = static::createClient();
+
+        $data = $client->request('POST', '/users/me/subscription-token', ['headers' => $this->auth('admin', 'adminpass')])->toArray();
+
+        $adminSelector = self::getContainer()->get(AdminTopics::class)->subscribeSelector();
+        $userSelector = '/users/'.$this->user('admin')->getUuid()->toRfc4122().'/{+path}';
+        $this->assertSame([$userSelector, $adminSelector], $data['topics']);
+        $this->assertSame([$userSelector, $adminSelector], $this->decodeJwtPayload($data['token'])['mercure']['subscribe']);
+        // Same origin as the hub's public URL, which the admin uses as its topic base
+        $this->assertSame(parse_url($data['hubUrl'], PHP_URL_SCHEME).'://'.parse_url($data['hubUrl'], PHP_URL_HOST), parse_url($adminSelector, PHP_URL_SCHEME).'://'.parse_url($adminSelector, PHP_URL_HOST));
+        $this->assertStringEndsWith('/admin/{+path}', $adminSelector);
     }
 
     public function testRequiresAuthentication(): void
