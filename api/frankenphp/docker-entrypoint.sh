@@ -68,6 +68,11 @@ if [ "$1" = 'frankenphp' ] || [ "$1" = 'php' ] || [ "$1" = 'bin/console' ]; then
 			if ! php bin/console app:sites:sync --no-interaction; then
 				echo "[sites] WARNING: app:sites:sync failed" >&2
 			fi
+
+			# Canonical media keys of jobs created before #94; idempotent, not fatal (jobs without a key match by URI)
+			if ! php bin/console app:jobs:canonicalize --no-interaction; then
+				echo "[canonicalize] WARNING: app:jobs:canonicalize failed" >&2
+			fi
 		elif [ "$NODE_MODE" = "worker" ]; then
 			MIGRATION_POLL_INTERVAL=${MIGRATION_POLL_INTERVAL:-2}
 			MIGRATION_TIMEOUT=${MIGRATION_TIMEOUT:-300}

@@ -11,6 +11,9 @@
 #   enabled:    (optional, default true)
 #   defaults:   (optional) Site defaults: sendCookies, sendUserAgent, sendReferrer (bool), downloader
 #               (downloader identifier). Omitted = inherit the global defaults.
+#   canonicalization: (optional) Duplicate detection rules (see config/packages/url_canonicalization.yaml):
+#               profile (code profile name; default: the one named after the slug, else "default"),
+#               useExtractorId, keepParams, dropParams, stripWww, stripTrailingSlash, idGroups.
 sites:
     bluesky:
         name: Bluesky

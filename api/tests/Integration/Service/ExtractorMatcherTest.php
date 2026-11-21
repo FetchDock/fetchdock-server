@@ -2,8 +2,10 @@
 
 namespace App\Tests\Integration\Service;
 
+use App\Model\CanonicalExtractorMatch;
 use App\Model\ExtractorMatch;
 use App\Service\Site\ExtractorMatcher;
+use App\Tests\Double\CanonicalKeyGenerators;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
@@ -154,5 +156,49 @@ class ExtractorMatcherTest extends KernelTestCase
         $this->assertSame(['extractors' => []], json_decode($process->getOutput(), true, 16, JSON_THROW_ON_ERROR));
         $this->assertStringContainsString('gallery-dl is not available', $process->getErrorOutput());
         $this->assertStringContainsString('yt-dlp is not available', $process->getErrorOutput());
+    }
+
+    public static function urlSpellings(): iterable
+    {
+        yield 'share parameter' => ['https://vimeo.com/76979871', 'https://vimeo.com/76979871?share=copy'];
+        yield 'regional subdomain and fragment' => ['https://vimeo.com/76979871', 'https://fr.vimeo.com/76979871#t=30'];
+        yield 'short link and tracking parameter' => ['https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'https://youtu.be/dQw4w9WgXcQ?si=abc'];
+    }
+
+    /**
+     * #94: the same media behind different URL spellings gets the same canonical key.
+     */
+    #[DataProvider('urlSpellings')]
+    public function testUrlSpellingsOfTheSameMediaShareTheCanonicalKey(string $url, string $variant): void
+    {
+        $generator = CanonicalKeyGenerators::create($this->matcher);
+
+        $key = $generator->generate($url);
+        $this->assertStringStartsWith('ytdlp:', $key->key);
+        $this->assertSame($key->key, $generator->generate($variant)->key);
+    }
+
+    public function testCanonicalReportsBothTools(): void
+    {
+        $this->assertEquals(
+            new CanonicalExtractorMatch('Twitter', '1234567890', 'twitter', 'tweet', ['user', '1234567890']),
+            $this->matcher->canonical('https://x.com/user/status/1234567890?s=20'),
+        );
+        $this->assertEquals(new CanonicalExtractorMatch('Vimeo', '76979871'), $this->matcher->canonical('https://vimeo.com/76979871?share=copy'));
+    }
+
+    public function testCanonicalOfUnknownMediaIsEmpty(): void
+    {
+        $this->assertEquals(new CanonicalExtractorMatch(), $this->matcher->canonical('https://example.com/some/page'));
+    }
+
+    public function testCanonicalBatchKeysResultsByUrl(): void
+    {
+        $result = $this->matcher->canonicalBatch(['https://vimeo.com/76979871', 'https://example.com/some/page', 'https://vimeo.com/76979871']);
+
+        $this->assertEquals([
+            'https://vimeo.com/76979871' => new CanonicalExtractorMatch('Vimeo', '76979871'),
+            'https://example.com/some/page' => new CanonicalExtractorMatch(),
+        ], $result);
     }
 }

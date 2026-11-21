@@ -1,0 +1,64 @@
+# Canonicalization profiles: how submitted URLs are turned into canonical keys, so the same media
+# behind different URL spellings is detected as a duplicate (#94, App\Service\Canonical).
+#
+# Key layers, first match wins:
+#   1. extractor identity, unless useExtractorId is false: "ytdlp:<IE>:<id>", else
+#      "gdl:<category>:<subcategory>:<groups>" (bin/resolve_url.py canonical)
+#   2. the URL normalized by the profile: "url:<url>". Scheme and host are lowercased; the default
+#      port, user info and fragment are dropped; the remaining query parameters are sorted.
+#
+# A site uses the profile named by its "canonicalization: {profile: ...}" in config/sites.yaml, else
+# the profile named after its slug, else "default". Sites may also set any field but pathRewrites there.
+#
+# Fields (every profile extends "default"; dropParams are added to the default's):
+#   useExtractorId:     (bool, default true) whether layer 1 applies
+#   keepParams:         query parameter globs to keep; omitted keeps all but the dropped ones
+#   dropParams:         query parameter globs to drop
+#   stripWww:           (bool) drop a leading "www." from the host
+#   stripTrailingSlash: (bool) drop trailing slashes from the path
+#   pathRewrites:       (code only) [{pattern: <PCRE>, replacement: <string>}] applied to the path
+#   idGroups:           gallery-dl subcategory ("*" for any) => indexes of the URL pattern groups that
+#                       identify the media, e.g. {tweet: [1]} drops the user name of a tweet URL
+parameters:
+    app.url_canonicalization.profiles:
+        default:
+            dropParams:
+                - 'utm_*'
+                - 'fbclid'
+                - 'gclid'
+                - 'dclid'
+                - 'gbraid'
+                - 'wbraid'
+                - 'msclkid'
+                - 'yclid'
+                - 'twclid'
+                - 'ttclid'
+                - 'mc_cid'
+                - 'mc_eid'
+                - '_ga'
+                - '_gl'
+                - 'si'
+                - 'igsh'
+                - 'igshid'
+                - 'ref_src'
+                - 'ref_url'
+        youtube:
+            dropParams: ['feature', 'pp', 'ab_channel', 't']
+        twitter:
+            stripWww: true
+            dropParams: ['s', 't']
+            idGroups:
+                tweet: [1]
+        reddit:
+            stripWww: true
+            stripTrailingSlash: true
+            dropParams: ['share_id', 'rdt', 'context']
+        instagram:
+            stripWww: true
+            stripTrailingSlash: true
+            dropParams: ['img_index']
+        tiktok:
+            stripWww: true
+            dropParams: ['is_from_webapp', 'sender_device', 'is_copy_url', '_r', '_t', 'lang']
+        vimeo:
+            dropParams: ['share']

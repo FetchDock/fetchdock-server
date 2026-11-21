@@ -60,6 +60,8 @@ use Symfony\Component\Uid\Uuid;
     mercure: 'object.mercureOptions()'
 )]
 #[Gedmo\SoftDeleteable(fieldName: 'deletedAt', timeAware: false, hardDelete: false)]
+#[ORM\Index(name: 'idx_download_job_canonical_key', columns: ['canonical_key'])]
+#[ORM\Index(name: 'idx_download_job_owner_canonical_key', columns: ['owner_id', 'canonical_key'])]
 class DownloadJob implements DownloadJobInterface, OwnerFilterableInterface
 {
     use TimestampableEntity;
@@ -80,6 +82,13 @@ class DownloadJob implements DownloadJobInterface, OwnerFilterableInterface
 
     #[ORM\Column(type: Types::TEXT)]
     private ?string $uri = null;
+
+    /**
+     * Identifies the media behind the URI across spellings (App\Service\Canonical\CanonicalKeyGenerator).
+     * Null for jobs created before #94 until app:jobs:canonicalize fills it.
+     */
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $canonicalKey = null;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $userAgent = null;
@@ -156,6 +165,20 @@ class DownloadJob implements DownloadJobInterface, OwnerFilterableInterface
     public function setUri(string $uri): static
     {
         $this->uri = $uri;
+
+        return $this;
+    }
+
+    // Server-only: duplicate detection, not part of the API
+    #[Ignore]
+    public function getCanonicalKey(): ?string
+    {
+        return $this->canonicalKey;
+    }
+
+    public function setCanonicalKey(?string $canonicalKey): static
+    {
+        $this->canonicalKey = $canonicalKey;
 
         return $this;
     }

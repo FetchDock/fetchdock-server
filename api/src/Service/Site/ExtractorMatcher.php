@@ -2,6 +2,7 @@
 
 namespace App\Service\Site;
 
+use App\Model\CanonicalExtractorMatch;
 use App\Model\ExtractorMatch;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -65,6 +66,59 @@ final class ExtractorMatcher implements ExtractorMatcherInterface
         }
 
         return $catalog;
+    }
+
+    public function canonical(string $url): CanonicalExtractorMatch
+    {
+        return CanonicalExtractorMatch::fromHelperOutput($this->run('canonical', $url));
+    }
+
+    public function canonicalBatch(array $urls): array
+    {
+        $urls = array_values(array_unique($urls));
+        if ([] === $urls) {
+            return [];
+        }
+
+        $input = '';
+        foreach ($urls as $url) {
+            // Not JSON-encodable: left out, so callers fall back to canonical() for it
+            if (mb_check_encoding($url, 'UTF-8')) {
+                $input .= json_encode($url, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES)."\n";
+            }
+        }
+        if ('' === $input) {
+            return [];
+        }
+
+        $process = new Process([$this->pythonBinary, $this->scriptPath, 'canonical-batch']);
+        $process->setInput($input);
+        // Each URL takes milliseconds once the extractor classes are loaded
+        $process->setTimeout(self::TIMEOUT_SECONDS + count($urls));
+
+        $result = [];
+        try {
+            $process->mustRun();
+            foreach (explode("\n", trim($process->getOutput())) as $line) {
+                if ('' === $line) {
+                    continue;
+                }
+                $output = json_decode($line, true, 16, JSON_THROW_ON_ERROR);
+                if (is_array($output) && is_string($output['url'] ?? null)) {
+                    $result[$output['url']] = CanonicalExtractorMatch::fromHelperOutput($output);
+                }
+            }
+        } catch (ProcessExceptionInterface|\JsonException $e) {
+            $this->logger->error('Extractor matcher failed', [
+                'command' => 'canonical-batch',
+                'exception' => $e,
+                'error' => $process->getErrorOutput(),
+            ]);
+
+            throw new \RuntimeException('Unable to derive canonical media identities.', previous: $e);
+        }
+
+        return $result;
     }
 
     private function toMatch(mixed $extractor): ?ExtractorMatch
