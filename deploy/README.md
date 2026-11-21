@@ -70,6 +70,7 @@ long timeouts for Mercure (Server-Sent Events). TLS ends at the proxy; the conta
 | `HTTP_PORT` | Host port for the reverse proxy, e.g. `4080` (production), `4180` (staging) |
 | `SERVER_NAME` | Public host name only, e.g. `staging.fetchdock.dev` (no scheme or port). Used for the Mercure URL and trusted hosts; Caddy itself always serves `:80` |
 | `CADDY_MERCURE_JWT_SECRET` | **Different** per stack |
+| `CADDY_MERCURE_SUBSCRIBER_JWT_SECRET` | Optional separate key for subscriber tokens, so a leaked subscriber key can't publish. Defaults to `CADDY_MERCURE_JWT_SECRET` |
 | `CADDY_MERCURE_PUBLIC_URL` | Optional, defaults to `https://${SERVER_NAME}/.well-known/mercure` |
 | `TRUSTED_HOSTS` | Optional, defaults to `^(${SERVER_NAME}\|php)$`. Requests by IP (e.g. `http://10.1.4.3:4180`) get a 400 unless you add the IP here |
 | `TRUSTED_PROXIES`, `CORS_ALLOW_ORIGIN` | As before. `TRUSTED_PROXIES` must include the reverse proxy |

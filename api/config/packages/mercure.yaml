@@ -4,5 +4,7 @@ mercure:
             url: '%env(MERCURE_URL)%'
             public_url: '%env(MERCURE_PUBLIC_URL)%'
             jwt:
-                secret: '%env(MERCURE_JWT_SECRET)%'
-                publish: '*'
+                # Signs the subscriber tokens issued to clients (POST /users/me/subscription-token) with the hub's
+                # subscriber key. Publishing uses the publisher key instead: app.mercure.publisher_token_provider
+                # (services.yaml) replaces the provider built from this secret, so a leaked subscriber key can't publish.
+                secret: '%app.mercure.subscriber_jwt_secret%'

@@ -10,6 +10,10 @@ parameters:
     # Lifetime in seconds of Mercure subscriber tokens issued to clients (POST /users/me/subscription-token)
     env(MERCURE_SUBSCRIPTION_TOKEN_TTL): '3600'
     app.mercure.subscription_token_ttl: '%env(int:MERCURE_SUBSCRIPTION_TOKEN_TTL)%'
+    # Mercure JWT keys: MERCURE_JWT_SECRET is the hub's publisher key, MERCURE_SUBSCRIBER_JWT_SECRET its subscriber key.
+    # The subscriber key is optional and defaults to the publisher key (see #88).
+    app.mercure.publisher_jwt_secret: '%env(MERCURE_JWT_SECRET)%'
+    app.mercure.subscriber_jwt_secret: '%env(default:app.mercure.publisher_jwt_secret:MERCURE_SUBSCRIBER_JWT_SECRET)%'
     downloader.gallery_dl_web.enabled: false
     downloader.gallery_dl_web.host: 'http://gallery-dl:9080'
 
@@ -96,6 +100,17 @@ services:
             # - [ setAnnotationReader, [ '@annotation_reader' ] ]
             # The `clock` service was introduced in Symfony 6.2; if using an older Symfony version, you can either comment this call or provide your own PSR-20 Clock implementation
             - [ setClock, [ '@clock' ] ]
+
+    # Publishes to the Mercure hub with the publisher key, replacing the provider the bundle builds from the subscriber
+    # key (see config/packages/mercure.yaml)
+    app.mercure.publisher_token_provider:
+        class: Symfony\Component\Mercure\Jwt\FactoryTokenProvider
+        decorates: mercure.hub.default.jwt.provider
+        arguments:
+            $factory: !service
+                class: Symfony\Component\Mercure\Jwt\LcobucciFactory
+                arguments: ['%app.mercure.publisher_jwt_secret%']
+            $publish: ['*']
 
 when@test:
     services:
