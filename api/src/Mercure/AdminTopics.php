@@ -39,6 +39,14 @@ final readonly class AdminTopics
     }
 
     /**
+     * Topic of new download jobs (the AdminDownloadJob collection IRI, absolute), for lists to show them (#86).
+     */
+    public function downloadJobs(): string
+    {
+        return $this->base().'/admin/download_jobs';
+    }
+
+    /**
      * Topic of a download job's admin updates (the AdminDownloadJob resource's IRI, absolute).
      */
     public function downloadJob(string $uuid): string

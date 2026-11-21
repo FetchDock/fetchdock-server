@@ -21,6 +21,7 @@ use Symfony\Component\Serializer\SerializerInterface;
 /**
  * Publishes live updates of download jobs for the admin views (#55): after each flush, every inserted, updated or
  * (soft-)deleted job is published as its AdminDownloadJob output, privately, on its admin topic (see AdminTopics).
+ * New jobs are also published on the collection topic, so open lists can show them (#86).
  *
  * The payload is the resource's JSON-LD item output, so the API Platform admin can replace its cached record with it.
  * A failing hub is logged and never breaks the flush.
@@ -32,6 +33,9 @@ final class AdminDownloadJobPublisher
 {
     /** @var array<int, DownloadJob> changed jobs by object id, published after the flush */
     private array $jobs = [];
+
+    /** @var array<int, true> object ids of the inserted jobs among */
+    private array $inserted = [];
 
     public function __construct(
         private readonly HubInterface $hub,
@@ -46,6 +50,11 @@ final class AdminDownloadJobPublisher
     public function onFlush(OnFlushEventArgs $args): void
     {
         $unitOfWork = $args->getObjectManager()->getUnitOfWork();
+        foreach ($unitOfWork->getScheduledEntityInsertions() as $entity) {
+            if ($entity instanceof DownloadJob) {
+                $this->inserted[spl_object_id($entity)] = true;
+            }
+        }
         foreach ([$unitOfWork->getScheduledEntityInsertions(), $unitOfWork->getScheduledEntityUpdates(), $unitOfWork->getScheduledEntityDeletions()] as $entities) {
             foreach ($entities as $entity) {
                 if ($entity instanceof DownloadJob) {
@@ -70,7 +79,9 @@ final class AdminDownloadJobPublisher
     public function postFlush(PostFlushEventArgs $args): void
     {
         $jobs = $this->jobs;
+        $inserted = $this->inserted;
         $this->jobs = [];
+        $this->inserted = [];
         if ([] === $jobs) {
             return;
         }
@@ -78,7 +89,7 @@ final class AdminDownloadJobPublisher
         $operation = $this->resourceMetadataCollectionFactory->create(AdminDownloadJob::class)->getOperation();
         $context = ['operation' => $operation, 'resource_class' => AdminDownloadJob::class] + ($operation->getNormalizationContext() ?? []);
 
-        foreach ($jobs as $job) {
+        foreach ($jobs as $objectId => $job) {
             $uuid = $job->getUuid()?->toRfc4122();
             if (null === $uuid || null === $job->getId()) {
                 continue;
@@ -87,7 +98,11 @@ final class AdminDownloadJobPublisher
             try {
                 // Like the admin endpoints: the job's relations include soft-deleted records
                 $data = $this->softDeleteFilter->disabled(fn (): string => $this->serializer->serialize(AdminDownloadJob::fromEntity($job), 'jsonld', $context));
-                $this->hub->publish(new Update($this->adminTopics->downloadJob($uuid), $data, private: true));
+                $topics = [$this->adminTopics->downloadJob($uuid)];
+                if (isset($inserted[$objectId])) {
+                    $topics[] = $this->adminTopics->downloadJobs();
+                }
+                $this->hub->publish(new Update($topics, $data, private: true));
             } catch (\Throwable $e) {
                 $this->logger->warning('Unable to publish the admin update of a download job', ['job' => $uuid, 'exception' => $e]);
             }
