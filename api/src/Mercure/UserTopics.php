@@ -30,6 +30,14 @@ final class UserTopics
     }
 
     /**
+     * Topic of the user's settings change events (see SettingsChangePublisher).
+     */
+    public static function settings(OidcSubjectIdentifier $user): string
+    {
+        return self::prefix($user).'/settings';
+    }
+
+    /**
      * Topic of a download job's own updates, or null if the job has no owner (no topic can be built).
      */
     public static function downloadJob(DownloadJobInterface $downloadJob): ?string

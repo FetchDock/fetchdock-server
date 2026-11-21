@@ -6,6 +6,7 @@ use ApiPlatform\Metadata\DeleteOperationInterface;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
 use App\Entity\UserSiteSetting;
+use App\Mercure\SettingsChangePublisher;
 use App\Repository\SiteRepository;
 use App\Repository\UserSiteSettingRepository;
 use App\Resource\Settings\UserSiteSettings;
@@ -23,6 +24,7 @@ final readonly class UserSiteSettingsProcessor implements ProcessorInterface
         private SiteRepository $siteRepository,
         private UserSiteSettingRepository $userSiteSettingRepository,
         private EntityManagerInterface $entityManager,
+        private SettingsChangePublisher $settingsChangePublisher,
         private DownloaderOptionsGuard $optionsGuard,
     ) {
     }
@@ -39,6 +41,7 @@ final readonly class UserSiteSettingsProcessor implements ProcessorInterface
                 $owner->removeUserSiteSetting($setting);
                 $this->entityManager->remove($setting);
                 $this->entityManager->flush();
+                $this->settingsChangePublisher->publish($owner, SettingsChangePublisher::LAYER_SITE, ['slug' => (string) $site->getSlug()], SettingsChangePublisher::ACTION_DELETED);
             }
 
             return null;
@@ -53,6 +56,7 @@ final readonly class UserSiteSettingsProcessor implements ProcessorInterface
         $owner->addUserSiteSetting($setting);
         $this->entityManager->persist($data->applyTo($setting, $fields));
         $this->entityManager->flush();
+        $this->settingsChangePublisher->publish($owner, SettingsChangePublisher::LAYER_SITE, ['slug' => (string) $site->getSlug()]);
 
         return UserSiteSettings::fromEntity($site, $setting);
     }
