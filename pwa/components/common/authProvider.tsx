@@ -7,7 +7,12 @@ import {OAuthProvider} from "../../types";
 const issuer = process.env.NEXT_PUBLIC_OIDC_ISSUER;
 const clientId = process.env.NEXT_PUBLIC_OIDC_CLIENT_ID;
 const redirectUri = process.env.NEXT_PUBLIC_OIDC_REDIRECT_URI;
-const apiUri = process.env.NEXT_PUBLIC_VITE_API_URL;
+// The API serves the admin, so it defaults to the admin's origin (like the data provider's entrypoint).
+// NEXT_PUBLIC_VITE_API_URL is the variable's former name, still read for existing setups.
+const apiUri =
+  process.env.NEXT_PUBLIC_API_URL ||
+  process.env.NEXT_PUBLIC_VITE_API_URL ||
+  (typeof window !== "undefined" ? window.origin : "");
 
 const userManager = new UserManager({
   authority: issuer as string,
