@@ -4,6 +4,7 @@ namespace App\Mercure;
 
 use App\Entity\OidcSubjectIdentifier;
 use App\Model\DownloadJobInterface;
+use Symfony\Component\Uid\Uuid;
 
 /**
  * Mercure topics for user-related updates.
@@ -16,9 +17,9 @@ use App\Model\DownloadJobInterface;
  */
 final class UserTopics
 {
-    public static function prefix(OidcSubjectIdentifier $user): string
+    public static function prefix(OidcSubjectIdentifier|Uuid $user): string
     {
-        return '/users/'.$user->getUuid()->toRfc4122();
+        return '/users/'.($user instanceof Uuid ? $user : $user->getUuid())->toRfc4122();
     }
 
     /**
@@ -32,7 +33,7 @@ final class UserTopics
     /**
      * Topic of the user's settings change events (see SettingsChangePublisher).
      */
-    public static function settings(OidcSubjectIdentifier $user): string
+    public static function settings(OidcSubjectIdentifier|Uuid $user): string
     {
         return self::prefix($user).'/settings';
     }
