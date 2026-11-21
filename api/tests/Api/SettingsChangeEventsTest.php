@@ -5,6 +5,8 @@ namespace App\Tests\Api;
 use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
 use ApiPlatform\Symfony\Bundle\Test\Client;
 use App\Entity\OidcSubjectIdentifier;
+use App\Entity\Site;
+use App\Entity\SiteSetting;
 use App\Mercure\UserTopics;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Mercure\Debug\TraceableHub;
@@ -28,6 +30,7 @@ class SettingsChangeEventsTest extends ApiTestCase
         $this->client->disableReboot();
         $this->syncSites();
         $this->resetSettings();
+        $this->hub()->reset();
     }
 
     protected function tearDown(): void
@@ -103,6 +106,68 @@ class SettingsChangeEventsTest extends ApiTestCase
         $this->assertResponseStatusCodeSame(404);
 
         $this->assertEvents([]);
+    }
+
+    public function testOptionPolicyChangesReachEveryUser(): void
+    {
+        $policy = $this->client->request('POST', '/downloader_option_policies', [
+            'json' => ['downloader' => 'yt-dlp-cli', 'option' => 'updatetime', 'exposed' => true],
+            'headers' => self::auth('admin') + ['Content-Type' => 'application/ld+json'],
+        ])->toArray();
+        $this->assertResponseIsSuccessful();
+        $this->client->request('DELETE', '/downloader_option_policies/'.$policy['id'], ['headers' => self::auth('admin')]);
+        $this->assertResponseIsSuccessful();
+
+        $event = ['type' => 'settings', 'layer' => 'optionPolicy', 'action' => 'updated', 'downloader' => 'yt-dlp-cli', 'sourceClientId' => null];
+        $this->assertEventsForAllUsers([$event, $event]);
+    }
+
+    public function testSiteDefaultChangesReachEveryUser(): void
+    {
+        $entityManager = static::getContainer()->get(EntityManagerInterface::class);
+        $site = $entityManager->getRepository(Site::class)->findOneBy(['slug' => 'twitter']);
+        $this->assertNotNull($site);
+        $this->assertNull($site->getDefaultSetting(), 'twitter has no defaults in config/sites.yaml');
+
+        $setting = new SiteSetting()->setSendCookies(false);
+        $site->setDefaultSetting($setting);
+        $entityManager->flush();
+        // Unchanged: nothing to publish
+        $entityManager->flush();
+        $setting->setSendCookies(true);
+        $entityManager->flush();
+        $entityManager->remove($setting);
+        $entityManager->flush();
+
+        $this->assertEventsForAllUsers([
+            ['type' => 'settings', 'layer' => 'siteDefaults', 'action' => 'updated', 'slug' => 'twitter', 'sourceClientId' => null],
+            ['type' => 'settings', 'layer' => 'siteDefaults', 'action' => 'updated', 'slug' => 'twitter', 'sourceClientId' => null],
+            ['type' => 'settings', 'layer' => 'siteDefaults', 'action' => 'deleted', 'slug' => 'twitter', 'sourceClientId' => null],
+        ]);
+    }
+
+    /**
+     * Admin changes are published on the settings topic of every user, the admins included.
+     *
+     * @param list<array<string, mixed>> $expected
+     */
+    private function assertEventsForAllUsers(array $expected): void
+    {
+        $users = static::getContainer()->get(EntityManagerInterface::class)->getRepository(OidcSubjectIdentifier::class)->findAll();
+        $this->assertGreaterThan(1, \count($users));
+        $topics = array_map(static fn (OidcSubjectIdentifier $user): string => UserTopics::settings($user), $users);
+        sort($topics);
+
+        $updates = array_map(static fn (array $message): Update => $message['object'], $this->hub()->getMessages());
+        $this->assertSame(
+            array_map(static fn (array $event): array => ['topics' => $topics, 'private' => true, 'data' => $event], $expected),
+            array_map(static function (Update $update): array {
+                $topics = $update->getTopics();
+                sort($topics);
+
+                return ['topics' => $topics, 'private' => $update->isPrivate(), 'data' => json_decode($update->getData(), true)];
+            }, $updates),
+        );
     }
 
     /**
