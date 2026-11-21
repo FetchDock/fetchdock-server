@@ -105,7 +105,7 @@ jobs:
         uses: docker://ghcr.io/ericsizemore/phpunit-coverage-check-action
         with:
           clover_file: 'build/logs/clover.xml'
-          threshold: 35 # Low for now, increase when we have more tests
+          threshold: 80 # Low for now, increase when we have more tests
           show_files: true
       - name: Produce the coverage report
         uses: insightsengineering/coverage-action@v3
