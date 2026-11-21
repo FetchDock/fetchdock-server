@@ -10,6 +10,8 @@ jobs:
     publish:
         name: Publish
         runs-on: ubuntu-latest
+        outputs:
+            version: ${{ steps.meta.outputs.version }}
         permissions: 
             contents: read
             packages: write
@@ -94,3 +96,16 @@ jobs:
                   pwa.cache-to=type=gha,scope=pwa-${{github.ref}},mode=max
                   api.args.APP_VERSION=${{ steps.meta.outputs.version }}
                   pwa.args.APP_VERSION=${{ steps.meta.outputs.version }}
+
+    # Stable releases only; waits for approval in the "production" environment (required reviewers).
+    deploy-production:
+        name: Production
+        needs: publish
+        if: ${{ !github.event.release.prerelease }}
+        uses: ./.github/workflows/deploy.yml
+        with:
+            environment: production
+            git-ref: refs/tags/${{ github.event.release.tag_name }}
+            docker-tag: ${{ needs.publish.outputs.version }}
+            expected-version: ${{ needs.publish.outputs.version }}
+        secrets: inherit

@@ -1,0 +1,93 @@
+name: Staging
+
+# Builds images for every develop commit that passed CI and deploys them to staging.
+# Each staging deploy starts from a fresh copy of the production database (deploy/compose.staging.yaml).
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [develop]
+  workflow_dispatch: ~
+
+env:
+  REGISTRY: ghcr.io
+
+concurrency:
+  group: staging
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    name: Publish staging images
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push') }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      sha: ${{ steps.version.outputs.sha }}
+      tag: ${{ steps.version.outputs.tag }}
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          fetch-depth: 0
+      - name: Compute version
+        id: version
+        run: |
+          set -eu
+          sha=$(git rev-parse HEAD)
+          short=$(git rev-parse --short=7 HEAD)
+          # Next patch after the latest stable release, as a semver pre-release: 0.7.2 → 0.7.3-dev.<sha>
+          last=$(git tag --list --sort=-v:refname | grep -E '^v?[0-9]+\.[0-9]+\.[0-9]+$' | head -n1 | sed 's/^v//')
+          IFS=. read -r major minor patch <<<"${last:-0.0.0}"
+          {
+            echo "sha=$sha"
+            echo "tag=sha-$short"
+            echo "version=$major.$minor.$((patch + 1))-dev.$short"
+          } >> "$GITHUB_OUTPUT"
+      - name: Set registry name
+        run: echo "IMAGE_PREFIX=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_ENV"
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push Docker images
+        uses: docker/bake-action@v7
+        env:
+          IMAGES_PREFIX: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}
+          TAGS: ${{ steps.version.outputs.tag }},develop
+        with:
+          source: .
+          pull: true
+          push: true
+          files: |
+            compose.yaml
+            compose.prod.yaml
+            ./docker-bake.hcl
+          set: |
+            api.cache-from=type=gha,scope=api-staging
+            api.cache-to=type=gha,scope=api-staging,mode=max
+            pwa.cache-from=type=gha,scope=pwa-staging
+            pwa.cache-to=type=gha,scope=pwa-staging,mode=max
+            api.args.APP_VERSION=${{ steps.version.outputs.version }}
+            pwa.args.APP_VERSION=${{ steps.version.outputs.version }}
+
+  deploy:
+    name: Staging
+    needs: publish
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: staging
+      # Portainer reads the compose files from develop's head, which matches the images unless develop
+      # moved meanwhile (the next run then redeploys both).
+      git-ref: refs/heads/develop
+      docker-tag: ${{ needs.publish.outputs.tag }}
+      expected-version: ${{ needs.publish.outputs.version }}
+    secrets: inherit

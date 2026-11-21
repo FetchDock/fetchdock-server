@@ -1,0 +1,67 @@
+# Staging additions on top of deploy/compose.yaml.
+#
+# Every deploy starts from a fresh copy of the production database: "db-refresh" runs first and the app
+# only starts after it succeeded. Download jobs, files and queued messages are removed from the copy, so
+# staging has no files to deal with and new downloads can be tested end to end.
+#
+# The deploy workflow sets DEPLOY_ID to a new value on every deploy, which changes this service's
+# configuration, so Compose recreates and reruns it. A plain container restart (e.g. a host reboot) does not rerun it.
+#
+# Staging must not mount /mnt: the copied per-user/site settings may point at production download paths.
+services:
+  db-refresh:
+    image: postgres:${POSTGRES_VERSION:-16}-alpine
+    restart: "no"
+    environment:
+      DEPLOY_TAG: ${DOCKER_TAG:?}
+      DEPLOY_ID: ${DEPLOY_ID:-manual}
+      # Production (source): a read-only role is enough.
+      SOURCE_PGHOST: ${SOURCE_POSTGRES_HOST:-${POSTGRES_HOST}}
+      SOURCE_PGPORT: ${SOURCE_POSTGRES_PORT:-5432}
+      SOURCE_PGUSER: ${SOURCE_POSTGRES_USER:?}
+      SOURCE_PGPASSWORD: ${SOURCE_POSTGRES_PASSWORD:?}
+      SOURCE_PGDATABASE: ${SOURCE_POSTGRES_DB:?}
+      # Staging (target): the role needs CREATEDB and must own the staging database.
+      PGHOST: ${POSTGRES_HOST:?}
+      PGPORT: ${POSTGRES_PORT:-5432}
+      PGUSER: ${POSTGRES_USER:-app}
+      PGPASSWORD: ${POSTGRES_PASSWORD:?}
+      TARGET_DB: ${POSTGRES_DB:-app}
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        set -euo pipefail
+        if [ "$$SOURCE_PGHOST:$$SOURCE_PGPORT/$$SOURCE_PGDATABASE" = "$$PGHOST:$$PGPORT/$$TARGET_DB" ]; then
+          echo "[db-refresh] refusing to run: source and target are the same database" >&2
+          exit 1
+        fi
+        next="$${TARGET_DB}_next"
+        echo "[db-refresh] $$DEPLOY_TAG ($$DEPLOY_ID): copying $$SOURCE_PGDATABASE@$$SOURCE_PGHOST into $$TARGET_DB@$$PGHOST"
+        psql -v ON_ERROR_STOP=1 -d postgres -c "DROP DATABASE IF EXISTS \"$$next\" WITH (FORCE)" -c "CREATE DATABASE \"$$next\""
+        PGHOST="$$SOURCE_PGHOST" PGPORT="$$SOURCE_PGPORT" PGUSER="$$SOURCE_PGUSER" PGPASSWORD="$$SOURCE_PGPASSWORD" \
+          pg_dump --no-owner --no-privileges -d "$$SOURCE_PGDATABASE" \
+          | psql -v ON_ERROR_STOP=1 -q -d "$$next" >/dev/null
+        echo "[db-refresh] pruning download jobs, files and queued messages"
+        psql -v ON_ERROR_STOP=1 -d "$$next" <<'SQL'
+        -- Every table that references download_job or downloaded_file (DownloadJobEvent, the files<->jobs
+        -- join table). CASCADE also empties any table that gets a foreign key to these later.
+        TRUNCATE download_job_event, downloaded_file_download_job, download_job, downloaded_file CASCADE;
+        DO $$body$$ BEGIN
+          IF to_regclass('messenger_messages') IS NOT NULL THEN
+            TRUNCATE messenger_messages;
+          END IF;
+        END $$body$$;
+        SQL
+        psql -v ON_ERROR_STOP=1 -d postgres -c "DROP DATABASE IF EXISTS \"$$TARGET_DB\" WITH (FORCE)" -c "ALTER DATABASE \"$$next\" RENAME TO \"$$TARGET_DB\""
+        echo "[db-refresh] done"
+
+  php:
+    depends_on:
+      db-refresh:
+        condition: service_completed_successfully
+  worker:
+    depends_on:
+      db-refresh:
+        condition: service_completed_successfully
+      php:
+        condition: service_healthy
