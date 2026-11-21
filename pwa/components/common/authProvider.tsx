@@ -2,6 +2,7 @@ import { AuthProvider } from 'react-admin';
 import { UserManager } from 'oidc-client-ts';
 
 import getProfileFromToken from '../common/getProfileFromToken';
+import { fetchRoles } from './permissions';
 import {OAuthProvider} from "../../types";
 
 const issuer = process.env.NEXT_PUBLIC_OIDC_ISSUER;
@@ -149,7 +150,8 @@ const authProvider: OAuthProvider = {
       });
     }
   },
-  getPermissions: () => Promise.resolve(),
+  // The user's effective roles from GET /users/me (see ../common/permissions)
+  getPermissions: () => fetchRoles(),
   getIdentity: () => {
     const token = window.localStorage.getItem("token");
     if (!token) {
