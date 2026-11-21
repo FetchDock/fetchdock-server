@@ -31,6 +31,8 @@ class DownloadJobHandler
     public function __invoke(
         DownloadJob $downloadJob,
     ): void {
+        // $downloadJob is the message's copy of the job, not managed by Doctrine: only use the stored job below
+        $downloadJobEntity = null;
         try {
             // Load the DownloadJob from the database to ensure we have the latest state
             $downloadJobEntity = $this->entityManager->getRepository(DownloadJob::class)->find($downloadJob->getId());
@@ -91,26 +93,48 @@ class DownloadJobHandler
 
             // Dispatch job completed event
             $this->eventDispatcher->dispatch(new JobCompletedEvent($downloadJobEntity));
-        } catch (EntityNotFoundException $e) {
-            $this->logger->error('Download job not found', ['error' => $e->getMessage()]);
-            $this->eventDispatcher->dispatch(new JobFailedEvent($downloadJob, $e));
-
-            throw $e; // Re-throw to ensure the message is not lost
         } catch (\Throwable $exception) {
+            $this->recordFailure($downloadJob, $downloadJobEntity, $exception);
+
+            // Re-throw the original exception, so messenger retries and logs the actual cause
+            throw $exception;
+        }
+    }
+
+    /**
+     * Marks the job as failed and dispatches JobFailedEvent. Failures while doing so are logged, never thrown: they
+     * would replace the original exception (e.g. a closed entity manager after a database error).
+     */
+    private function recordFailure(DownloadJob $message, ?DownloadJob $downloadJobEntity, \Throwable $exception): void
+    {
+        $this->logger->error('Download job failed', [
+            'job_id' => $message->getId(),
+            'job_uuid' => $message->getUuid()?->toRfc4122(),
+            'exception' => $exception,
+        ]);
+
+        try {
+            // Reload the stored job for its latest state. Throws when the entity manager was closed by a database
+            // error; that is logged below.
+            $stored = null;
             if ($downloadJobEntity instanceof DownloadJob) {
-                // Make sure we get an instance from the database
-                $downloadJobEntity = $this->entityManager->getRepository(DownloadJob::class)->find($downloadJobEntity->getId());
-                // Update job state to failed
-                $downloadJobEntity->setState(DownloadStateEnum::FAILED);
-                $this->entityManager->persist($downloadJobEntity);
+                $stored = $this->entityManager->getRepository(DownloadJob::class)->find($downloadJobEntity->getId());
+            } elseif (null !== $message->getId()) {
+                $stored = $this->entityManager->getRepository(DownloadJob::class)->find($message->getId());
+            }
+            if ($stored instanceof DownloadJob) {
+                $stored->setState(DownloadStateEnum::FAILED);
+                $this->entityManager->persist($stored);
                 $this->entityManager->flush();
             }
 
-            // Dispatch job failed event
-            $this->eventDispatcher->dispatch(new JobFailedEvent($downloadJob, $exception));
-
-            // Re-throw the exception to maintain existing error handling behavior
-            throw $exception;
+            // The stored job when there is one, so listeners never persist the message's copy
+            $this->eventDispatcher->dispatch(new JobFailedEvent($stored ?? $downloadJobEntity ?? $message, $exception));
+        } catch (\Throwable $bookkeepingError) {
+            $this->logger->error('Unable to record the download job failure', [
+                'job_id' => $message->getId(),
+                'exception' => $bookkeepingError,
+            ]);
         }
     }
 

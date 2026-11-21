@@ -3,6 +3,7 @@
 namespace App\Tests\Unit\EventListener;
 
 use App\Entity\DownloadJob;
+use App\Entity\DownloadJobEvent;
 use App\Event\JobCompletedEvent;
 use App\Event\JobFailedEvent;
 use App\Event\JobPickedUpEvent;
@@ -23,8 +24,41 @@ class JobEventLoggerTest extends TestCase
     {
         $this->logger = $this->createMock(LoggerInterface::class);
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
+        // The job is stored (managed); storing an unmanaged copy is covered by testEventOfAnUnstoredJobIsSkipped
+        $this->entityManager->method('contains')->willReturn(true);
         $this->listener = new JobEventLogger($this->logger, $this->entityManager);
         $this->downloadJob = new DownloadJob();
+    }
+
+    public function testEventOfAnUnmanagedJobCopyIsLinkedToTheStoredJob(): void
+    {
+        $copy = $this->createStub(DownloadJob::class);
+        $copy->method('getId')->willReturn(42);
+        $stored = new DownloadJob();
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->method('contains')->willReturn(false);
+        $entityManager->expects($this->once())->method('find')->with(DownloadJob::class, 42)->willReturn($stored);
+        // Only the event is persisted: persisting the copy would INSERT the existing job again (duplicate uuid)
+        $entityManager->expects($this->once())->method('persist')->with($this->callback(
+            static fn (DownloadJobEvent $event): bool => $event->getDownloadJob() === $stored,
+        ));
+        $entityManager->expects($this->once())->method('flush');
+
+        new JobEventLogger($this->logger, $entityManager)->onJobFailed(new JobFailedEvent($copy, new \RuntimeException('download failed')));
+    }
+
+    public function testEventOfAnUnstoredJobIsSkipped(): void
+    {
+        $copy = $this->createStub(DownloadJob::class);
+        $copy->method('getId')->willReturn(42);
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->method('contains')->willReturn(false);
+        $entityManager->method('find')->willReturn(null);
+        $entityManager->expects($this->never())->method('persist');
+        $entityManager->expects($this->never())->method('flush');
+        $this->logger->expects($this->once())->method('warning')->with('Not storing a download job event: the job is not stored');
+
+        new JobEventLogger($this->logger, $entityManager)->onJobFailed(new JobFailedEvent($copy, new \RuntimeException('download failed')));
     }
 
     public function testListenerIsInstantiable(): void
@@ -40,7 +74,7 @@ class JobEventLoggerTest extends TestCase
             ->method('info')
             ->with('Job picked up by worker', $this->anything());
 
-        $this->entityManager->expects($this->exactly(2))
+        $this->entityManager->expects($this->once())
             ->method('persist');
         $this->entityManager->expects($this->once())
             ->method('flush');
@@ -60,7 +94,7 @@ class JobEventLoggerTest extends TestCase
             ->method('info')
             ->with('Job update occurred', $this->anything());
 
-        $this->entityManager->expects($this->exactly(2))
+        $this->entityManager->expects($this->once())
             ->method('persist');
         $this->entityManager->expects($this->once())
             ->method('flush');
@@ -77,7 +111,7 @@ class JobEventLoggerTest extends TestCase
             ->method('info')
             ->with('Job completed successfully', $this->anything());
 
-        $this->entityManager->expects($this->exactly(2))
+        $this->entityManager->expects($this->once())
             ->method('persist');
         $this->entityManager->expects($this->once())
             ->method('flush');
@@ -98,7 +132,7 @@ class JobEventLoggerTest extends TestCase
             ->method('error')
             ->with('Job failed', $this->anything());
 
-        $this->entityManager->expects($this->exactly(2))
+        $this->entityManager->expects($this->once())
             ->method('persist');
         $this->entityManager->expects($this->once())
             ->method('flush');
@@ -115,7 +149,7 @@ class JobEventLoggerTest extends TestCase
             ->method('error')
             ->with('Job failed', $this->anything());
 
-        $this->entityManager->expects($this->exactly(2))
+        $this->entityManager->expects($this->once())
             ->method('persist');
         $this->entityManager->expects($this->once())
             ->method('flush');
@@ -131,7 +165,7 @@ class JobEventLoggerTest extends TestCase
             ->method('info')
             ->with('Job update occurred', $this->anything());
 
-        $this->entityManager->expects($this->exactly(2))
+        $this->entityManager->expects($this->once())
             ->method('persist');
         $this->entityManager->expects($this->once())
             ->method('flush');
@@ -147,7 +181,7 @@ class JobEventLoggerTest extends TestCase
             ->method('info')
             ->with('Job completed successfully', $this->anything());
 
-        $this->entityManager->expects($this->exactly(2))
+        $this->entityManager->expects($this->once())
             ->method('persist');
         $this->entityManager->expects($this->once())
             ->method('flush');
