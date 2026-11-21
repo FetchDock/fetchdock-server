@@ -2,12 +2,18 @@ import { AuthProvider } from 'react-admin';
 import { UserManager } from 'oidc-client-ts';
 
 import getProfileFromToken from '../common/getProfileFromToken';
+import { fetchRoles } from './permissions';
 import {OAuthProvider} from "../../types";
 
 const issuer = process.env.NEXT_PUBLIC_OIDC_ISSUER;
 const clientId = process.env.NEXT_PUBLIC_OIDC_CLIENT_ID;
 const redirectUri = process.env.NEXT_PUBLIC_OIDC_REDIRECT_URI;
-const apiUri = process.env.NEXT_PUBLIC_VITE_API_URL;
+// The API serves the admin, so it defaults to the admin's origin (like the data provider's entrypoint).
+// NEXT_PUBLIC_VITE_API_URL is the variable's former name, still read for existing setups.
+const apiUri =
+  process.env.NEXT_PUBLIC_API_URL ||
+  process.env.NEXT_PUBLIC_VITE_API_URL ||
+  (typeof window !== "undefined" ? window.origin : "");
 
 const userManager = new UserManager({
   authority: issuer as string,
@@ -144,7 +150,8 @@ const authProvider: OAuthProvider = {
       });
     }
   },
-  getPermissions: () => Promise.resolve(),
+  // The user's effective roles from GET /users/me (see ../common/permissions)
+  getPermissions: () => fetchRoles(),
   getIdentity: () => {
     const token = window.localStorage.getItem("token");
     if (!token) {
