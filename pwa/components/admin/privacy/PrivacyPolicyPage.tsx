@@ -23,12 +23,15 @@ import {
   FIELD_LABELS,
   INTEGRITY_LABELS,
   LEGAL_BASIS_CHOICES,
+  PENDING_REASON_LABELS,
   PolicyRevision,
   REASON_LABELS,
   REVISION_REASON_LABELS,
   fetchPreview,
   fetchPrivacyPolicy,
   fetchRevisions,
+  notifyPrivacyPolicyChanged,
+  publishPrivacyPolicy,
   savePrivacyPolicy,
   toAnswers,
   useIsDarkTheme,
@@ -48,6 +51,100 @@ const Section = ({ title, children }: { title: string; children: React.ReactNode
   );
 };
 
+const ReviewAndPublishPanel = ({
+  policy,
+  publishing,
+  onPublish,
+  onPreview,
+}: {
+  policy: AdminPrivacyPolicy;
+  publishing: boolean;
+  onPublish: () => void;
+  onPreview: () => void;
+}) => {
+  const isDark = useIsDarkTheme();
+
+  if ("custom" === policy.status || !policy.pendingPublish) {
+    return null;
+  }
+
+  const canPublish = "verified" === policy.integrity.status && 0 === policy.missing.length;
+  const nextRevision = (policy.revision ?? 0) + 1;
+  const urgent = policy.outdated;
+  const tone = urgent
+    ? isDark
+      ? "border-red-500/80 bg-red-950/60 text-red-50"
+      : "border-red-400 bg-red-50 text-red-950"
+    : isDark
+      ? "border-amber-600/70 bg-amber-950/50 text-amber-50"
+      : "border-amber-300 bg-amber-50 text-amber-950";
+
+  return (
+    <section role="alert" className={`mb-6 rounded border-2 p-4 ${tone}`}>
+      <h2 className="mb-2 text-lg font-semibold">
+        {urgent
+          ? "Action required: review and publish updated privacy policy"
+          : null === policy.revision
+            ? "Review and publish your privacy policy"
+            : "Unpublished privacy policy changes"}
+      </h2>
+      {urgent ? (
+        <p className="mb-2 text-sm">
+          FetchDock never updates your published privacy policy automatically. Until you review and approve the new
+          revision, <code>/privacy</code> continues serving revision {policy.revision} with a notice that an update is
+          pending operator review.
+        </p>
+      ) : (
+        <p className="mb-2 text-sm">
+          Saving answers updates the preview below without changing what is published. Review the preview and click{" "}
+          <strong>Approve &amp; publish</strong> when you are ready to adopt revision {nextRevision}.
+        </p>
+      )}
+      {policy.pendingReasons.length > 0 && (
+        <ul className="mb-3 list-disc pl-5 text-sm">
+          {policy.pendingReasons.map((reason) => (
+            <li key={reason}>{PENDING_REASON_LABELS[reason] ?? reason}</li>
+          ))}
+        </ul>
+      )}
+      {policy.pendingTextChanges.length > 0 && (
+        <div className={`mb-3 rounded border p-3 text-sm ${isDark ? "border-white/15 bg-black/20" : "border-black/10 bg-white/70"}`}>
+          <p className="mb-1 font-medium">
+            Policy text changes ({policy.publishedTextVersion ?? "none"} → {policy.currentTextVersion}):
+          </p>
+          <ul className="list-disc pl-5">
+            {policy.pendingTextChanges.map((entry) => (
+              <li key={entry.version}>
+                <strong>{entry.version}:</strong> {entry.changes}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {!canPublish && (
+        <p className="mb-3 text-sm font-medium">
+          {policy.missing.length > 0
+            ? `Complete the missing required answers (${policy.missing.map((path) => FIELD_LABELS[path] ?? path).join(", ")}) and save before publishing.`
+            : "Publishing is only available while the code integrity check reads verified."}
+        </p>
+      )}
+      <div className="flex flex-wrap items-center gap-3">
+        <Button label="Preview updated policy" onClick={onPreview} variant="outlined" />
+        <Button
+          label={publishing ? "Publishing…" : `Approve & publish revision ${nextRevision}`}
+          onClick={onPublish}
+          disabled={!canPublish || publishing}
+          variant="contained"
+        />
+      </div>
+      <p className="mt-2 text-xs opacity-80">
+        By publishing, you confirm that you have reviewed the preview and adopt this revision as the privacy policy of
+        this instance. Save any edits in the Answers form below first if you changed them.
+      </p>
+    </section>
+  );
+};
+
 const StatusPanel = ({ policy }: { policy: AdminPrivacyPolicy }) => {
   const isDark = useIsDarkTheme();
 
@@ -59,7 +156,8 @@ const StatusPanel = ({ policy }: { policy: AdminPrivacyPolicy }) => {
           <a className="underline" href="/privacy" target="_blank" rel="noreferrer">
             /privacy
           </a>{" "}
-          (revision {policy.revision}).
+          (revision {policy.revision}, policy text {policy.publishedTextVersion ?? policy.currentTextVersion}
+          {policy.outdated ? " — pending operator review for newer software/configuration changes" : ""}).
         </p>
       )}
       {"custom" === policy.status && (
@@ -91,13 +189,13 @@ const RevisionsPanel = ({ revisions }: { revisions: PolicyRevision[] }) => {
   return (
     <Section title="Revisions">
       {0 === revisions.length ? (
-        <p>None yet: the first revision is created when the generated policy is published.</p>
+        <p>None yet: the first revision is created when an administrator approves and publishes the generated policy.</p>
       ) : (
         <table className="w-full text-left text-sm">
           <thead>
             <tr>
               <th className="py-1">Revision</th>
-              <th>Created</th>
+              <th>Published</th>
               <th>Why</th>
               <th>FetchDock</th>
               <th>Text version</th>
@@ -125,27 +223,16 @@ const RevisionsPanel = ({ revisions }: { revisions: PolicyRevision[] }) => {
   );
 };
 
-const PreviewPanel = () => {
-  const notify = useNotify();
+const PreviewPanel = ({ html, busy, onLoad }: { html: string | null; busy: boolean; onLoad: () => void }) => {
   const isDark = useIsDarkTheme();
-  const [html, setHtml] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
-
-  const load = async () => {
-    setBusy(true);
-    try {
-      setHtml(await fetchPreview());
-    } catch (error) {
-      notify((error as Error).message || "The preview failed", { type: "error" });
-    } finally {
-      setBusy(false);
-    }
-  };
 
   return (
     <Section title="Preview">
-      <p className="mb-2 text-sm opacity-75">The policy as rendered from the saved answers, also while it isn&apos;t published.</p>
-      <Button label={html ? "Refresh preview" : "Show preview"} onClick={load} disabled={busy} />
+      <p className="mb-2 text-sm opacity-75">
+        The policy as rendered from the saved answers and current FetchDock version/configuration. Reviewing this preview
+        does not publish it.
+      </p>
+      <Button label={html ? "Refresh preview" : "Show preview"} onClick={onLoad} disabled={busy} />
       {html && (
         // No scripts or same-origin access: the page is static HTML
         <iframe
@@ -160,14 +247,18 @@ const PreviewPanel = () => {
 };
 
 /**
- * The operator's answers for the generated privacy policy (ADR 0013), its status, preview and revisions.
- * PUT replaces all answers; incomplete answers can be saved.
+ * The operator's answers for the generated privacy policy (ADR 0013), its status, explicit publish flow, preview and
+ * revisions. PUT saves draft answers without altering /privacy; POST /admin/privacy_policy/publish explicitly approves
+ * and publishes a new revision.
  */
 export const PrivacyPolicyPage = () => {
   const notify = useNotify();
   const isDark = useIsDarkTheme();
   const [policy, setPolicy] = useState<AdminPrivacyPolicy | null>(null);
   const [revisions, setRevisions] = useState<PolicyRevision[]>([]);
+  const [previewHtml, setPreviewHtml] = useState<string | null>(null);
+  const [previewBusy, setPreviewBusy] = useState(false);
+  const [publishing, setPublishing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const reload = useCallback(async () => {
@@ -185,19 +276,59 @@ export const PrivacyPolicyPage = () => {
     reload();
   }, [reload]);
 
+  const loadPreview = useCallback(async () => {
+    setPreviewBusy(true);
+    try {
+      setPreviewHtml(await fetchPreview());
+    } catch (failure) {
+      notify((failure as Error).message || "The preview failed", { type: "error" });
+    } finally {
+      setPreviewBusy(false);
+    }
+  }, [notify]);
+
   const save = async (values: Record<string, any>) => {
     try {
       const answers = toAnswers(values as AdminPrivacyPolicy);
       answers.processors = answers.processors.filter((processor) => processor.name || processor.purpose || processor.country);
-      setPolicy(await savePrivacyPolicy(answers));
+      const updated = await savePrivacyPolicy(answers);
+      if (updated) {
+        setPolicy(updated);
+      }
       setRevisions(await fetchRevisions());
-      notify("Answers saved", { type: "success" });
+      notifyPrivacyPolicyChanged();
+      if (null !== previewHtml) {
+        loadPreview();
+      }
+      notify(
+        updated?.pendingPublish ? "Answers saved — review the preview and click Approve & publish to go live" : "Answers saved",
+        { type: "success" },
+      );
     } catch (failure) {
       if (failure instanceof HttpError && 422 === failure.status) {
         notify("Some answers are invalid", { type: "error" });
         return violationsToErrors(failure.body) ?? undefined;
       }
       notify((failure as Error).message || "Saving failed", { type: "error" });
+    }
+  };
+
+  const publish = async () => {
+    setPublishing(true);
+    try {
+      const updated = await publishPrivacyPolicy();
+      if (updated) {
+        setPolicy(updated);
+      }
+      setRevisions(await fetchRevisions());
+      notifyPrivacyPolicyChanged();
+      notify(updated?.revision ? `Privacy policy revision ${updated.revision} published` : "Privacy policy published", {
+        type: "success",
+      });
+    } catch (failure) {
+      notify((failure as Error).message || "Publishing failed", { type: "error" });
+    } finally {
+      setPublishing(false);
     }
   };
 
@@ -211,11 +342,14 @@ export const PrivacyPolicyPage = () => {
   return (
     <div className="max-w-4xl p-4">
       <Title title="Privacy policy" />
+      <ReviewAndPublishPanel policy={policy} publishing={publishing} onPublish={publish} onPreview={loadPreview} />
       <StatusPanel policy={policy} />
+      <PreviewPanel html={previewHtml} busy={previewBusy} onLoad={loadPreview} />
       <Section title="Answers">
         <p className="mb-3 text-sm opacity-75">
           FetchDock writes the policy from what the software stores and from the instance&apos;s configuration. These
-          answers cover what only you know. You adopt the text as the operator; it is not legal advice.
+          answers cover what only you know. Saving updates the preview; nothing goes live on <code>/privacy</code> until
+          you approve and publish. It is not legal advice.
         </p>
         <Form key={policy.revision ?? 0} record={toAnswers(policy)} onSubmit={save}>
           <TextInput source="instanceName" label="Instance name" helperText="The policy's title" validate={maxLength(255)} fullWidth />
@@ -261,11 +395,10 @@ export const PrivacyPolicyPage = () => {
             fullWidth
           />
           <Toolbar>
-            <SaveButton alwaysEnable />
+            <SaveButton label="Save answers" alwaysEnable />
           </Toolbar>
         </Form>
       </Section>
-      <PreviewPanel />
       <RevisionsPanel revisions={revisions} />
     </div>
   );

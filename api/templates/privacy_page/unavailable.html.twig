@@ -12,6 +12,8 @@
 <p>FetchDock generates the policy from its own code, and only publishes it while the instance can show that it runs unmodified FetchDock. The last check found files that differ from the official build, so the generated text might not describe what this instance does.</p>
 {% elseif reason.value == 'integrity_unknown' %}
 <p>FetchDock generates the policy from its own code, and only publishes it while the instance can show that it runs unmodified FetchDock. The instance could not verify its code recently, for example because it is offline or runs a build that is not an official release.</p>
+{% elseif reason.value == 'not_published' %}
+<p>The operator has not reviewed and published this instance's privacy policy yet.</p>
 {% else %}
 <p>The operator has not completed the information the policy needs yet.</p>
 {% endif %}

@@ -18,9 +18,19 @@ export const useIsDarkTheme = (): boolean => {
 export const PRIVACY_POLICY_RESOURCE = "admin/privacy_policy";
 export const INSTANCE_INTEGRITY_RESOURCE = "admin/instance_integrity";
 
+/** Dispatched on window when an admin saves or publishes the privacy policy so the banner refreshes immediately. */
+export const PRIVACY_POLICY_CHANGED_EVENT = "fetchdock:privacy-policy-changed";
+
+export const notifyPrivacyPolicyChanged = () => {
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event(PRIVACY_POLICY_CHANGED_EVENT));
+  }
+};
+
 export type IntegrityStatus = "verified" | "modified" | "unknown";
 export type PolicyStatus = "generated" | "custom" | "unavailable";
-export type UnavailableReason = "incomplete" | "integrity_modified" | "integrity_unknown";
+export type UnavailableReason = "incomplete" | "not_published" | "integrity_modified" | "integrity_unknown";
+export type PendingReason = "initial" | "policy_text" | "configuration" | "answers";
 
 export type IntegritySummary = {
   status: IntegrityStatus;
@@ -48,6 +58,12 @@ export type AdminPrivacyPolicy = PrivacyPolicyAnswers & {
   status: PolicyStatus;
   reason: UnavailableReason | null;
   revision: number | null;
+  publishedTextVersion: string | null;
+  currentTextVersion: string;
+  outdated: boolean;
+  pendingPublish: boolean;
+  pendingReasons: PendingReason[];
+  pendingTextChanges: { version: string; changes: string }[];
   integrity: IntegritySummary;
 };
 
@@ -88,6 +104,14 @@ export const REASON_LABELS: Record<UnavailableReason, string> = {
   integrity_modified: "the integrity check found files that differ from the official build",
   integrity_unknown: "the instance could not verify its code recently (offline, a development or forked build, or no recent check)",
   incomplete: "required answers are missing",
+  not_published: "required answers are complete, but an administrator has not reviewed and published the policy yet",
+};
+
+export const PENDING_REASON_LABELS: Record<PendingReason, string> = {
+  initial: "No revision has been published yet — review the preview and publish when ready",
+  policy_text: "FetchDock's data inventory or policy text was updated",
+  configuration: "Instance configuration changed (failure reports, site defaults, roles, or integrity check)",
+  answers: "Saved operator answers differ from the currently published revision",
 };
 
 export const REVISION_REASON_LABELS: Record<PolicyRevision["reason"], string> = {
@@ -121,6 +145,9 @@ export const fetchPrivacyPolicy = () => apiFetch<AdminPrivacyPolicy>("/admin/pri
 
 export const savePrivacyPolicy = (answers: PrivacyPolicyAnswers) =>
   apiFetch<AdminPrivacyPolicy>("/admin/privacy_policy", { method: "PUT", headers: json, body: JSON.stringify(answers) });
+
+export const publishPrivacyPolicy = () =>
+  apiFetch<AdminPrivacyPolicy>("/admin/privacy_policy/publish", { method: "POST", headers: json, body: "{}" });
 
 export const fetchRevisions = async (): Promise<PolicyRevision[]> =>
   (await apiFetch<{ member?: PolicyRevision[] }>("/admin/privacy_policy/revisions"))?.member ?? [];

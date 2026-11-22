@@ -9,14 +9,19 @@ use App\Enum\PrivacyPolicyUnavailableReason;
 use App\Repository\PrivacyPolicySettingsRepository;
 use App\Service\Integrity\IntegrityStatusResolver;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
+use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 /**
  * Decides which privacy policy the instance publishes (ADR 0013):
  *
- *   PRIVACY_POLICY_URL set                                → custom
- *   integrity verified and the required answers complete  → generated (/privacy, the current revision)
- *   otherwise                                             → unavailable, with the reason
+ *   PRIVACY_POLICY_URL set                                                    → custom
+ *   integrity verified, required answers complete, and a revision published   → generated (/privacy, last approved revision)
+ *   otherwise                                                                 → unavailable, with the reason
+ *
+ * Revisions are never published automatically: when the software's policy text, runtime configuration or saved answers
+ * change, the last operator-approved revision stays served until an administrator explicitly calls publish().
  */
 class PrivacyPolicyPublisher
 {
@@ -48,7 +53,11 @@ class PrivacyPolicyPublisher
         $reason = match ($this->integrityStatusResolver->effectiveStatus()) {
             IntegrityStatus::MODIFIED => PrivacyPolicyUnavailableReason::INTEGRITY_MODIFIED,
             IntegrityStatus::UNKNOWN => PrivacyPolicyUnavailableReason::INTEGRITY_UNKNOWN,
-            IntegrityStatus::VERIFIED => $this->settingsRepository->get()->getAnswers()->isComplete() ? null : PrivacyPolicyUnavailableReason::INCOMPLETE,
+            IntegrityStatus::VERIFIED => match (true) {
+                !$this->settingsRepository->get()->getAnswers()->isComplete() => PrivacyPolicyUnavailableReason::INCOMPLETE,
+                null === $this->revisions->latest() => PrivacyPolicyUnavailableReason::NOT_PUBLISHED,
+                default => null,
+            },
         };
 
         return null === $reason ? [PrivacyPolicyStatus::GENERATED, null] : [PrivacyPolicyStatus::UNAVAILABLE, $reason];
@@ -67,10 +76,45 @@ class PrivacyPolicyPublisher
     }
 
     /**
-     * The revision in force, created first if the inputs changed. Null unless the generated policy is published.
+     * The last operator-approved revision while the generated policy is published, otherwise null. Read-only.
      */
     public function currentRevision(?PrivacyPolicyStatus $status = null): ?PrivacyPolicyRevision
     {
-        return PrivacyPolicyStatus::GENERATED === ($status ?? $this->status()) ? $this->revisions->sync() : null;
+        return PrivacyPolicyStatus::GENERATED === ($status ?? $this->status()) ? $this->revisions->latest() : null;
+    }
+
+    /**
+     * Differences between the last approved revision and the current inputs. Read-only.
+     */
+    public function pendingUpdate(?\DateTimeImmutable $now = null): PendingPolicyUpdate
+    {
+        return $this->revisions->pendingUpdate($now);
+    }
+
+    /**
+     * Whether a published generated policy no longer matches the running software's policy text or configuration.
+     */
+    public function isOutdated(?PrivacyPolicyStatus $status = null, ?\DateTimeImmutable $now = null): bool
+    {
+        return PrivacyPolicyStatus::GENERATED === ($status ?? $this->status()) && $this->revisions->pendingUpdate($now)->isOutdated();
+    }
+
+    /**
+     * Explicitly approves and publishes the current generated policy as a new revision.
+     */
+    public function publish(\DateTimeImmutable $now = new \DateTimeImmutable()): PrivacyPolicyRevision
+    {
+        if ('' !== $this->customUrl) {
+            throw new ConflictHttpException('PRIVACY_POLICY_URL is set, so this instance publishes a custom privacy policy.');
+        }
+        if (IntegrityStatus::VERIFIED !== $this->integrityStatusResolver->effectiveStatus()) {
+            throw new ConflictHttpException('The generated privacy policy can only be published while the code integrity check reads verified.');
+        }
+        $revision = $this->revisions->publish($now);
+        if (null === $revision) {
+            throw new UnprocessableEntityHttpException('Complete all required answers before publishing the privacy policy.');
+        }
+
+        return $revision;
     }
 }

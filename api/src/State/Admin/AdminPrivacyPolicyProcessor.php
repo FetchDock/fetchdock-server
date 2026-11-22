@@ -11,8 +11,8 @@ use Psr\Log\LoggerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 
 /**
- * PUT /admin/privacy_policy: saves the operator's answers. Reading the result back (AdminPrivacyPolicyProvider)
- * creates a new revision if the generated policy is published and the text changed.
+ * PUT /admin/privacy_policy: saves the operator's answers without changing the published policy. Publishing a new
+ * revision requires an explicit POST /admin/privacy_policy/publish.
  *
  * @implements ProcessorInterface<AdminPrivacyPolicy, AdminPrivacyPolicy>
  */

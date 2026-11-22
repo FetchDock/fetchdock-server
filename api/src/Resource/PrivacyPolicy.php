@@ -45,6 +45,9 @@ final class PrivacyPolicy
     /** When the current revision was created */
     public ?\DateTimeImmutable $updatedAt = null;
 
+    /** True when the generated policy is published, but the running software or configuration changed since the operator last approved it */
+    public bool $outdated = false;
+
     public IntegritySummary $integrity;
 
     public function __construct()

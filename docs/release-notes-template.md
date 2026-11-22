@@ -43,7 +43,7 @@ If `SINCE` is omitted, it compares against the latest stable semver tag.
 The data inventory or the generated privacy policy text changed (policy text version X.Y → X.Z):
 - **X.Z:** <summary from api/privacy/policy-version.yaml>
 
-If the instance publishes the generated policy, review your answers under *Admin → Privacy policy*: the server publishes a new revision after the upgrade. If you link your own policy through `PRIVACY_POLICY_URL`, check that it still matches.
+If the instance publishes the generated policy, review the changes and your answers under *Admin → Privacy policy*, then explicitly approve and publish a new revision. Until you publish, `/privacy` keeps serving your last approved revision with a pending-review notice. If you link your own policy through `PRIVACY_POLICY_URL`, check that it still matches.
 
 ## What's Changed
 <!-- Click "Generate release notes" on GitHub for the PR list and full changelog link. -->

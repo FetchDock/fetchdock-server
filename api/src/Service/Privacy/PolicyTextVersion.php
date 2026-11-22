@@ -56,6 +56,49 @@ final class PolicyTextVersion
     }
 
     /**
+     * The recorded inputs digest for a policy text version, or null when the version is not listed.
+     */
+    public function digestFor(string $version): ?string
+    {
+        foreach ($this->versions() as $entry) {
+            if ($entry['version'] === $version) {
+                return $entry['digest'];
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Versions added after the given one, oldest first. Empty when the version is current, null, or unknown.
+     *
+     * @return list<array{version: string, changes: string}>
+     */
+    public function changesSince(?string $version): array
+    {
+        if (null === $version) {
+            return [];
+        }
+
+        $versions = $this->versions();
+        $found = null;
+        foreach ($versions as $index => $entry) {
+            if ($entry['version'] === $version) {
+                $found = $index;
+                break;
+            }
+        }
+        if (null === $found) {
+            return [];
+        }
+
+        return array_map(
+            static fn (array $entry): array => ['version' => $entry['version'], 'changes' => $entry['changes']],
+            \array_slice($versions, $found + 1),
+        );
+    }
+
+    /**
      * Parses the versions listed in a privacy/policy-version.yaml document, oldest first. Also used to read the file
      * from an older release (app:privacy:release-notes).
      *

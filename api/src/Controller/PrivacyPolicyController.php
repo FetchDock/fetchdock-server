@@ -47,9 +47,12 @@ final class PrivacyPolicyController extends AbstractController
                 return $this->page('privacy_page/unavailable.html.twig', ['revisionNotFound' => true, 'reason' => null], Response::HTTP_NOT_FOUND, 60);
             }
 
+            $isCurrent = $revision->getNumber() === $current?->getNumber();
+
             return $this->page('privacy_page/policy.html.twig', [
                 'revision' => $revision,
-                'isCurrent' => $revision->getNumber() === $current?->getNumber(),
+                'isCurrent' => $isCurrent,
+                'outdated' => $isCurrent && $this->publisher->isOutdated($status),
                 'currentUrl' => PrivacyPolicyStatus::UNAVAILABLE === $status ? null : $this->publisher->url($status),
                 'revisions' => $this->revisionRepository->findSummariesNewestFirst(),
                 'preview' => false,
@@ -69,6 +72,7 @@ final class PrivacyPolicyController extends AbstractController
         return $this->page('privacy_page/policy.html.twig', [
             'revision' => $current,
             'isCurrent' => true,
+            'outdated' => $this->publisher->isOutdated($status),
             'currentUrl' => null,
             'revisions' => $this->revisionRepository->findSummariesNewestFirst(),
             'preview' => false,
@@ -86,6 +90,7 @@ final class PrivacyPolicyController extends AbstractController
             'revision' => null,
             'html' => $this->revisions->preview()->html,
             'isCurrent' => false,
+            'outdated' => false,
             'currentUrl' => null,
             'revisions' => [],
             'preview' => true,

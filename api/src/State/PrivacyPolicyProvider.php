@@ -37,6 +37,7 @@ final readonly class PrivacyPolicyProvider implements ProviderInterface
         $policy->textVersion = $revision?->getTextVersion();
         $policy->appVersion = $this->appVersion;
         $policy->updatedAt = $revision?->getCreatedAt();
+        $policy->outdated = $this->publisher->isOutdated($status);
         $policy->integrity = $this->integrityReport->summary();
 
         return $policy;

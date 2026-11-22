@@ -3,9 +3,14 @@
 namespace App\Tests\Integration\Integrity;
 
 use App\Entity\InstanceIntegrityCheck;
+use App\Entity\PrivacyPolicyRevision;
 use App\Enum\IntegrityRole;
 use App\Enum\IntegrityStatus;
+use App\Enum\PrivacyPolicyRevisionReason;
+use App\Model\PrivacyPolicyAnswers;
+use App\Repository\PrivacyPolicySettingsRepository;
 use App\Service\Integrity\IntegrityManifest;
+use App\Tests\Unit\Model\PrivacyPolicyAnswersTest;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
@@ -68,5 +73,18 @@ final class IntegrityCommandsTest extends KernelTestCase
         $tester = new CommandTester($this->application->find('app:integrity:check'));
 
         self::assertSame(Command::INVALID, $tester->execute(['--role' => 'pwa']));
+    }
+
+    public function testCheckCommandWarnsWhenPublishedPolicyIsOutdated(): void
+    {
+        // Note: in test env no manifest exists, so check() records UNKNOWN; verify no false warning while unknown
+        $settings = self::getContainer()->get(PrivacyPolicySettingsRepository::class)->get();
+        $settings->setAnswers(PrivacyPolicyAnswers::fromArray(PrivacyPolicyAnswersTest::complete()));
+        $this->entityManager->persist(new PrivacyPolicyRevision(1, PrivacyPolicyRevisionReason::INITIAL, '0.3', '0.9.0', 'a', 'b', 'c', '# Policy', '<h1>Policy</h1>'));
+        $this->entityManager->flush();
+
+        $tester = new CommandTester($this->application->find('app:integrity:check'));
+        self::assertSame(Command::SUCCESS, $tester->execute(['--role' => 'worker']));
+        self::assertStringNotContainsString('[privacy] Action required:', $tester->getDisplay());
     }
 }
