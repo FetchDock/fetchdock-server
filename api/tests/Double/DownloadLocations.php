@@ -4,6 +4,8 @@ namespace App\Tests\Double;
 
 use App\Entity\DownloadDirectory;
 use App\Entity\DownloadedFile;
+use App\Repository\DownloadDirectoryRepository;
+use App\Service\Storage\DownloadTargets;
 use Doctrine\ORM\EntityManagerInterface;
 
 /**
@@ -37,5 +39,24 @@ final class DownloadLocations
         }
 
         return $directory;
+    }
+
+    /**
+     * Targets without a database: sites without a directory use a default directory in the temporary directory.
+     */
+    public static function targets(?DownloadDirectory $default = null): DownloadTargets
+    {
+        $default ??= new DownloadDirectory('Default', sys_get_temp_dir(), true);
+
+        return new DownloadTargets(new class($default) extends DownloadDirectoryRepository {
+            public function __construct(private readonly DownloadDirectory $default)
+            {
+            }
+
+            public function findDefault(): DownloadDirectory
+            {
+                return $this->default;
+            }
+        });
     }
 }

@@ -87,6 +87,7 @@ class DownloadJobQueuedProcessor implements ProcessorInterface
 
         // The site selects the canonicalization profile, so it's resolved before the duplicate check
         $site = $this->resolveSite($downloadJob);
+        $downloadJob->setSite($site);
         $canonicalKey = $this->canonicalKeyGenerator->generate($downloadJob->getUri(), $site);
         $downloadJob->setCanonicalKey($canonicalKey->key);
         $this->logger->debug('Derived the canonical key of the download job', [

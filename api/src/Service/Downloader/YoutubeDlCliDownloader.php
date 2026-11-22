@@ -305,6 +305,14 @@ class YoutubeDlCliDownloader extends AbstractCliDownloader implements CliDownloa
         return $versions['latest'];
     }
 
+    /**
+     * --paths overrides the config's --path; the download archive stays global, in the config's default directory.
+     */
+    protected function getTargetDirectoryArguments(string $targetPath): array
+    {
+        return ['--paths', $targetPath];
+    }
+
     protected function getCommandOptions(DownloadJobInterface $downloadJob): array
     {
         $commandOptions = [];

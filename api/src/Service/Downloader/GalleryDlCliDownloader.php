@@ -149,7 +149,12 @@ class GalleryDlCliDownloader extends AbstractCliDownloader implements CliDownloa
             if (str_starts_with($line, '# ./')) {
                 $line = substr($line, 4);
             }
-            $filePath = $this->downloadPath.'/'.ltrim($line, '/');
+            // Skipped files with an absolute base directory
+            if (str_starts_with($line, '# /')) {
+                $line = substr($line, 2);
+            }
+            // Relative paths are relative to the working directory, which is the job's directory
+            $filePath = str_starts_with($line, '/') ? $line : $this->getTargetPath($downloadJob).'/'.$line;
             if (file_exists($filePath) && is_file($filePath)) {
                 $location = $this->locationResolver->fromAbsolute($filePath);
                 if (null === $location) {

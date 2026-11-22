@@ -198,6 +198,19 @@ class YoutubeDlCliDownloaderTest extends TestCase
         $this->assertStringEndsWith('https://example.com/video', $invocations[1]);
     }
 
+    public function testDownloadWritesToTheJobsDirectory(): void
+    {
+        [$downloader, $invocationLog] = $this->createDownloaderWithFakeBinary('[download] Destination: video-id.mp4');
+        $target = $this->createTemporaryDirectory();
+
+        $downloader->download(new DownloadJob()->setUri('https://example.com/video')->setDownloadDirectory(new DownloadDirectory('Site', $target)));
+
+        $invocation = file($invocationLog, FILE_IGNORE_NEW_LINES)[0];
+        $this->assertStringContainsString('--paths '.$target.' ', $invocation, '--paths comes after the config, so it overrides its --path');
+        $this->assertGreaterThan(strpos($invocation, '--config'), strpos($invocation, '--paths'));
+        $this->assertSame($target, trim(file_get_contents(\dirname($invocationLog).'/cwd.log')), 'The tool runs in the job directory');
+    }
+
     public function testDownloadRunsOnceWhenNotSkippedByDownloadArchive(): void
     {
         [$downloader, $invocationLog] = $this->createDownloaderWithFakeBinary(
@@ -266,8 +279,9 @@ class YoutubeDlCliDownloaderTest extends TestCase
         $invocationLog = $directory.'/invocations.log';
         $binary = $directory.'/yt-dlp';
         file_put_contents($binary, sprintf(
-            "#!/bin/sh\necho \"\$*\" >> %s\ncase \" \$* \" in\n  *' --no-download-archive '*) echo '[download] /downloads/video-id.mp4 has already been downloaded' ;;\n  *) echo %s ;;\nesac\n",
+            "#!/bin/sh\necho \"\$*\" >> %s\npwd > %s\ncase \" \$* \" in\n  *' --no-download-archive '*) echo '[download] /downloads/video-id.mp4 has already been downloaded' ;;\n  *) echo %s ;;\nesac\n",
             escapeshellarg($invocationLog),
+            escapeshellarg($directory.'/cwd.log'),
             escapeshellarg($outputWithArchive)
         ));
         chmod($binary, 0700);

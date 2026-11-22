@@ -101,6 +101,10 @@ class Site
     #[ORM\OneToOne(mappedBy: 'site', cascade: ['persist', 'remove'])]
     private ?SiteCanonicalizationOverride $canonicalizationOverride = null;
 
+    /** Where new downloads of the site are stored; null means the default directory. Admin data: app:sites:sync never touches it (ADR 0011). */
+    #[ORM\ManyToOne]
+    private ?DownloadDirectory $downloadDirectory = null;
+
     public function __construct()
     {
         $this->extractors = new ArrayCollection();
@@ -261,6 +265,18 @@ class Site
     public function setCanonicalization(?array $canonicalization): static
     {
         $this->canonicalization = [] === $canonicalization ? null : $canonicalization;
+
+        return $this;
+    }
+
+    public function getDownloadDirectory(): ?DownloadDirectory
+    {
+        return $this->downloadDirectory;
+    }
+
+    public function setDownloadDirectory(?DownloadDirectory $downloadDirectory): static
+    {
+        $this->downloadDirectory = $downloadDirectory;
 
         return $this;
     }

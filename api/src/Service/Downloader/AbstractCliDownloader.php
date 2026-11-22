@@ -101,13 +101,16 @@ abstract class AbstractCliDownloader implements DownloaderInterface
                 '--verbose',
             ],
             $this->getUserOptionArguments($downloadJob),
+            // After the config and the user's options, so the job's directory always wins
+            $this->getTargetDirectoryArguments($this->getTargetPath($downloadJob)),
             $extraOptions,
             [
                 $downloadJob->getUrl()->__toString(),
             ]
         );
 
-        $downloadProcess = new Process($processOptions, $this->downloadPath);
+        // Tools that write relative to the working directory (gallery-dl's ./gallery-dl/) write into the job's directory
+        $downloadProcess = new Process($processOptions, $this->getTargetPath($downloadJob));
 
         $downloadProcess->setTimeout(self::TIMEOUT);
         $downloadProcess->setIdleTimeout(self::IDLE_TIMEOUT);
@@ -148,6 +151,25 @@ abstract class AbstractCliDownloader implements DownloaderInterface
         }
 
         return $downloadProcess;
+    }
+
+    /**
+     * The directory the job's files are written to: the one the worker captured for the job (DownloadJobHandler),
+     * otherwise the downloader's default directory (e.g. app:scan:downloaded-files for jobs from before #109).
+     */
+    protected function getTargetPath(DownloadJobInterface $downloadJob): string
+    {
+        return ($downloadJob instanceof DownloadJob ? $downloadJob->getDownloadDirectory()?->getPath() : null) ?? $this->downloadPath;
+    }
+
+    /**
+     * Arguments that make the tool write into the target directory, if the working directory isn't enough.
+     *
+     * @return list<string>
+     */
+    protected function getTargetDirectoryArguments(string $targetPath): array
+    {
+        return [];
     }
 
     /**

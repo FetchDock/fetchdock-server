@@ -84,6 +84,13 @@ services:
           IF to_regclass('messenger_messages') IS NOT NULL THEN
             TRUNCATE messenger_messages;
           END IF;
+          -- Production's download directories point at its mounts (ADR 0011): staging stores everything in its
+          -- own /downloads. No file references a directory any more after the truncation above.
+          IF to_regclass('download_directory') IS NOT NULL THEN
+            UPDATE site SET download_directory_id = NULL;
+            DELETE FROM download_directory WHERE NOT is_default;
+            UPDATE download_directory SET path = '/downloads';
+          END IF;
         END $$body$$;
         SQL
         psql -v ON_ERROR_STOP=1 -d postgres -c "DROP DATABASE IF EXISTS \"$$TARGET_DB\" WITH (FORCE)" -c "ALTER DATABASE \"$$next\" RENAME TO \"$$TARGET_DB\""

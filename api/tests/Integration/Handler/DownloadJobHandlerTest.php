@@ -2,7 +2,9 @@
 
 namespace App\Tests\Integration\Handler;
 
+use App\Entity\DownloadDirectory;
 use App\Entity\DownloadJob;
+use App\Entity\Site;
 use App\Enum\DownloadStateEnum;
 use App\Event\JobCompletedEvent;
 use App\Event\JobFailedEvent;
@@ -12,6 +14,7 @@ use App\Factory\DownloaderFactory;
 use App\Handler\DownloadJobHandler;
 use App\Repository\DownloadJobRepository;
 use App\Service\Downloader\DownloaderInterface;
+use App\Tests\Double\DownloadLocations;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityNotFoundException;
 use PHPUnit\Framework\TestCase;
@@ -52,7 +55,8 @@ class DownloadJobHandlerTest extends TestCase
             $this->entityManager,
             $this->downloaderFactory,
             $this->logger,
-            $this->eventDispatcher
+            $this->eventDispatcher,
+            DownloadLocations::targets(),
         );
     }
 
@@ -326,5 +330,57 @@ class DownloadJobHandlerTest extends TestCase
         $updateEvent = array_values($updateEvents)[0];
         $this->assertStringContainsString('Downloader selected and job state updated to IN_PROGRESS', $updateEvent->getUpdateMessage());
         $this->assertSame(['downloader' => 'auto-selected'], $updateEvent->getContext());
+    }
+
+    public function testCapturesTheSiteDirectoryWhenTheJobStarts(): void
+    {
+        $siteDirectory = new DownloadDirectory('Site', sys_get_temp_dir());
+        $downloadJob = $this->mockJobWithSiteDirectory($siteDirectory);
+
+        $this->handler->__invoke($downloadJob);
+
+        $this->assertSame($siteDirectory, $downloadJob->getDownloadDirectory());
+        $this->assertSame(DownloadStateEnum::COMPLETED, $downloadJob->getState());
+    }
+
+    public function testKeepsTheDirectoryCapturedBefore(): void
+    {
+        $captured = new DownloadDirectory('Captured', sys_get_temp_dir());
+        $downloadJob = $this->mockJobWithSiteDirectory(new DownloadDirectory('Site', sys_get_temp_dir()));
+        $downloadJob->setDownloadDirectory($captured);
+
+        $this->handler->__invoke($downloadJob);
+
+        $this->assertSame($captured, $downloadJob->getDownloadDirectory());
+    }
+
+    public function testFailsWhenTheDirectoryIsNotMountedInTheWorker(): void
+    {
+        $downloadJob = $this->mockJobWithSiteDirectory(new DownloadDirectory('Missing', '/nonexistent-'.bin2hex(random_bytes(4))), downloads: false);
+
+        try {
+            $this->handler->__invoke($downloadJob);
+            $this->fail('The job should fail');
+        } catch (\RuntimeException $e) {
+            $this->assertStringContainsString('is not mounted or not writable', $e->getMessage());
+        }
+        $this->assertSame(DownloadStateEnum::FAILED, $downloadJob->getState());
+    }
+
+    private function mockJobWithSiteDirectory(DownloadDirectory $directory, bool $downloads = true): DownloadJob
+    {
+        $downloadJob = new DownloadJob()
+            ->setUri('https://example.com/test.zip')
+            ->setDownloader('mock')
+            ->setState(DownloadStateEnum::PENDING)
+            ->setSite(new Site()->setSlug('example')->setDownloadDirectory($directory));
+        $this->downloadJobRepository->method('find')->willReturn($downloadJob);
+
+        $mockDownloader = $this->createMock(DownloaderInterface::class);
+        $mockDownloader->method('getIdentifier')->willReturn('mock');
+        $mockDownloader->expects($downloads ? $this->once() : $this->never())->method('download')->willReturn(true);
+        $this->downloaderFactory->method('getDownloaderByIdentifier')->willReturn($mockDownloader);
+
+        return $downloadJob;
     }
 }
