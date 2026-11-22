@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { AdminPrivacyPolicy, PRIVACY_POLICY_RESOURCE, REASON_LABELS, fetchPrivacyPolicy } from "./api";
+import { AdminPrivacyPolicy, PRIVACY_POLICY_RESOURCE, REASON_LABELS, fetchPrivacyPolicy, useIsDarkTheme } from "./api";
 
 /** How often admin pages re-check the policy status (it follows the integrity checks) */
 const POLL_MS = 5 * 60_000;
@@ -10,6 +10,7 @@ const POLL_MS = 5 * 60_000;
  * nothing is blocked.
  */
 export const PrivacyPolicyBanner = ({ enabled }: { enabled: boolean }) => {
+  const isDark = useIsDarkTheme();
   const [policy, setPolicy] = useState<AdminPrivacyPolicy | null>(null);
 
   useEffect(() => {
@@ -36,7 +37,12 @@ export const PrivacyPolicyBanner = ({ enabled }: { enabled: boolean }) => {
   }
 
   return (
-    <div role="alert" className="border-b border-amber-300 bg-amber-50 px-4 py-2 text-sm text-amber-900">
+    <div
+      role="alert"
+      className={`border-b px-4 py-2 text-sm ${
+        isDark ? "border-amber-700/60 bg-amber-950/70 text-amber-100" : "border-amber-300 bg-amber-50 text-amber-900"
+      }`}
+    >
       This instance publishes no privacy policy: {policy.reason ? REASON_LABELS[policy.reason] : "unknown reason"}.{" "}
       <Link className="underline" to={`/${PRIVACY_POLICY_RESOURCE}`}>
         Privacy policy settings

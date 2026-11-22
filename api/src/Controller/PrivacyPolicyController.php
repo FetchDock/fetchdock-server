@@ -51,6 +51,7 @@ final class PrivacyPolicyController extends AbstractController
                 'revision' => $revision,
                 'isCurrent' => $revision->getNumber() === $current?->getNumber(),
                 'currentUrl' => PrivacyPolicyStatus::UNAVAILABLE === $status ? null : $this->publisher->url($status),
+                'revisions' => $this->revisionRepository->findSummariesNewestFirst(),
                 'preview' => false,
             ], Response::HTTP_OK, 86400);
         }
@@ -69,6 +70,7 @@ final class PrivacyPolicyController extends AbstractController
             'revision' => $current,
             'isCurrent' => true,
             'currentUrl' => null,
+            'revisions' => $this->revisionRepository->findSummariesNewestFirst(),
             'preview' => false,
         ], Response::HTTP_OK, 300);
     }
@@ -85,6 +87,7 @@ final class PrivacyPolicyController extends AbstractController
             'html' => $this->revisions->preview()->html,
             'isCurrent' => false,
             'currentUrl' => null,
+            'revisions' => [],
             'preview' => true,
         ]);
         $response->headers->set('Content-Security-Policy', self::CONTENT_SECURITY_POLICY);

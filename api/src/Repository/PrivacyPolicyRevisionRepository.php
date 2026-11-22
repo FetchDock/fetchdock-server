@@ -33,4 +33,19 @@ class PrivacyPolicyRevisionRepository extends ServiceEntityRepository
     {
         return $this->findBy([], ['number' => 'DESC']);
     }
+
+    /**
+     * Metadata of all revisions without loading their markdown/html bodies, for the public revision list.
+     *
+     * @return list<array{number: int, createdAt: \DateTimeImmutable, appVersion: string, textVersion: string}>
+     */
+    public function findSummariesNewestFirst(): array
+    {
+        /** @var list<array{number: int, createdAt: \DateTimeImmutable, appVersion: string, textVersion: string}> */
+        return $this->createQueryBuilder('r')
+            ->select('r.number, r.createdAt, r.appVersion, r.textVersion')
+            ->orderBy('r.number', 'DESC')
+            ->getQuery()
+            ->getArrayResult();
+    }
 }

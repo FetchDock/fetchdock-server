@@ -34,6 +34,8 @@ class IntegrityChecker
         private readonly string $appVersion,
         #[Autowire('%app.integrity.check_online%')]
         private readonly bool $online,
+        #[Autowire('%app.integrity.trust_dev%')]
+        private readonly bool $trustDev = false,
     ) {
     }
 
@@ -68,6 +70,10 @@ class IntegrityChecker
      */
     private function evaluate(): array
     {
+        if ($this->trustDev) {
+            return [IntegrityStatus::VERIFIED, null, []];
+        }
+
         $path = $this->manifest->path();
         if (!is_file($path)) {
             return [IntegrityStatus::UNKNOWN, null, []];
