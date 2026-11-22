@@ -1,0 +1,20 @@
+{% extends 'privacy_page/base.html.twig' %}
+{# revisionNotFound: bool, reason: PrivacyPolicyUnavailableReason|null #}
+{% block title %}No privacy policy{% endblock %}
+{% block body %}
+{% if revisionNotFound %}
+<h1>Revision not found</h1>
+<p>This instance has no privacy policy revision with that number.</p>
+{% else %}
+<h1>No privacy policy published</h1>
+<p>This FetchDock instance currently publishes no privacy policy.</p>
+{% if reason.value == 'integrity_modified' %}
+<p>FetchDock generates the policy from its own code, and only publishes it while the instance can show that it runs unmodified FetchDock. The last check found files that differ from the official build, so the generated text might not describe what this instance does.</p>
+{% elseif reason.value == 'integrity_unknown' %}
+<p>FetchDock generates the policy from its own code, and only publishes it while the instance can show that it runs unmodified FetchDock. The instance could not verify its code recently, for example because it is offline or runs a build that is not an official release.</p>
+{% else %}
+<p>The operator has not completed the information the policy needs yet.</p>
+{% endif %}
+<p>Ask the operator of this instance how it handles your data.</p>
+{% endif %}
+{% endblock %}
