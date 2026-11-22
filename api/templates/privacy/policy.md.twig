@@ -1,0 +1,186 @@
+{#
+    The generated instance privacy policy (ADR 0013), rendered by App\Service\Privacy\PolicyRenderer.
+    Output is Markdown; everything is escaped as Markdown text unless marked |raw. Changing this file changes the
+    policy text: append a version to privacy/policy-version.yaml (PolicyVersionTest prints the digest).
+
+    Context: revision (int|null for a preview), textVersion, appVersion, answers (PrivacyPolicyAnswers::toArray()),
+    config (PolicyInputsBuilder::configuration()), inventory (PolicyInputsBuilder::inventory()).
+#}
+{% autoescape 'markdown' %}
+{% set a = answers %}
+{% set missing = '(not answered yet)' %}
+{% set categoryLabels = {
+    account: 'Your account',
+    settings: 'Your settings',
+    request: 'Your downloads',
+    content: 'Downloaded media',
+    device: 'Your apps and devices',
+    report: 'Problem reports',
+    technical: 'Technical data',
+} %}
+{% set retentionLabels = {
+    with_account: 'while your account exists',
+    with_job: 'as long as the download job exists',
+    until_completed: 'parts of it only until the download completes successfully',
+    with_file: 'as long as the file is kept',
+    until_deleted: 'until you delete it',
+    until_withdrawn: 'until you withdraw it or an administrator deletes it',
+    transient: 'only while it is being processed',
+    'operator:logs': a.retention.logsDays is not null ? 'for ' ~ a.retention.logsDays ~ ' days' : 'as long as the operator keeps logs',
+    'operator:files': 'until an administrator deletes the files',
+} %}
+{% set audienceLabels = {
+    owner: 'you',
+    admins: 'the administrators',
+    view_all: 'other users the operator allowed to view all downloads',
+    nobody: 'no one in the app; only the server uses it',
+} %}
+{% set defaults = config.siteDefaults %}
+# Privacy policy of {{ a.instanceName ?? missing }}
+
+{% if revision is not null %}
+Policy text version {{ textVersion }}, FetchDock {{ appVersion }}, revision {{ revision }}.
+{% else %}
+Preview of policy text version {{ textVersion }}, FetchDock {{ appVersion }}. This text is not published.
+{% endif %}
+
+This instance runs FetchDock, open-source software that downloads media from websites when its users ask it to. This policy explains which personal data the instance processes, why, for how long, and who can see it.
+
+FetchDock generated this policy from a list of everything the software stores and sends (kept in sync with the code by automated tests), from this instance's configuration, and from the operator's answers. The operator adopted it as the privacy policy of this instance.
+
+## Who is responsible
+
+The controller for your personal data on this instance is {{ a.operator.name ?? missing }}{% if a.operator.address is not null %}, {{ a.operator.address|replace({"\n": ', '}) }}{% endif %}.
+
+{% if a.operator.contactEmail is not null %}
+Contact: [{{ a.operator.contactEmail }}](<mailto:{{ a.operator.contactEmail|e('markdown_url')|raw }}>)
+{% else %}
+Contact: {{ missing }}
+{% endif %}
+
+{% if a.operator.dpoContact is not null %}
+Data protection officer: {{ a.operator.dpoContact }}
+{% endif %}
+
+The FetchDock developers do not operate this instance and receive no personal data from it{% if config.failureReports.forwarding is not null %}, except the problem reports you choose to forward (see "Problem reports"){% endif %}.
+
+## Legal basis
+
+{% if a.legalBasis == 'contract' %}
+The instance processes your data to provide the download service you signed up for (Art. 6(1)(b) GDPR).
+{% elseif a.legalBasis == 'legitimate_interest' %}
+The instance processes your data on the basis of the operator's legitimate interest in providing the download service to the people they admitted, and in keeping it secure and working (Art. 6(1)(f) GDPR). You can object to it (see "Your rights").
+{% else %}
+{{ missing }}
+{% endif %}
+
+Problem reports are only sent when you choose to send one.
+
+## What the instance stores
+
+You sign in through the instance's identity provider. The instance stores the following data about you in its database.
+
+{% for category, items in inventory.categories %}
+### {{ categoryLabels[category] ?? category }}
+
+{% for item in items %}
+- **{{ item.summary }}.** Purpose: {{ item.purposes|join('; ') }}. Kept {% for retention in item.retentions %}{{ retentionLabels[retention] ?? retention }}{{ loop.last ? '' : '; ' }}{% endfor %}. Visible to {% for audience in item.audiences %}{{ audienceLabels[audience] ?? audience }}{{ loop.last ? '' : ', ' }}{% endfor %}.
+{% endfor %}
+
+{% endfor %}
+"Visible to" describes access through the app. Administrators can see your account identifier and the downloads of all users{% if config.viewAllRoleHolders %}, and so can other users the operator allowed to view all downloads{% endif %}. People with direct access to the server or its database, such as the operator and the hosting provider, can technically see all data.
+
+## Data outside the database
+
+{% for entry in inventory.storage %}
+- **{{ entry.what }}.** Where: {{ entry.where }}. Purpose: {{ entry.purpose }}. Kept {{ retentionLabels[entry.retention] ?? entry.retention }}.{% if entry.notes is not null %} {{ entry.notes }}{% endif %}
+
+{% endfor %}
+
+## How long data is kept
+
+There is no self-service account deletion: to have your account and data deleted, contact the operator. You can delete your downloads, settings, apps and problem reports yourself.
+
+Deleting a download job hides it, but does not erase it, and the downloaded files stay on disk while other users or the operator keep them.
+{% if a.retention.softDeletedJobsDays is not null %}
+The operator erases deleted download jobs after {{ a.retention.softDeletedJobsDays }} days.
+{% endif %}
+{% if a.retention.reportsDays is not null %}
+The operator deletes problem reports after {{ a.retention.reportsDays }} days.
+{% endif %}
+{% if a.retention.logsDays is not null %}
+Logs are kept for {{ a.retention.logsDays }} days.
+{% else %}
+How long logs are kept: {{ missing }}
+{% endif %}
+{% if a.retention.backups is not null %}
+Backups: {{ a.retention.backups }}
+{% endif %}
+
+## Connections to other parties
+
+{% for connection in inventory.connections %}
+- **{{ connection.to }}**: {{ connection.when }}. Sends: {{ connection.sends }}.
+{% endfor %}
+
+By default, the instance sends a site your cookies for that site: {{ defaults.sendCookies ? 'yes' : 'no' }}; your browser's user agent: {{ defaults.sendUserAgent ? 'yes' : 'no' }}; the page you came from (referrer): {{ defaults.sendReferrer ? 'yes' : 'no' }}. You can change this in your settings, per site and per app.
+{% if config.siteExceptions is not empty %}
+The administrators changed these defaults for the following sites:
+
+{% for exception in config.siteExceptions %}
+{% set changes = [] %}
+{% for key, label in {sendCookies: 'cookies', sendUserAgent: 'user agent', sendReferrer: 'referrer'} %}
+{% if exception[key] is not null %}{% set changes = changes|merge([label ~ (exception[key] ? ' sent' : ' not sent')]) %}{% endif %}
+{% endfor %}
+- **{{ exception.site }}**: {{ changes|join(', ') }}
+{% endfor %}
+{% endif %}
+
+The identity provider is {{ a.identityProvider.name ?? missing }}{% if a.identityProvider.privacyPolicyUrl is not null %} ([privacy policy](<{{ a.identityProvider.privacyPolicyUrl|e('markdown_url')|raw }}>)){% endif %}. It handles your sign-in under its own privacy policy and tells the instance your identifier and roles.
+
+The instance is hosted by {{ a.hosting.provider ?? missing }} in {{ a.hosting.country ?? missing }}.
+
+{% if a.processors is not empty %}
+The operator also uses these service providers:
+
+{% for processor in a.processors %}
+- **{{ processor.name }}**{% if processor.purpose is not null %}: {{ processor.purpose }}{% endif %}{% if processor.country is not null %} ({{ processor.country }}){% endif %}
+
+{% endfor %}
+{% endif %}
+
+## Problem reports
+
+{% if config.failureReports.enabled %}
+When a download fails, your app can offer to send a problem report. Nothing is sent unless you choose to. A report contains the page address, technical details about the failure and your comment; you see what it contains before you send it. Administrators use reports to fix failing downloads. You can see and withdraw your reports at any time.
+{% if config.failureReports.forwarding is not null %}
+If you agree, the instance forwards your report to the FetchDock developers, under the privacy policy of the FetchDock report collector (version {{ config.failureReports.forwarding.collectorPolicyVersion }}).
+{% else %}
+Reports stay on this instance.
+{% endif %}
+{% else %}
+This instance does not accept problem reports. Reports sent earlier are kept until you withdraw them or an administrator deletes them.
+{% endif %}
+
+## Integrity of the software
+
+This policy describes what unmodified FetchDock {{ appVersion }} does. The instance regularly checks its application code against the files of the official build{% if config.integrityCheckOnline %} and compares them with the fingerprint (digest) the FetchDock project published for this version{% endif %}. The generated policy is only published while that check passes.
+
+This is a signal, not proof: it catches accidental changes, but a deliberately modified server could fake it. Anyone can compare the instance's published manifest digest with the one attached to the FetchDock release. The check does not cover the admin web app, the operating system image, or the downloader tools (yt-dlp and gallery-dl update themselves).
+
+## Your rights
+
+You have the right to access your data, to have it corrected or deleted, to restrict its processing, to receive it in a portable format and to object to its processing. Contact the operator to exercise these rights.
+
+You also have the right to complain to a data protection supervisory authority{% if a.supervisoryAuthority is not null %}, such as {{ a.supervisoryAuthority }}{% endif %}.
+
+{% if a.additionalText is not null %}
+## Additional information from the operator
+
+{{ a.additionalText|raw }}
+
+{% endif %}
+## Changes to this policy
+
+When the software, its configuration or the operator's answers change, the instance creates a new revision of this policy. Earlier revisions stay available.
+{% endautoescape %}
