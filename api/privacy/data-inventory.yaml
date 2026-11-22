@@ -291,6 +291,31 @@ entities:
             mismatches: ~
             checkedAt: ~
 
+    App\Entity\PrivacyPolicySettings:
+        summary: The operator's answers for the generated privacy policy (published in it) and when a non-admin user with the view-all role last signed in
+        defaults: { personal: false }
+        fields:
+            id: ~
+            answers: ~
+            answersUpdatedAt: ~
+            viewAllRoleSeenAt: ~
+
+    App\Entity\PrivacyPolicyRevision:
+        summary: The published revisions of the generated privacy policy, kept for reference
+        defaults: { personal: false }
+        fields:
+            id: ~
+            number: ~
+            reason: ~
+            textVersion: ~
+            appVersion: ~
+            inputsHash: ~
+            answersHash: ~
+            configurationHash: ~
+            markdown: ~
+            html: ~
+            createdAt: ~
+
     App\Resource\Stats\UserDownloadStats:
         summary: Counts of the user's jobs per state (database view)
         derived: true
