@@ -170,7 +170,7 @@ class PolicyInputsBuilder
         ));
         $connections = array_values(array_filter(
             $inventory['outgoingConnections'] ?? [],
-            static fn (array $entry): bool => 'integrity_digest' !== $entry['id'] || $configuration['integrityCheckOnline'],
+            static fn (array $entry): bool => (bool) ($entry['personal'] ?? false),
         ));
 
         return [

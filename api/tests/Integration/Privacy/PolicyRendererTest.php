@@ -51,18 +51,20 @@ final class PolicyRendererTest extends KernelTestCase
         self::assertStringContainsString('<a href="https://id.example.org/privacy">privacy policy</a>', $policy->html);
         self::assertStringContainsString('Data protection officer: dpo@example.org', $policy->markdown);
         self::assertStringContainsString('Art. 6(1)(f) GDPR', $policy->markdown);
-        self::assertStringContainsString('hosted by self-hosted in NL', $policy->markdown);
-        self::assertStringContainsString('- **Backup Co**: Off-site backups (DE)', $policy->markdown);
-        self::assertStringContainsString('Logs are kept for 14 days.', $policy->markdown);
-        self::assertStringContainsString('erases deleted download jobs after 90 days', $policy->markdown);
-        self::assertStringContainsString('deletes problem reports after 180 days', $policy->markdown);
+        self::assertStringContainsString('hosted by self-hosted in Netherlands', $policy->markdown);
+        self::assertStringContainsString('- **Backup Co**: Off-site backups (Germany)', $policy->markdown);
+        self::assertStringContainsString('kept for 14 days.', $policy->markdown);
+        self::assertStringContainsString('permanently erases soft-deleted download jobs after 90 days', $policy->markdown);
+        self::assertStringContainsString('deleted by the operator after 180 days', $policy->markdown);
         self::assertStringContainsString('such as Autoriteit Persoonsgegevens', $policy->markdown);
 
         // From the data inventory
         self::assertStringContainsString('### Your downloads', $policy->markdown);
-        self::assertStringContainsString('- **A download the user requested.** Purpose: Performs the download', $policy->markdown);
+        self::assertStringContainsString('- **A download you requested.** Purpose: Performs the download', $policy->markdown);
         self::assertStringContainsString('Security and troubleshooting. Kept for 14 days.', $policy->markdown, 'operator:logs uses the logs answer');
-        self::assertStringContainsString('**The Python Package Index (pip updates yt-dlp and gallery-dl)**', $policy->markdown);
+        self::assertStringContainsString('**The websites you submit**', $policy->markdown);
+        self::assertStringNotContainsString('Python Package Index', $policy->markdown, 'no user data');
+        self::assertStringNotContainsString('GitHub', $policy->markdown, 'no user data');
         self::assertStringNotContainsString('Results of the instance integrity check', $policy->markdown, 'not personal');
         self::assertStringNotContainsString('Counts of the user', $policy->markdown, 'derived views store nothing');
 
@@ -77,7 +79,7 @@ final class PolicyRendererTest extends KernelTestCase
 
         self::assertStringContainsString('This text is not published.', $policy->markdown);
         self::assertStringContainsString('# Privacy policy of (not answered yet)', $policy->markdown);
-        self::assertStringContainsString('How long logs are kept: (not answered yet)', $policy->markdown);
+        self::assertStringContainsString('**Logs:** (not answered yet)', $policy->markdown);
         self::assertStringNotContainsString('revision', strtok($policy->markdown, '#') ?: '');
     }
 
@@ -110,9 +112,10 @@ final class PolicyRendererTest extends KernelTestCase
         $settings = $this->settingsRepository->get();
 
         $default = $this->render($answers, 1);
-        self::assertStringContainsString('your cookies for that site: yes; your browser\'s user agent: yes; the page you came from (referrer): no.', $default->markdown);
-        self::assertStringContainsString('Reports stay on this instance.', $default->markdown);
-        self::assertStringContainsString('**GitHub (the fetchdock-server releases)**', $default->markdown);
+        self::assertStringContainsString('- **Cookies for that site:** sent by default', $default->markdown);
+        self::assertStringContainsString('- **Browser user agent:** sent by default', $default->markdown);
+        self::assertStringContainsString('- **Referring page (referrer):** not sent by default', $default->markdown);
+        self::assertStringContainsString('/.well-known/browser-extension', $default->markdown);
         self::assertStringNotContainsString('other users the operator allowed to view all downloads', $default->markdown);
 
         $settings->setViewAllRoleSeenAt(new \DateTimeImmutable('-10 days'));
@@ -124,8 +127,6 @@ final class PolicyRendererTest extends KernelTestCase
         self::assertSame($default->markdown, $this->render($answers, 1)->markdown, 'a role seen long ago no longer counts');
 
         $offline = $this->render($answers, 1, $this->inputsBuilder(failureReports: false, integrityOnline: false));
-        self::assertStringContainsString('This instance does not accept problem reports.', $offline->markdown);
-        self::assertStringNotContainsString('GitHub', $offline->markdown);
         self::assertStringNotContainsString('published for this version', $offline->markdown);
 
         $site = new Site()->setSlug('policy-test-'.bin2hex(random_bytes(4)))->setName('Policy Test Site')->setDomains(['policy-test.example']);

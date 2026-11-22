@@ -10,3 +10,4 @@ versions:
     - { version: '0.1', digest: 9429dd8ba5b79f883a03ab99191fb63b74aec513843c4b9e23c9fa0b77760ea2, changes: 'Draft: first data inventory, no template yet' }
     - { version: '0.2', digest: bae1fa325ebf1885f7e5a4b7115885e3d6756ed8866813163be1aeb9ff60fe07, changes: 'Draft: integrity check results and the official digest fetch' }
     - { version: '0.3', digest: 711e114980247ac9e0f3e717faf44f788b810efc2963cf48ba3945d4fd6fade7, changes: 'Draft: first policy template; privacy policy settings and revisions' }
+    - { version: '1.0', digest: 6c3e073765bb98feb4bc9b59348f023b576e7f61147646498aca38aa0fb2b087, changes: 'Initial reviewed privacy policy text' }

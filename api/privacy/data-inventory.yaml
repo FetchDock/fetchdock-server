@@ -26,16 +26,16 @@ schemaVersion: 1
 
 entities:
     App\Entity\OidcSubjectIdentifier:
-        summary: The user account, created on the first signed-in request
-        defaults: { personal: true, category: account, purpose: 'Identifies the user who signed in through the identity provider', retention: with_account, visibleTo: [admins, view_all] }
+        summary: Your account identifier, created on your first signed-in request (no password is stored)
+        defaults: { personal: true, category: account, purpose: 'Identifies you when you sign in through the identity provider', retention: with_account, visibleTo: [admins, view_all] }
         fields:
             id: ~
             uuid: { visibleTo: [owner, admins, view_all] }
             subject: ~
 
     App\Entity\UserSetting:
-        summary: The user's general download settings
-        defaults: { personal: true, category: settings, purpose: 'Applies the user''s choices to their downloads', retention: with_account, visibleTo: [owner] }
+        summary: Your general download settings
+        defaults: { personal: true, category: settings, purpose: 'Applies your choices to your downloads', retention: with_account, visibleTo: [owner] }
         fields:
             id: ~
             owner: ~
@@ -45,8 +45,8 @@ entities:
             sendReferrer: ~
 
     App\Entity\UserDownloaderSetting:
-        summary: The user's settings per downloader
-        defaults: { personal: true, category: settings, purpose: 'Applies the user''s choices to their downloads', retention: with_account, visibleTo: [owner] }
+        summary: Your settings per downloader
+        defaults: { personal: true, category: settings, purpose: 'Applies your choices to your downloads', retention: with_account, visibleTo: [owner] }
         fields:
             id: ~
             owner: ~
@@ -56,8 +56,8 @@ entities:
             options: ~
 
     App\Entity\UserSiteSetting:
-        summary: The user's settings per site
-        defaults: { personal: true, category: settings, purpose: 'Applies the user''s choices to their downloads from a site', retention: until_deleted, visibleTo: [owner] }
+        summary: Your settings per site
+        defaults: { personal: true, category: settings, purpose: 'Applies your choices to your downloads from a site', retention: until_deleted, visibleTo: [owner] }
         fields:
             id: ~
             owner: ~
@@ -70,18 +70,18 @@ entities:
 
     App\Entity\Client:
         summary: A registered app installation, such as a browser extension
-        defaults: { personal: true, category: device, purpose: 'Lets the user tell their installations apart and give each its own settings', retention: until_deleted, visibleTo: [owner] }
+        defaults: { personal: true, category: device, purpose: 'Lets you tell your installations apart and give each its own settings', retention: until_deleted, visibleTo: [owner] }
         fields:
             id: ~
             owner: ~
             name: ~
             type: ~
             createdAt: ~
-            lastSeenAt: { purpose: 'Shows the user when an installation was last used' }
+            lastSeenAt: { purpose: 'Shows you when an installation was last used' }
 
     App\Entity\ClientSetting:
         summary: Settings of one app installation
-        defaults: { personal: true, category: settings, purpose: 'Applies the user''s choices for one installation', retention: until_deleted, visibleTo: [owner] }
+        defaults: { personal: true, category: settings, purpose: 'Applies your choices for one installation', retention: until_deleted, visibleTo: [owner] }
         fields:
             id: ~
             client: ~
@@ -91,8 +91,8 @@ entities:
             sendReferrer: ~
 
     App\Entity\ClientPreference:
-        summary: Interface preferences an app syncs between the user's devices (stored as the app sends them)
-        defaults: { personal: true, category: device, purpose: 'Syncs interface preferences such as theme and notifications between the user''s devices', retention: with_account, visibleTo: [owner] }
+        summary: Interface preferences an app syncs between your devices (stored as the app sends them)
+        defaults: { personal: true, category: device, purpose: 'Syncs interface preferences such as theme and notifications between your devices', retention: with_account, visibleTo: [owner] }
         fields:
             id: ~
             owner: ~
@@ -101,26 +101,26 @@ entities:
             updatedAt: ~
 
     App\Entity\DownloadJob:
-        summary: A download the user requested
-        defaults: { personal: true, category: request, purpose: 'Performs the download the user asked for and shows its result', retention: with_job, visibleTo: [owner, view_all] }
+        summary: A download you requested
+        defaults: { personal: true, category: request, purpose: 'Performs the download you asked for and shows its result', retention: with_job, visibleTo: [owner, view_all] }
         fields:
             id: { visibleTo: [nobody] }
             uuid: ~
-            token: { purpose: 'Gives the links to the downloaded files', visibleTo: [owner] }
+            token: { purpose: 'Provides the links to your downloaded files', visibleTo: [owner] }
             uri: ~
             canonicalKey: { purpose: 'Detects repeated downloads of the same media', visibleTo: [nobody] }
-            userAgent: { purpose: 'Sent to the site because some sites require it, only if the user''s settings allow it', visibleTo: [nobody] }
-            referrer: { purpose: 'Sent to the site because some sites require it, only if the user''s settings allow it', visibleTo: [nobody] }
-            cookies: { purpose: 'Sent to the site so it serves media to the signed-in user, only if the user''s settings allow it', retention: until_completed, visibleTo: [nobody] }
-            downloaderOptions: { category: settings, purpose: 'Applies the user''s downloader options to this download', visibleTo: [nobody] }
+            userAgent: { purpose: 'Your browser''s user agent, sent to the site when required and allowed by your settings', visibleTo: [nobody] }
+            referrer: { purpose: 'The referring page, sent to the site when required and allowed by your settings', visibleTo: [nobody] }
+            cookies: { purpose: 'Your browser''s cookies for that site, sent so it serves media to your signed-in account when allowed by your settings', retention: until_completed, visibleTo: [nobody] }
+            downloaderOptions: { purpose: 'Applies your downloader options to this download', visibleTo: [nobody] }
             state: ~
             downloader: ~
             createdAt: ~
             updatedAt: ~
-            deletedAt: { purpose: 'Hides a job the user deleted', visibleTo: [view_all] }
+            deletedAt: { purpose: 'Hides a job you deleted', visibleTo: [view_all] }
             owner: { visibleTo: [view_all] }
             site: { purpose: 'Applies the site''s settings', visibleTo: [nobody] }
-            downloadDirectory: { category: technical, purpose: 'Records where the files were saved', visibleTo: [nobody] }
+            downloadDirectory: { purpose: 'Records where the files were saved', visibleTo: [nobody] }
 
     App\Entity\DownloadJobEvent:
         summary: Progress and error log of a download job
@@ -139,7 +139,7 @@ entities:
             updatedAt: ~
 
     App\Entity\DownloadedFile:
-        summary: A downloaded file; one file can be linked to the jobs of several users
+        summary: A downloaded file (one file can be linked to the jobs of several users)
         defaults: { personal: true, category: content, purpose: 'Makes the downloaded media available to the users who requested it', retention: with_file, visibleTo: [owner, view_all] }
         fields:
             id: ~
@@ -151,11 +151,11 @@ entities:
             downloadJob: { purpose: 'Links the file to the jobs that requested it' }
 
     App\Entity\FailureReport:
-        summary: A problem report the user chose to send (ADR 0012)
-        defaults: { personal: true, category: report, purpose: 'Lets administrators find and fix downloads that fail', retention: until_withdrawn, visibleTo: [owner, admins] }
+        summary: A problem report you chose to send
+        defaults: { personal: true, category: report, purpose: 'Lets administrators find and fix downloads that fail, and share the report (without your account identifier) with the FetchDock maintainers if needed', retention: until_withdrawn, visibleTo: [owner, admins] }
         fields:
             id: ~
-            owner: { purpose: 'Lets the user see and withdraw their reports and limits duplicates', visibleTo: [owner] }
+            owner: { purpose: 'Lets you see and withdraw your reports and limits duplicates', visibleTo: [owner] }
             kind: ~
             url: ~
             userAgent: ~
@@ -172,7 +172,7 @@ entities:
             site: { visibleTo: [admins] }
 
     App\Entity\FileMoveBatch:
-        summary: An administrator's request to move files between download directories
+        summary: Administrator file-move records (which administrator started moving files between download directories)
         defaults: { personal: false }
         fields:
             id: ~
@@ -185,7 +185,7 @@ entities:
             bytesTotal: ~
             bytesMoved: ~
             errors: ~
-            requestedBy: { personal: true, category: account, purpose: 'Records which administrator started the move', retention: with_account, visibleTo: [admins] }
+            requestedBy: { personal: true, category: technical, purpose: 'Records which administrator started the move', retention: with_account, visibleTo: [admins] }
             createdAt: ~
             startedAt: ~
             finishedAt: ~
@@ -333,7 +333,7 @@ entities:
 storage:
     - id: downloaded_files
       what: The downloaded media files and the downloader's sidecar files (metadata, subtitles, thumbnails)
-      where: The instance's download directories (DOWNLOAD_ROOTS)
+      where: The instance's download directories
       personal: true
       category: content
       purpose: Makes the downloaded media available to the users who requested it
@@ -345,69 +345,69 @@ storage:
       personal: false
       purpose: Lets yt-dlp skip media it already downloaded
     - id: cookie_files
-      what: A temporary cookies.txt file with the job's cookies, readable only by the worker
+      what: A temporary cookies file with your job's cookies, readable only by the worker
       where: The worker's temporary directory
       personal: true
       category: request
-      purpose: Passes the cookies to the downloader
+      purpose: Passes your cookies to the downloader
       retention: transient
-      notes: Removed when the downloader exits (AbstractCliDownloader).
+      notes: Removed when the downloader exits.
     - id: message_queue
-      what: Queued jobs and file moves (Messenger doctrine transport tables), including a queued job's URL and cookies
+      what: Queued jobs and file moves in the internal job queue, including a queued job's URL and cookies
       where: The database
       personal: true
       category: request
-      purpose: Hands work from the api to the worker
+      purpose: Hands work from the web service to the download worker
       retention: transient
       notes: A message is removed when it is handled; failed messages are retried and then dropped.
     - id: application_logs
       what: Application log entries, which can contain URLs, account identifiers and error details
-      where: Container output (stderr), in production only around errors
+      where: Server logs, in production normally only around errors
       personal: true
       category: technical
       purpose: Security and troubleshooting
       retention: operator:logs
     - id: access_logs
-      what: Web server access logs with IP address, time, request path and user agent (Mercure tokens redacted)
-      where: Container output of the api container (Caddy)
+      what: Web server access logs with IP address, time, request path and user agent (live-update tokens redacted)
+      where: Web server logs
       personal: true
       category: technical
       purpose: Security and troubleshooting
       retention: operator:logs
     - id: mercure
-      what: Live updates about the user's jobs and settings, sent privately to the user's signed-in apps
-      where: Memory of the embedded Mercure hub
+      what: Live updates about your jobs and settings, sent privately to your signed-in apps
+      where: Memory of the embedded live-update hub
       personal: true
       category: request
       purpose: Shows progress and changes without reloading
       retention: transient
     - id: pwa_browser_storage
-      what: The admin web app's sign-in session (tokens) and interface state, in the browser's local storage
-      where: The user's browser
+      what: The admin web app's sign-in session (tokens) and interface state, in your browser's local storage
+      where: Your browser
       personal: true
       category: account
-      purpose: Keeps the user signed in to the admin web app
+      purpose: Keeps you signed in to the admin web app
       retention: until_deleted
 
 # Connections the instance makes to other parties.
 outgoingConnections:
     - id: downloaded_sites
-      to: The websites the user submits
-      when: For every download, and when resolving a page's site (the network probe, ADR 0008)
-      sends: The instance's IP address, the URL and, if the user's settings allow it, the user's cookies, user agent and referrer for that site
+      to: The websites you submit
+      when: For every download, and when identifying which site handles a page
+      sends: The instance's IP address, the URL and, if your settings allow it, your cookies, user agent and referring page for that site
       personal: true
     - id: identity_provider
       to: The operator's OpenID Connect identity provider
       when: On sign-in, token refresh and token validation
-      sends: The OAuth authorization code and refresh tokens; the provider returns the user's identifier and roles
+      sends: The OAuth authorization code and refresh tokens; the provider returns your account identifier and roles
       personal: true
     - id: downloader_updates
       to: The Python Package Index (pip updates yt-dlp and gallery-dl)
-      when: Hourly (core:downloaders:update)
+      when: Hourly, to check for downloader updates
       sends: The instance's IP address; no user data
       personal: false
     - id: integrity_digest
-      to: GitHub (the fetchdock-server releases)
-      when: When the api and worker containers start and daily, until it has the digest of the running version; not with INTEGRITY_CHECK_ONLINE=0
+      to: GitHub (the FetchDock server releases)
+      when: When the server starts and daily, until it has the digest of the running version
       sends: The instance's IP address and its FetchDock version; no user data
       personal: false

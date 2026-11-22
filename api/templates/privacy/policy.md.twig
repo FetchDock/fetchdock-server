@@ -21,7 +21,7 @@
 {% set retentionLabels = {
     with_account: 'while your account exists',
     with_job: 'as long as the download job exists',
-    until_completed: 'parts of it only until the download completes successfully',
+    until_completed: 'cookies only until the download completes successfully',
     with_file: 'as long as the file is kept',
     until_deleted: 'until you delete it',
     until_withdrawn: 'until you withdraw it or an administrator deletes it',
@@ -44,9 +44,9 @@ Policy text version {{ textVersion }}, FetchDock {{ appVersion }}, revision {{ r
 Preview of policy text version {{ textVersion }}, FetchDock {{ appVersion }}. This text is not published.
 {% endif %}
 
-This instance runs FetchDock, open-source software that downloads media from websites when its users ask it to. This policy explains which personal data the instance processes, why, for how long, and who can see it.
+This instance runs FetchDock, open-source software that downloads media from websites when you ask it to. This policy explains what personal data the instance processes, why, for how long, and who can see it.
 
-FetchDock generated this policy from a list of everything the software stores and sends (kept in sync with the code by automated tests), from this instance's configuration, and from the operator's answers. The operator adopted it as the privacy policy of this instance.
+FetchDock is designed to collect only the data needed to run the service, with no advertising, tracking, or undisclosed sharing with third parties. FetchDock generated this policy from a list of everything the software stores and sends (kept in sync with the code by automated tests), from this instance's configuration, and from the operator's answers. This generated policy is only published while the instance reports running an unmodified official build (see "Integrity of the software").
 
 ## Who is responsible
 
@@ -62,19 +62,18 @@ Contact: {{ missing }}
 Data protection officer: {{ a.operator.dpoContact }}
 {% endif %}
 
-The FetchDock developers do not operate this instance and receive no personal data from it{% if config.failureReports.forwarding is not null %}, except the problem reports you choose to forward (see "Problem reports"){% endif %}.
+Because FetchDock is self-hosted, the operator — not the FetchDock project — runs this instance and is responsible for how your data is handled, including any access outside the software. By publishing this policy, the operator adopts it and confirms that your data is not sold or used for advertising.
+
+The FetchDock project only operates the official instance at `api.fetchdock.dev` (and `staging.fetchdock.dev` for testing). Any other FetchDock instance is run independently by its operator — the FetchDock project does not operate it and receives no personal data from it, unless an administrator shares a problem report with the FetchDock maintainers for support (see "Problem reports").
 
 ## Legal basis
 
-{% if a.legalBasis == 'contract' %}
-The instance processes your data to provide the download service you signed up for (Art. 6(1)(b) GDPR).
-{% elseif a.legalBasis == 'legitimate_interest' %}
-The instance processes your data on the basis of the operator's legitimate interest in providing the download service to the people they admitted, and in keeping it secure and working (Art. 6(1)(f) GDPR). You can object to it (see "Your rights").
-{% else %}
-{{ missing }}
-{% endif %}
+- **Providing the service (downloads, settings and device sync):** {% if a.legalBasis == 'contract' %}performance of a contract to provide the download service you signed up for (Art. 6(1)(b) GDPR).{% elseif a.legalBasis == 'legitimate_interest' %}the operator's legitimate interest in providing the download service to the people they admitted (Art. 6(1)(f) GDPR). You can object to this processing (see "Your rights"), though the download service cannot work without processing the data required for a download.{% else %}{{ missing }}{% endif %}
 
-Problem reports are only sent when you choose to send one.
+- **Logs and security:** the operator's legitimate interest in keeping the service secure and working reliably (Art. 6(1)(f) GDPR).
+- **Problem reports** (when enabled on this instance): your consent (Art. 6(1)(a) GDPR). Nothing is sent unless you choose to send a report, and you can withdraw your consent at any time by withdrawing the report. Whether problem reports are enabled is published in this instance's configuration at `/.well-known/browser-extension`.
+
+You are not legally required to provide personal data. However, signing in and providing a URL (mandatory) are necessary to use the download service, and some websites also require your cookies, user agent or referring page (optional by default, mandatory for certain sites) in order to download media — without the data needed for a download, the service cannot perform it.
 
 ## What the instance stores
 
@@ -99,22 +98,15 @@ You sign in through the instance's identity provider. The instance stores the fo
 
 ## How long data is kept
 
-There is no self-service account deletion: to have your account and data deleted, contact the operator. You can delete your downloads, settings, apps and problem reports yourself.
+- **Your account:** kept while your account exists. There is no self-service account deletion yet; to have your account and data deleted, contact the operator.
+- **Download jobs, cookies and files:** you can delete your downloads, settings and registered apps yourself. Cookies sent with a download are cleared from the job once the download completes successfully; if a download does not complete, they stay with the job until it is deleted. Deleting a download job hides it rather than erasing it immediately, and downloaded files stay on disk while other users or the operator keep them. {% if a.retention.softDeletedJobsDays is not null %}The operator permanently erases soft-deleted download jobs after {{ a.retention.softDeletedJobsDays }} days.{% else %}Soft-deleted download jobs remain stored until an administrator permanently deletes them.{% endif %}
 
-Deleting a download job hides it, but does not erase it, and the downloaded files stay on disk while other users or the operator keep them.
-{% if a.retention.softDeletedJobsDays is not null %}
-The operator erases deleted download jobs after {{ a.retention.softDeletedJobsDays }} days.
-{% endif %}
-{% if a.retention.reportsDays is not null %}
-The operator deletes problem reports after {{ a.retention.reportsDays }} days.
-{% endif %}
-{% if a.retention.logsDays is not null %}
-Logs are kept for {{ a.retention.logsDays }} days.
-{% else %}
-How long logs are kept: {{ missing }}
-{% endif %}
+- **Problem reports:** {% if a.retention.reportsDays is not null %}kept until you withdraw them, or deleted by the operator after {{ a.retention.reportsDays }} days.{% else %}kept until you withdraw them or an administrator deletes them.{% endif %}
+
+- **Logs:** {% if a.retention.logsDays is not null %}kept for {{ a.retention.logsDays }} days.{% else %}{{ missing }}{% endif %}
+
 {% if a.retention.backups is not null %}
-Backups: {{ a.retention.backups }}
+- **Backups:** {{ a.retention.backups }}
 {% endif %}
 
 ## Connections to other parties
@@ -123,9 +115,16 @@ Backups: {{ a.retention.backups }}
 - **{{ connection.to }}**: {{ connection.when }}. Sends: {{ connection.sends }}.
 {% endfor %}
 
-By default, the instance sends a site your cookies for that site: {{ defaults.sendCookies ? 'yes' : 'no' }}; your browser's user agent: {{ defaults.sendUserAgent ? 'yes' : 'no' }}; the page you came from (referrer): {{ defaults.sendReferrer ? 'yes' : 'no' }}. You can change this in your settings, per site and per app.
+Websites you submit process your download requests under their own privacy policies.
+
+When downloading from a website, FetchDock uses the following server defaults:
+
+- **Cookies for that site:** {{ defaults.sendCookies ? 'sent by default' : 'not sent by default' }}
+- **Browser user agent:** {{ defaults.sendUserAgent ? 'sent by default' : 'not sent by default' }}
+- **Referring page (referrer):** {{ defaults.sendReferrer ? 'sent by default' : 'not sent by default' }}
 {% if config.siteExceptions is not empty %}
-The administrators changed these defaults for the following sites:
+
+Administrators have set different defaults for these sites:
 
 {% for exception in config.siteExceptions %}
 {% set changes = [] %}
@@ -135,6 +134,8 @@ The administrators changed these defaults for the following sites:
 - **{{ exception.site }}**: {{ changes|join(', ') }}
 {% endfor %}
 {% endif %}
+
+These are only defaults — your own account, per-site and browser extension settings always override them, so you have the final say on what is sent for any download.
 
 The identity provider is {{ a.identityProvider.name ?? missing }}{% if a.identityProvider.privacyPolicyUrl is not null %} ([privacy policy](<{{ a.identityProvider.privacyPolicyUrl|e('markdown_url')|raw }}>)){% endif %}. It handles your sign-in under its own privacy policy and tells the instance your identifier and roles.
 
@@ -151,26 +152,23 @@ The operator also uses these service providers:
 
 ## Problem reports
 
-{% if config.failureReports.enabled %}
-When a download fails, your app can offer to send a problem report. Nothing is sent unless you choose to. A report contains the page address, technical details about the failure and your comment; you see what it contains before you send it. Administrators use reports to fix failing downloads. You can see and withdraw your reports at any time.
-{% if config.failureReports.forwarding is not null %}
-If you agree, the instance forwards your report to the FetchDock developers, under the privacy policy of the FetchDock report collector (version {{ config.failureReports.forwarding.collectorPolicyVersion }}).
-{% else %}
-Reports stay on this instance.
-{% endif %}
-{% else %}
-This instance does not accept problem reports. Reports sent earlier are kept until you withdraw them or an administrator deletes them.
-{% endif %}
+If problem reports are enabled on this instance, your app can offer to send a report when a download fails or a page is not supported. Nothing is sent unless you choose to send one, and the app shows you the exact contents first. A report includes the page address, your optional comment, and only the extra details you choose to include (such as user agent, referring page or downloader error details). It never includes cookies.
+
+Administrators see the report contents — not which account sent it — and use them to fix failing downloads. Administrators may also share a report (without your account identifier) with the FetchDock project maintainers if their support is needed to resolve the reported issue.
+
+You can view and withdraw your reports at any time. Withdrawing a report permanently and irrevocably deletes it from this server, unless it was already shared with the FetchDock project before withdrawal.
+
+You can check whether problem reports are enabled on this instance at `/.well-known/browser-extension` (`features.failureReports`).
 
 ## Integrity of the software
 
-This policy describes what unmodified FetchDock {{ appVersion }} does. The instance regularly checks its application code against the files of the official build{% if config.integrityCheckOnline %} and compares them with the fingerprint (digest) the FetchDock project published for this version{% endif %}. The generated policy is only published while that check passes.
+This policy describes what unmodified FetchDock does. The instance regularly checks its application code against the files of the official build{% if config.integrityCheckOnline %} and compares them with the fingerprint (digest) the FetchDock project published for this version{% endif %}. This generated policy is only published while that check passes; otherwise, the operator must provide their own privacy policy.
 
 This is a signal, not proof: it catches accidental changes, but a deliberately modified server could fake it. Anyone can compare the instance's published manifest digest with the one attached to the FetchDock release. The check does not cover the admin web app, the operating system image, or the downloader tools (yt-dlp and gallery-dl update themselves).
 
 ## Your rights
 
-You have the right to access your data, to have it corrected or deleted, to restrict its processing, to receive it in a portable format and to object to its processing. Contact the operator to exercise these rights.
+You have the right to access your data, to have it corrected or deleted, to restrict its processing, to receive it in a portable format and to object to its processing. Where processing is based on your consent, you can withdraw it at any time without affecting the lawfulness of processing before withdrawal. Contact the operator to exercise these rights.
 
 You also have the right to complain to a data protection supervisory authority{% if a.supervisoryAuthority is not null %}, such as {{ a.supervisoryAuthority }}{% endif %}.
 

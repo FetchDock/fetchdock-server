@@ -3,6 +3,7 @@
 namespace App\Service\Privacy;
 
 use League\CommonMark\CommonMarkConverter;
+use Symfony\Component\Intl\Countries;
 use Twig\Environment;
 use Twig\Runtime\EscaperRuntime;
 
@@ -38,11 +39,21 @@ class PolicyRenderer
      */
     public function render(PolicyInputs $inputs, ?int $revision): RenderedPolicy
     {
+        $answers = $inputs->answers->toArray();
+        if (\is_string($answers['hosting']['country'] ?? null)) {
+            $answers['hosting']['country'] = self::countryName($answers['hosting']['country']);
+        }
+        foreach ($answers['processors'] ?? [] as $index => $processor) {
+            if (\is_string($processor['country'] ?? null)) {
+                $answers['processors'][$index]['country'] = self::countryName($processor['country']);
+            }
+        }
+
         $markdown = $this->twig->render(self::TEMPLATE, [
             'revision' => $revision,
             'textVersion' => $inputs->textVersion,
             'appVersion' => $inputs->appVersion,
-            'answers' => $inputs->answers->toArray(),
+            'answers' => $answers,
             'config' => $inputs->configuration,
             'inventory' => $inputs->inventory,
         ]);
@@ -55,5 +66,10 @@ class PolicyRenderer
     public function toHtml(string $markdown): string
     {
         return $this->converter->convert($markdown)->getContent();
+    }
+
+    private static function countryName(string $code): string
+    {
+        return Countries::exists($code) ? Countries::getName($code, 'en') : $code;
     }
 }
