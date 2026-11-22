@@ -101,6 +101,8 @@ final class PrivacyPolicyTest extends ApiTestCase
         $this->assertStringContainsString('<h1>Privacy policy of Family downloads</h1>', $html);
         $this->assertStringContainsString('Revision 1 of', $html);
         $this->assertStringNotContainsString('an earlier version', $html);
+        // The page forbids scripts, so Cloudflare Email Address Obfuscation must not rewrite contact/DPO addresses
+        $this->assertMatchesRegularExpression('/<!--email_off-->.*privacy@example\.org.*<!--\/email_off-->/s', $html);
 
         $wellKnown = $this->client->request('GET', '/.well-known/browser-extension')->toArray();
         $this->assertSame('http://localhost/privacy', $wellKnown['privacyPolicyUrl']);
@@ -224,8 +226,10 @@ final class PrivacyPolicyTest extends ApiTestCase
         $this->put(['instanceName' => 'Draft'] + $answers);
         $response = $this->client->request('GET', '/admin/privacy_policy/preview', ['headers' => $this->auth('admin') + ['Accept' => 'text/html']]);
         $this->assertResponseIsSuccessful();
-        $this->assertStringContainsString('It is not published.', $response->getContent());
-        $this->assertStringContainsString('<h1>Privacy policy of Draft</h1>', $response->getContent());
+        $previewHtml = $response->getContent();
+        $this->assertStringContainsString('It is not published.', $previewHtml);
+        $this->assertStringContainsString('<h1>Privacy policy of Draft</h1>', $previewHtml);
+        $this->assertMatchesRegularExpression('/<!--email_off-->.*privacy@example\.org.*<!--\/email_off-->/s', $previewHtml);
         $this->assertStringContainsString('no-store', $response->getHeaders()['cache-control'][0]);
         $this->assertCount(2, $this->client->request('GET', '/admin/privacy_policy/revisions', ['headers' => $this->auth('admin')])->toArray()['member']);
 
