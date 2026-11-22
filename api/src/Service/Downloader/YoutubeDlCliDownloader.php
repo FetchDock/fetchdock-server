@@ -5,6 +5,7 @@ namespace App\Service\Downloader;
 use App\Entity\DownloadedFile;
 use App\Model\DownloadJobInterface;
 use App\Repository\DownloadedFileRepository;
+use App\Service\Storage\DownloadLocationResolver;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerInterface;
@@ -27,6 +28,7 @@ class YoutubeDlCliDownloader extends AbstractCliDownloader implements CliDownloa
         protected EventDispatcherInterface $eventDispatcher,
         protected DownloadedFileRepository $downloadedFileRepository,
         protected EntityManagerInterface $entityManager,
+        protected DownloadLocationResolver $locationResolver,
     ) {
         parent::__construct($cache, $eventDispatcher, $configPath, $binaryPath, $downloadPath, $logger);
     }
@@ -245,15 +247,35 @@ class YoutubeDlCliDownloader extends AbstractCliDownloader implements CliDownloa
     private function linkFile(DownloadJobInterface $downloadJob, string $path, ?array $metadata = null): void
     {
         if (!is_file($path)) {
+            // The output of an older job (app:scan:downloaded-files) may point where a file move took the file from
+            $location = $this->locationResolver->fromAbsolute($path);
+            $movedFile = null === $location ? null : $this->downloadedFileRepository->findMovedFrom($location->directory, $location->relativePath);
+            if (null !== $movedFile) {
+                $movedFile->addDownloadJob($downloadJob);
+                $this->entityManager->persist($movedFile);
+                $this->filesByPath[$path] = $movedFile;
+            }
+
             return;
         }
 
-        $downloadedFile = $this->filesByPath[$path] ?? $this->downloadedFileRepository->findOneBy(['path' => $path]);
+        $downloadedFile = $this->filesByPath[$path] ?? null;
         if (null === $downloadedFile) {
-            $downloadedFile = new DownloadedFile()
-                ->setPath($path)
-                ->setVisible(true)
-                ->setMetadata($metadata ?? $this->readMetadataFile(preg_replace('/\.[^.\/]+$/', '.info.json', $path)) ?? []);
+            $location = $this->locationResolver->fromAbsolute($path);
+            if (null === $location) {
+                return;
+            }
+
+            $downloadedFile = $this->downloadedFileRepository->findOneByLocation($location->directory, $location->relativePath);
+            if (null === $downloadedFile) {
+                $downloadedFile = new DownloadedFile()
+                    ->setLocation($location->directory, $location->relativePath)
+                    ->setVisible(true)
+                    ->setMetadata($metadata ?? $this->readMetadataFile(preg_replace('/\.[^.\/]+$/', '.info.json', $path)) ?? []);
+            } elseif ($downloadedFile->isDeleted()) {
+                // A location holds one row: a file no live job used anymore is in use again
+                $downloadedFile->setDeletedAt(null);
+            }
         }
 
         $downloadedFile->addDownloadJob($downloadJob);
@@ -290,6 +312,14 @@ class YoutubeDlCliDownloader extends AbstractCliDownloader implements CliDownloa
         }
 
         return $versions['latest'];
+    }
+
+    /**
+     * --paths overrides the config's --path; the download archive stays global, in the config's default directory.
+     */
+    protected function getTargetDirectoryArguments(string $targetPath): array
+    {
+        return ['--paths', $targetPath];
     }
 
     protected function getCommandOptions(DownloadJobInterface $downloadJob): array

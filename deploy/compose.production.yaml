@@ -1,9 +1,15 @@
 # Production additions on top of deploy/compose.yaml.
 services:
   php:
+    environment:
+      # Download directories (admin, per site) may be created inside these roots (ADR 0011)
+      DOWNLOAD_ROOTS: ${DOWNLOAD_ROOTS:-/downloads,/mnt}
     volumes:
       # Download destinations outside /downloads (per-user/site settings may point into /mnt).
+      # The api and the worker need the same mounts: the api validates directories, the worker writes to them.
       - /mnt:/mnt
   worker:
+    environment:
+      DOWNLOAD_ROOTS: ${DOWNLOAD_ROOTS:-/downloads,/mnt}
     volumes:
       - /mnt:/mnt

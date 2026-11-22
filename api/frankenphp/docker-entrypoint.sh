@@ -73,6 +73,12 @@ if [ "$1" = 'frankenphp' ] || [ "$1" = 'php' ] || [ "$1" = 'bin/console' ]; then
 			if ! php bin/console app:jobs:canonicalize --no-interaction; then
 				echo "[canonicalize] WARNING: app:jobs:canonicalize failed" >&2
 			fi
+
+			# Sites of jobs created before #109, by known domain only (fast); app:jobs:assign-sites without the option
+			# also resolves the remaining hosts. Idempotent, not fatal (jobs without a site use the default directory)
+			if ! php bin/console app:jobs:assign-sites --known-domains --no-interaction; then
+				echo "[assign-sites] WARNING: app:jobs:assign-sites failed" >&2
+			fi
 		elif [ "$NODE_MODE" = "worker" ]; then
 			MIGRATION_POLL_INTERVAL=${MIGRATION_POLL_INTERVAL:-2}
 			MIGRATION_TIMEOUT=${MIGRATION_TIMEOUT:-300}

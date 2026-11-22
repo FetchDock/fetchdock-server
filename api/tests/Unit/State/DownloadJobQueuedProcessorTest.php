@@ -7,7 +7,6 @@ use ApiPlatform\State\ProcessorInterface;
 use App\Dto\CookieDTO;
 use App\Dto\DownloadJobDTO;
 use App\Dto\JobAcceptedDTO;
-use App\Entity\DownloadedFile;
 use App\Entity\DownloadJob;
 use App\Entity\DownloadJobEvent;
 use App\Enum\DownloadStateEnum;
@@ -23,6 +22,7 @@ use App\Service\Settings\EffectiveSettingsResolver;
 use App\Service\Site\SiteResolver;
 use App\State\DownloadJobQueuedProcessor;
 use App\Tests\Double\CanonicalKeyGenerators;
+use App\Tests\Double\DownloadLocations;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -545,7 +545,7 @@ class DownloadJobQueuedProcessorTest extends TestCase
             ->setState(DownloadStateEnum::COMPLETED);
 
         foreach ($filePaths as $filePath) {
-            $previousJob->addFile(new DownloadedFile()->setPath($filePath)->setVisible(true));
+            $previousJob->addFile(DownloadLocations::file($filePath)->setVisible(true));
         }
 
         return $previousJob;

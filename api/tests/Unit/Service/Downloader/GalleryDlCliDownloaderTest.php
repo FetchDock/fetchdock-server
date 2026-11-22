@@ -2,10 +2,15 @@
 
 namespace App\Tests\Unit\Service\Downloader;
 
+use App\Entity\DownloadDirectory;
+use App\Entity\DownloadedFile;
 use App\Entity\DownloadJob;
 use App\Repository\DownloadedFileRepository;
 use App\Service\Downloader\CliDownloaderInterface;
 use App\Service\Downloader\GalleryDlCliDownloader;
+use App\Service\Storage\DownloadLocation;
+use App\Service\Storage\DownloadLocationResolver;
+use App\Service\Storage\Paths;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
@@ -37,7 +42,8 @@ class GalleryDlCliDownloaderTest extends TestCase
             $this->logger,
             $this->eventDispatcher,
             $this->downloadedFileRepository,
-            $this->entityManager
+            $this->entityManager,
+            $this->createStub(DownloadLocationResolver::class),
         );
     }
 
@@ -73,5 +79,35 @@ class GalleryDlCliDownloaderTest extends TestCase
         $job = new DownloadJob()->setUri('https://example.com/media');
 
         $this->assertSame([], new \ReflectionMethod($this->downloader, 'getCommandOptions')->invoke($this->downloader, $job));
+    }
+
+    public function testAddFilesReadsPathsRelativeToTheJobsDirectory(): void
+    {
+        $target = sys_get_temp_dir().'/gallery-dl-test-'.bin2hex(random_bytes(4));
+        mkdir($target.'/gallery-dl/site', 0o700, true);
+        touch($target.'/gallery-dl/site/a.jpg');
+        touch($target.'/gallery-dl/site/b.jpg');
+        $directory = new DownloadDirectory('Site', $target);
+
+        $resolver = $this->createStub(DownloadLocationResolver::class);
+        $resolver->method('fromAbsolute')->willReturnCallback(static fn (string $path) => new DownloadLocation($directory, (string) Paths::relativeTo($path, $target)));
+        $persisted = [];
+        $this->entityManager->method('persist')->willReturnCallback(static function (object $entity) use (&$persisted): void {
+            if ($entity instanceof DownloadedFile) {
+                $persisted[] = $entity->getPath();
+            }
+        });
+        $downloader = new GalleryDlCliDownloader($this->cache, '/tmp/test-config.json', '/usr/bin/gallery-dl', '/tmp/downloads', $this->logger, $this->eventDispatcher, $this->downloadedFileRepository, $this->entityManager, $resolver);
+
+        try {
+            $downloader->addFilesToDownloadJobFromCommandOutput(
+                new DownloadJob()->setUri('https://example.com/gallery')->setDownloadDirectory($directory),
+                "./gallery-dl/site/a.jpg\n# {$target}/gallery-dl/site/b.jpg\n",
+            );
+        } finally {
+            exec('rm -rf '.escapeshellarg($target));
+        }
+
+        $this->assertSame([$target.'/gallery-dl/site/a.jpg', $target.'/gallery-dl/site/b.jpg'], $persisted);
     }
 }

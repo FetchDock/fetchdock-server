@@ -67,8 +67,14 @@ final class AdminDownloadedFile
 
     public ?string $filename = null;
 
-    /** Absolute path on the server */
+    /** Absolute path on the server (the directory's path joined with relativePath) */
     public ?string $path = null;
+
+    /** The download directory the file is stored in */
+    public ?AdminDownloadDirectory $directory = null;
+
+    /** Path inside the directory */
+    public ?string $relativePath = null;
 
     /** Whether the file still exists at its path */
     public bool $existsOnDisk = false;
@@ -107,6 +113,8 @@ final class AdminDownloadedFile
         $output->id = (int) $file->getId();
         $output->filename = $file->getFilename();
         $output->path = $file->getPath();
+        $output->directory = null === $file->getDirectory() ? null : AdminDownloadDirectory::fromEntity($file->getDirectory());
+        $output->relativePath = $file->getRelativePath();
         $output->existsOnDisk = null !== $file->getPath() && is_file($file->getPath());
         $output->visible = (bool) $file->isVisible();
         $output->metadata = DownloadedFileOutput::filterMetadata($file->getMetadata());

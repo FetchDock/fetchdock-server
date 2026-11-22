@@ -2,6 +2,7 @@
 
 namespace App\Tests\Integration\Repository;
 
+use App\Entity\DownloadDirectory;
 use App\Entity\DownloadedFile;
 use App\Entity\DownloadJob;
 use App\Entity\OidcSubjectIdentifier;
@@ -180,7 +181,7 @@ class DownloadJobRepositoryTest extends KernelTestCase
 
         if ($withFile) {
             $file = new DownloadedFile()
-                ->setPath('/downloads/test/'.bin2hex(random_bytes(4)).'.mp4')
+                ->setLocation($this->entityManager->getRepository(DownloadDirectory::class)->findOneBy(['isDefault' => true]), 'test/'.bin2hex(random_bytes(4)).'.mp4')
                 ->setVisible(true);
             $job->addFile($file);
             $this->entityManager->persist($file);

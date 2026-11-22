@@ -6,6 +6,7 @@ use App\Entity\DownloadedFile;
 use App\Entity\DownloadJob;
 use App\Model\DownloadJobInterface;
 use App\Repository\DownloadedFileRepository;
+use App\Service\Storage\DownloadLocationResolver;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerInterface;
@@ -29,6 +30,7 @@ class GalleryDlCliDownloader extends AbstractCliDownloader implements CliDownloa
         protected EventDispatcherInterface $eventDispatcher,
         protected DownloadedFileRepository $downloadedFileRepository,
         protected EntityManagerInterface $entityManager,
+        protected DownloadLocationResolver $locationResolver,
     ) {
         parent::__construct($cache, $eventDispatcher, $configPath, $binaryPath, $downloadPath, $logger);
     }
@@ -147,12 +149,25 @@ class GalleryDlCliDownloader extends AbstractCliDownloader implements CliDownloa
             if (str_starts_with($line, '# ./')) {
                 $line = substr($line, 4);
             }
-            $filePath = $this->downloadPath.'/'.ltrim($line, '/');
+            // Skipped files with an absolute base directory
+            if (str_starts_with($line, '# /')) {
+                $line = substr($line, 2);
+            }
+            // Relative paths are relative to the working directory, which is the job's directory
+            $filePath = str_starts_with($line, '/') ? $line : $this->getTargetPath($downloadJob).'/'.$line;
             if (file_exists($filePath) && is_file($filePath)) {
-                $downloadedFile = $this->downloadedFileRepository->findOneBy(['path' => $filePath]);
+                $location = $this->locationResolver->fromAbsolute($filePath);
+                if (null === $location) {
+                    continue;
+                }
+                $downloadedFile = $this->downloadedFileRepository->findOneByLocation($location->directory, $location->relativePath);
+                if ($downloadedFile?->isDeleted()) {
+                    // A location holds one row: a file no live job used anymore is in use again
+                    $downloadedFile->setDeletedAt(null);
+                }
                 if (!$downloadedFile) {
                     $downloadedFile = new DownloadedFile();
-                    $downloadedFile->setPath($filePath);
+                    $downloadedFile->setLocation($location->directory, $location->relativePath);
                     $downloadedFile->setVisible(true);
                     // TODO: Create a foolproof way to extract metadata if available
                     // Corrent .metadata.json filename generation is not foolproof right now
@@ -164,6 +179,15 @@ class GalleryDlCliDownloader extends AbstractCliDownloader implements CliDownloa
                 $this->entityManager->flush();
                 $this->logger->info('Added file to download job: '.$filePath);
             } else {
+                // The output of an older job (app:scan:downloaded-files) may point where a file move took the file from
+                $location = $this->locationResolver->fromAbsolute($filePath);
+                $movedFile = null === $location ? null : $this->downloadedFileRepository->findMovedFrom($location->directory, $location->relativePath);
+                if (null !== $movedFile) {
+                    $movedFile->addDownloadJob($downloadJob);
+                    $this->entityManager->persist($downloadJob);
+                    $this->entityManager->flush();
+                    continue;
+                }
                 $this->logger->warning('File listed in command output does not exist: '.$filePath);
             }
         }

@@ -21,6 +21,7 @@ use App\Service\Settings\EffectiveSettingsResolver;
 use App\Service\Site\SiteResolver;
 use App\State\DownloadJobQueuedProcessor;
 use App\Tests\Double\CanonicalKeyGenerators;
+use App\Tests\Double\DownloadLocations;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -103,7 +104,8 @@ class DownloadWorkflowIntegrationTest extends TestCase
             $this->entityManager,
             $this->downloaderFactory,
             $this->logger,
-            $this->eventDispatcher
+            $this->eventDispatcher,
+            DownloadLocations::targets(),
         );
     }
 
@@ -265,7 +267,8 @@ class DownloadWorkflowIntegrationTest extends TestCase
             $this->entityManager,
             $downloaderFactory,
             $this->logger,
-            $this->eventDispatcher
+            $this->eventDispatcher,
+            DownloadLocations::targets(),
         );
 
         $job = new DownloadJob();

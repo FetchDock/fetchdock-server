@@ -11,6 +11,7 @@ use App\Event\JobUpdateEvent;
 use App\Factory\DownloaderFactory;
 use App\Model\DownloadJobInterface;
 use App\Service\Downloader\DownloaderInterface;
+use App\Service\Storage\DownloadTargets;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityNotFoundException;
 use Psr\Log\LoggerInterface;
@@ -25,6 +26,7 @@ class DownloadJobHandler
         private DownloaderFactory $downloaderFactory,
         private LoggerInterface $logger,
         private EventDispatcherInterface $eventDispatcher,
+        private DownloadTargets $downloadTargets,
     ) {
     }
 
@@ -42,6 +44,8 @@ class DownloadJobHandler
 
             // Dispatch job picked up event
             $this->eventDispatcher->dispatch(new JobPickedUpEvent($downloadJobEntity));
+
+            $this->captureDownloadDirectory($downloadJobEntity);
 
             // Check if downloader is set, if so, get the downloader by identifier
             if ($downloadJobEntity->getDownloader()) {
@@ -98,6 +102,23 @@ class DownloadJobHandler
 
             // Re-throw the original exception, so messenger retries and logs the actual cause
             throw $exception;
+        }
+    }
+
+    /**
+     * Fixes the directory the job writes to when it starts, so a later change of the site's directory doesn't split
+     * its files (a redelivered job keeps it). Fails the job when this worker can't write there (missing mount).
+     */
+    private function captureDownloadDirectory(DownloadJob $downloadJob): void
+    {
+        // Saved with the job's next flush (state change, completion or failure)
+        if (null === $downloadJob->getDownloadDirectory()) {
+            $downloadJob->setDownloadDirectory($this->downloadTargets->forJob($downloadJob));
+        }
+
+        $directory = $downloadJob->getDownloadDirectory();
+        if (!DownloadTargets::isAvailable($directory)) {
+            throw new \RuntimeException(sprintf('The download directory "%s" (%s) is not mounted or not writable in the worker. The api and worker need the same mounts.', $directory->getName(), $directory->getPath()));
         }
     }
 

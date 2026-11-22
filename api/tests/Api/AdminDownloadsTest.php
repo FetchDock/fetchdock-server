@@ -9,6 +9,7 @@ use App\Entity\DownloadJob;
 use App\Entity\DownloadJobEvent;
 use App\Entity\OidcSubjectIdentifier;
 use App\Enum\DownloadStateEnum;
+use App\Tests\Double\DownloadLocations;
 use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -313,7 +314,7 @@ class AdminDownloadsTest extends ApiTestCase
         }
 
         return $this->withoutSoftDeleteFilter(function (EntityManagerInterface $entityManager) use ($job, $path, $deleted, $visible): DownloadedFile {
-            $file = new DownloadedFile()->setPath($path)->setVisible($visible);
+            $file = DownloadLocations::persistedDirectoryFile($entityManager, $path)->setVisible($visible);
             if ($deleted) {
                 $file->setDeletedAt(new \DateTime());
             }
