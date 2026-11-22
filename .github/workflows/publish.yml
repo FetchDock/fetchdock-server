@@ -9,6 +9,8 @@ env:
 jobs:
     publish:
         name: Publish
+        # The rolling "integrity-digests" pre-release holds manifest digests and is not a version (integrity-digest.yml)
+        if: ${{ github.event.release.tag_name != 'integrity-digests' }}
         runs-on: ubuntu-latest
         outputs:
             version: ${{ steps.meta.outputs.version }}
@@ -98,14 +100,28 @@ jobs:
                   pwa.cache-from=type=gha,scope=pwa-refs/heads/main
                   pwa.cache-to=type=gha,scope=pwa-${{github.ref}},mode=max
                   api.args.APP_VERSION=${{ steps.meta.outputs.version }}
+                  api.args.GIT_SHA=${{ github.sha }}
                   pwa.args.APP_VERSION=${{ steps.meta.outputs.version }}
+
+    # Publishes the image's integrity manifest digest (ADR 0013) to the integrity-digests pre-release and this release
+    integrity-digest:
+        name: Integrity digest
+        needs: publish
+        permissions:
+            contents: write
+            packages: read
+        uses: ./.github/workflows/integrity-digest.yml
+        with:
+            image-tag: ${{ needs.publish.outputs.version }}
+            version: ${{ needs.publish.outputs.version }}
+            release-tag: ${{ github.event.release.tag_name }}
 
     # Only the newest stable version goes to production. A maintenance release of an older line (e.g. 0.7.5 after
     # 0.8.0) still publishes its images but must not replace production. GitHub marks newly published releases as
     # "Latest" by default, so this compares semver tags instead of asking the API for the latest release.
     production-check:
         name: Check production eligibility
-        if: ${{ !github.event.release.prerelease }}
+        if: ${{ !github.event.release.prerelease && github.event.release.tag_name != 'integrity-digests' }}
         runs-on: ubuntu-latest
         permissions:
             contents: read
@@ -136,7 +152,8 @@ jobs:
     # Waits for approval in the "production" environment (required reviewers).
     deploy-production:
         name: Production
-        needs: [publish, production-check]
+        # After the digest upload, so the new containers read "verified" on their first check
+        needs: [publish, integrity-digest, production-check]
         if: ${{ needs.production-check.outputs.deploy == 'true' }}
         uses: ./.github/workflows/deploy.yml
         with:

@@ -8,3 +8,4 @@
 
 versions:
     - { version: '0.1', digest: 9429dd8ba5b79f883a03ab99191fb63b74aec513843c4b9e23c9fa0b77760ea2, changes: 'Draft: first data inventory, no template yet' }
+    - { version: '0.2', digest: bae1fa325ebf1885f7e5a4b7115885e3d6756ed8866813163be1aeb9ff60fe07, changes: 'Draft: integrity check results and the official digest fetch' }

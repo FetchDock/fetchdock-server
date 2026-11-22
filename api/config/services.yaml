@@ -24,6 +24,10 @@ parameters:
     app.failure_reports.enabled: '%env(bool:FAILURE_REPORTS_ENABLED)%'
     env(PRIVACY_POLICY_URL): ''
     app.privacy_policy_url: '%env(PRIVACY_POLICY_URL)%'
+    # Integrity check (ADR 0013): INTEGRITY_CHECK_ONLINE=0 skips fetching the official manifest digest from GitHub,
+    # so the instance reads "unknown" at best
+    env(INTEGRITY_CHECK_ONLINE): 'true'
+    app.integrity.check_online: '%env(bool:INTEGRITY_CHECK_ONLINE)%'
     downloader.gallery_dl_web.enabled: false
     downloader.gallery_dl_web.host: 'http://gallery-dl:9080'
 
