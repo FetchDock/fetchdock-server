@@ -74,3 +74,31 @@ openapi:
 		$(DOCKER_COMPOSE_PREFIX) docker compose run --rm --no-deps -T api bin/console api:openapi:export > ../contracts/openapi.json; \
 	fi
 	@echo "Exported OpenAPI spec to ../contracts/openapi.json"
+
+.PHONY: privacy-release-notes
+privacy-release-notes:
+	@since="$(SINCE)"; \
+	if [ -z "$$since" ]; then \
+		since="$$(git tag --list --sort=-v:refname | grep -E '^v?[0-9]+\.[0-9]+\.[0-9]+$$' | head -n1)"; \
+		if [ -z "$$since" ]; then \
+			echo "No stable release tag found; pass SINCE=<git-ref>" >&2; \
+			exit 1; \
+		fi; \
+		echo "Comparing against $$since" >&2; \
+	fi; \
+	if ! git rev-parse --verify --quiet "$$since^{commit}" >/dev/null; then \
+		echo "Unknown git ref: $$since" >&2; \
+		exit 1; \
+	fi; \
+	run_cmd() { \
+		if [ -n "$$($(DOCKER_COMPOSE_PREFIX) docker compose ps -q api 2>/dev/null)" ]; then \
+			$(DOCKER_COMPOSE_PREFIX) docker compose exec -T -e XDEBUG_MODE=off api bin/console app:privacy:release-notes --previous=-; \
+		else \
+			$(DOCKER_COMPOSE_PREFIX) docker compose run --rm --no-deps -T -e XDEBUG_MODE=off api bin/console app:privacy:release-notes --previous=-; \
+		fi; \
+	}; \
+	if git cat-file -e "$$since:api/privacy/policy-version.yaml" 2>/dev/null; then \
+		git show "$$since:api/privacy/policy-version.yaml" | run_cmd; \
+	else \
+		printf '' | run_cmd; \
+	fi

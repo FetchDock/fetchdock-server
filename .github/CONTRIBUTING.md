@@ -93,6 +93,10 @@ Now force push to update your PR:
 git push --force
 ```
 
+## Releases
+
+Release notes follow [`docs/release-notes-template.md`](../docs/release-notes-template.md). Before publishing a release, run `make privacy-release-notes SINCE=<previous-tag>` and include its output whenever new entries were added to `api/privacy/policy-version.yaml`.
+
 # License and Copyright Attribution
 
 When you open a Pull Request to the PHP FetchDock Server project, you agree to license your code under the [MIT license](../LICENSE).
