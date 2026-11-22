@@ -55,6 +55,18 @@ Point a host at `<docker host>:<HTTP_PORT>` for each stack with scheme **`http`*
 long timeouts for Mercure (Server-Sent Events). TLS ends at the proxy; the containers serve plain HTTP only
 (Caddy listens on `:80` without automatic HTTPS), so `https://<docker host>:<HTTP_PORT>` does not work.
 
+The API builds absolute URLs (e.g. the `Link` header to `/docs.jsonld` that the admin follows) from the
+`X-Forwarded-Proto` header the proxy sends, if the proxy's address is in `TRUSTED_PROXIES`. If they come out
+as `http://` behind HTTPS, the admin fails with a mixed-content error ("Application error: a client-side
+exception has occurred").
+
+**Behind Cloudflare:** set the SSL/TLS mode to **Full (strict)** (with a certificate on the proxy, e.g. a
+Cloudflare origin certificate). In **Flexible** mode Cloudflare connects to the proxy over HTTP, and
+nginx-proxy-manager then sends `X-Forwarded-Proto: http`. If you can't change the mode, add
+`proxy_set_header X-Forwarded-Proto https;` to the host's *Advanced* configuration.
+
+Check: `curl -sI https://<host>/ | grep -i '^link'` must show `https://<host>/docs.jsonld`.
+
 ### 5. GitHub
 *Settings → Environments*, for `production` and `staging`:
 - Secret `PORTAINER_API_KEY`: a Portainer access token (*My account → Access tokens*) of a user that can manage the stack.
@@ -76,7 +88,7 @@ long timeouts for Mercure (Server-Sent Events). TLS ends at the proxy; the conta
 | `TRUSTED_PROXIES`, `CORS_ALLOW_ORIGIN` | As before. `TRUSTED_PROXIES` must include the reverse proxy |
 | `POSTGRES_HOST`, `POSTGRES_PORT`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` | Staging: the staging role and database |
 | `POSTGRES_VERSION` | Server **major** version, e.g. `17` (default `16`). Used for Doctrine's `serverVersion` and, on staging, for the `db-refresh` image: `pg_dump` must match the server |
-| `OIDC_*`, `NEXT_PUBLIC_OIDC_*` | Staging: the staging OIDC application |
+| `OIDC_*`, `NEXT_PUBLIC_OIDC_*` | Staging: the staging OIDC application. The `NEXT_PUBLIC_OIDC_*` variables are set on the `pwa` service and read at request time, so the published image needs no rebuild |
 | `GALLERY_DL_CONFIG` | Host path of the gallery-dl `config.json` |
 | `DOWNLOADS_PATH` | Host path mounted at `/downloads`. Staging: a **separate** directory |
 | `WORKER_REPLICAS` | Default `10`; e.g. `2` on staging |

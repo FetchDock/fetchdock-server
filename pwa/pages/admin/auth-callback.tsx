@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import authProvider from "../../components/common/authProvider";
+import { configureOidc, getOidcServerSideProps, OidcPageProps } from "../../components/common/oidcConfig";
 
-const AuthCallback = () => {
+const AuthCallback = ({ oidc }: OidcPageProps) => {
+  configureOidc(oidc);
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
 
@@ -16,18 +17,21 @@ const AuthCallback = () => {
       return;
     }
 
-    if(authProvider && typeof authProvider.handleCallback === "function") {
-      authProvider
-        .handleCallback()
-        .then(() => {
+    // Loaded in the browser only: the page is server-rendered, and the authProvider imports react-admin
+    import("../../components/common/authProvider")
+      .then(({ default: authProvider }) => {
+        if (typeof authProvider.handleCallback !== "function") {
+          setError("Authentication provider is not available.");
+          return;
+        }
+
+        return authProvider.handleCallback().then(() => {
           router.replace("/admin");
-        })
-        .catch(() => {
-          setError("Authentication failed. Please try again.");
         });
-    } else {
-      setError("Authentication provider is not available.");
-    }
+      })
+      .catch(() => {
+        setError("Authentication failed. Please try again.");
+      });
   }, [router.isReady, router.query, router]);
 
   if (error) {
@@ -44,6 +48,8 @@ const AuthCallback = () => {
     </div>
   );
 };
+
+export const getServerSideProps = getOidcServerSideProps;
 
 export default AuthCallback;
 
