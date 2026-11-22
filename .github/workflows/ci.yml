@@ -6,6 +6,7 @@ on:
       - main
       - develop
       - release/** # maintenance branches for older versions, e.g. release/0.6
+      - feature/** # milestone integration branches; preview.yml publishes their images
   pull_request: ~
   workflow_dispatch: ~
 
