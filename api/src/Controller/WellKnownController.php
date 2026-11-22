@@ -22,6 +22,10 @@ final class WellKnownController extends AbstractController
         private string $clientId,
         #[Autowire('%app.version%')]
         private string $appVersion,
+        #[Autowire('%app.failure_reports.enabled%')]
+        private bool $failureReportsEnabled = true,
+        #[Autowire('%app.privacy_policy_url%')]
+        private string $privacyPolicyUrl = '',
     ) {
     }
 
@@ -67,6 +71,16 @@ final class WellKnownController extends AbstractController
                         ),
                     ],
                 ],
+                // Features clients may offer; a missing key means the server doesn't support it
+                'features' => [
+                    'failureReports' => [
+                        'enabled' => $this->failureReportsEnabled,
+                        // Forwarding reports to the FetchDock developers (phase 2 of ADR 0012)
+                        'upstreamForwarding' => null,
+                    ],
+                ],
+                // The instance's privacy policy, null if the operator published none
+                'privacyPolicyUrl' => '' === $this->privacyPolicyUrl ? null : $this->privacyPolicyUrl,
                 'version' => $this->appVersion,
             ]
         );

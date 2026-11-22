@@ -5,6 +5,11 @@ framework:
             policy: sliding_window
             limit: 60
             interval: '1 minute'
+        # POST /users/failure_reports, per user (ADR 0012)
+        failure_report:
+            policy: sliding_window
+            limit: 20
+            interval: '1 hour'
 
 when@test:
     framework:
@@ -14,3 +19,8 @@ when@test:
                 policy: sliding_window
                 limit: 100000
                 interval: '1 minute'
+            # Covered by FailureReportProcessorTest
+            failure_report:
+                policy: sliding_window
+                limit: 100000
+                interval: '1 hour'

@@ -24,6 +24,14 @@ import {
   DownloadDirectoryList,
 } from "./storage/DownloadDirectories";
 import { FILE_MOVE_RESOURCE, FileMoveList, FileMoveShow } from "./storage/FileMoves";
+import {
+  FAILURE_REPORT_RESOURCE,
+  FAILURE_REPORT_SUMMARY_RESOURCE,
+  FailureReportEdit,
+  FailureReportList,
+  FailureReportShow,
+  FailureReportSummaryList,
+} from "./reports/FailureReports";
 
 const fetchHydra = (url: URL, options?: Record<string, any>) =>
   baseFetchHydra(url, {
@@ -174,6 +182,20 @@ const resources = (roles: Permissions) => [
           options={{ label: "File moves" }}
           list={FileMoveList}
           show={FileMoveShow}
+        />,
+        <Resource
+          key={FAILURE_REPORT_RESOURCE}
+          name={FAILURE_REPORT_RESOURCE}
+          options={{ label: "Failure reports" }}
+          list={FailureReportList}
+          show={FailureReportShow}
+          edit={FailureReportEdit}
+        />,
+        <Resource
+          key={FAILURE_REPORT_SUMMARY_RESOURCE}
+          name={FAILURE_REPORT_SUMMARY_RESOURCE}
+          options={{ label: "Failure report summary" }}
+          list={FailureReportSummaryList}
         />,
         <ResourceGuesser key="downloader_option_policies" name="downloader_option_policies" />,
         <ResourceGuesser key="oidc_subject_identifiers" name="oidc_subject_identifiers" />,

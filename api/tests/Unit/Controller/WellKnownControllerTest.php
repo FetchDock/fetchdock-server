@@ -17,11 +17,17 @@ class WellKnownControllerTest extends TestCase
     protected function setUp(): void
     {
         $this->controller = new WellKnownController(self::CLIENT_ID, self::VERSION);
-        $this->urlGenerator = $this->createMock(UrlGeneratorInterface::class);
-        $container = $this->createMock(\Symfony\Component\DependencyInjection\ContainerInterface::class);
+        $this->urlGenerator = $this->createStub(UrlGeneratorInterface::class);
+        $this->controller->setContainer($this->container());
+    }
+
+    private function container(): \Symfony\Component\DependencyInjection\ContainerInterface
+    {
+        $container = $this->createStub(\Symfony\Component\DependencyInjection\ContainerInterface::class);
         $container->method('has')->willReturnCallback(fn (string $id) => 'router' === $id);
         $container->method('get')->willReturnCallback(fn (string $id) => 'router' === $id ? $this->urlGenerator : null);
-        $this->controller->setContainer($container);
+
+        return $container;
     }
 
     public function testConfigForBrowserExtensionReturnsExpectedStructure(): void
@@ -54,6 +60,21 @@ class WellKnownControllerTest extends TestCase
         $this->assertArrayNotHasKey('auth_mode', $data);
         $this->assertArrayNotHasKey('oauth2', $data);
         $this->assertSame([], $data['DEPRECATION_WARNINGS']);
+
+        $this->assertSame(['failureReports' => ['enabled' => true, 'upstreamForwarding' => null]], $data['features']);
+        $this->assertNull($data['privacyPolicyUrl']);
+    }
+
+    public function testFailureReportsAndPrivacyPolicyAreConfigurable(): void
+    {
+        $controller = new WellKnownController(self::CLIENT_ID, self::VERSION, false, 'https://example.org/privacy');
+        $controller->setContainer($this->container());
+        $this->urlGenerator->method('generate')->willReturn('https://localhost/');
+
+        $data = json_decode($controller->configForBrowserExtension()->getContent(), true);
+
+        $this->assertFalse($data['features']['failureReports']['enabled']);
+        $this->assertSame('https://example.org/privacy', $data['privacyPolicyUrl']);
     }
 
     public function testScopesConstantContainsRequiredScopes(): void
