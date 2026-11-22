@@ -1,0 +1,10 @@
+# Versions of the generated privacy policy text (ADR 0013). The text follows from the data inventory and the
+# templates in templates/privacy/. Each state of those inputs gets its own version, identified by their digest
+# (App\Service\Privacy\PolicyTextVersion::inputsDigest()). The generated policy names the version it was made from.
+#
+# When you change the inputs, PolicyVersionTest fails and prints the new digest. Append an entry, never edit one:
+# MINOR for clarifications and new classified data, MAJOR when what the instance does with personal data changes.
+# 1.0 is the first text the maintainer reviewed (release blocker for 0.9.0, server#121); 0.x versions are drafts.
+
+versions:
+    - { version: '0.1', digest: 9429dd8ba5b79f883a03ab99191fb63b74aec513843c4b9e23c9fa0b77760ea2, changes: 'Draft: first data inventory, no template yet' }

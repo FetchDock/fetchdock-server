@@ -1,0 +1,370 @@
+# FetchDock data inventory: everything an instance stores or sends, classified for the generated privacy policy
+# (ADR 0013, server#121). DataInventoryTest keeps the `entities` section in sync with the Doctrine mappings:
+# every mapped entity, field and owning-side association must be listed here, and nothing else.
+# Changing this file changes the policy text: bump privacy/policy-version.yaml (PolicyVersionTest enforces it).
+#
+# Each entity has `summary` and `defaults`; each entry under `fields` is `~` (use the defaults) or overrides them.
+#   personal:  true when the value relates to an identifiable user. Personal entries need the four keys below.
+#   category:  account | settings | request | content | device | report | technical
+#   purpose:   why it is stored, one sentence the policy can quote
+#   retention: with_account     kept while the user's account exists; there is no self-service account deletion
+#              with_job         kept with the download job; deleting a job only hides it (soft delete), nothing
+#                               purges jobs automatically
+#              until_completed  removed when the job completes successfully; kept with the job otherwise (server#122)
+#              with_file        kept while the file record exists; soft-deleted records stay until an admin purges them
+#              until_deleted    until the user deletes it
+#              until_withdrawn  until the user withdraws it or an administrator deletes it
+#              derived          computed from other data, not stored separately
+#              transient        exists only while a download runs
+#              operator:<key>   set by the operator outside the application (answered in the privacy policy form)
+#   visibleTo: list of owner (the user it belongs to) | view_all (ROLE_VIEW_ALL_DOWNLOADS) | admins (ROLE_ADMIN)
+#              | nobody (used by the server only, never returned by the API). People with direct access to the
+#              server or the database can see everything; the policy says so separately.
+#   derived:   true for read-only views (no data of their own)
+
+schemaVersion: 1
+
+entities:
+    App\Entity\OidcSubjectIdentifier:
+        summary: The user account, created on the first signed-in request
+        defaults: { personal: true, category: account, purpose: 'Identifies the user who signed in through the identity provider', retention: with_account, visibleTo: [admins, view_all] }
+        fields:
+            id: ~
+            uuid: { visibleTo: [owner, admins, view_all] }
+            subject: ~
+
+    App\Entity\UserSetting:
+        summary: The user's general download settings
+        defaults: { personal: true, category: settings, purpose: 'Applies the user''s choices to their downloads', retention: with_account, visibleTo: [owner] }
+        fields:
+            id: ~
+            owner: ~
+            preferredDownloader: ~
+            sendCookies: ~
+            sendUserAgent: ~
+            sendReferrer: ~
+
+    App\Entity\UserDownloaderSetting:
+        summary: The user's settings per downloader
+        defaults: { personal: true, category: settings, purpose: 'Applies the user''s choices to their downloads', retention: with_account, visibleTo: [owner] }
+        fields:
+            id: ~
+            owner: ~
+            downloader: ~
+            enabled: ~
+            priority: ~
+            options: ~
+
+    App\Entity\UserSiteSetting:
+        summary: The user's settings per site
+        defaults: { personal: true, category: settings, purpose: 'Applies the user''s choices to their downloads from a site', retention: until_deleted, visibleTo: [owner] }
+        fields:
+            id: ~
+            owner: ~
+            site: ~
+            downloader: ~
+            sendCookies: ~
+            sendUserAgent: ~
+            sendReferrer: ~
+            downloaderOptions: ~
+
+    App\Entity\Client:
+        summary: A registered app installation, such as a browser extension
+        defaults: { personal: true, category: device, purpose: 'Lets the user tell their installations apart and give each its own settings', retention: until_deleted, visibleTo: [owner] }
+        fields:
+            id: ~
+            owner: ~
+            name: ~
+            type: ~
+            createdAt: ~
+            lastSeenAt: { purpose: 'Shows the user when an installation was last used' }
+
+    App\Entity\ClientSetting:
+        summary: Settings of one app installation
+        defaults: { personal: true, category: settings, purpose: 'Applies the user''s choices for one installation', retention: until_deleted, visibleTo: [owner] }
+        fields:
+            id: ~
+            client: ~
+            preferredDownloader: ~
+            sendCookies: ~
+            sendUserAgent: ~
+            sendReferrer: ~
+
+    App\Entity\ClientPreference:
+        summary: Interface preferences an app syncs between the user's devices (stored as the app sends them)
+        defaults: { personal: true, category: device, purpose: 'Syncs interface preferences such as theme and notifications between the user''s devices', retention: with_account, visibleTo: [owner] }
+        fields:
+            id: ~
+            owner: ~
+            clientType: ~
+            data: ~
+            updatedAt: ~
+
+    App\Entity\DownloadJob:
+        summary: A download the user requested
+        defaults: { personal: true, category: request, purpose: 'Performs the download the user asked for and shows its result', retention: with_job, visibleTo: [owner, view_all] }
+        fields:
+            id: { visibleTo: [nobody] }
+            uuid: ~
+            token: { purpose: 'Gives the links to the downloaded files', visibleTo: [owner] }
+            uri: ~
+            canonicalKey: { purpose: 'Detects repeated downloads of the same media', visibleTo: [nobody] }
+            userAgent: { purpose: 'Sent to the site because some sites require it, only if the user''s settings allow it', visibleTo: [nobody] }
+            referrer: { purpose: 'Sent to the site because some sites require it, only if the user''s settings allow it', visibleTo: [nobody] }
+            cookies: { purpose: 'Sent to the site so it serves media to the signed-in user, only if the user''s settings allow it', retention: until_completed, visibleTo: [nobody] }
+            downloaderOptions: { category: settings, purpose: 'Applies the user''s downloader options to this download', visibleTo: [nobody] }
+            state: ~
+            downloader: ~
+            createdAt: ~
+            updatedAt: ~
+            deletedAt: { purpose: 'Hides a job the user deleted', visibleTo: [view_all] }
+            owner: { visibleTo: [view_all] }
+            site: { purpose: 'Applies the site''s settings', visibleTo: [nobody] }
+            downloadDirectory: { category: technical, purpose: 'Records where the files were saved', visibleTo: [nobody] }
+
+    App\Entity\DownloadJobEvent:
+        summary: Progress and error log of a download job
+        defaults: { personal: true, category: request, purpose: 'Shows the progress and errors of a download and helps troubleshoot it', retention: with_job, visibleTo: [owner, view_all] }
+        fields:
+            id: ~
+            downloadJob: ~
+            workerIdentifier: { personal: false }
+            event: ~
+            source: ~
+            updateMessage: ~
+            context: ~
+            metadata: ~
+            exceptionMessage: ~
+            createdAt: ~
+            updatedAt: ~
+
+    App\Entity\DownloadedFile:
+        summary: A downloaded file; one file can be linked to the jobs of several users
+        defaults: { personal: true, category: content, purpose: 'Makes the downloaded media available to the users who requested it', retention: with_file, visibleTo: [owner, view_all] }
+        fields:
+            id: ~
+            relativePath: { visibleTo: [view_all] }
+            metadata: { purpose: 'Describes the media (such as its title), as reported by the downloader' }
+            visible: ~
+            deletedAt: ~
+            directory: { personal: false }
+            downloadJob: { purpose: 'Links the file to the jobs that requested it' }
+
+    App\Entity\FailureReport:
+        summary: A problem report the user chose to send (ADR 0012)
+        defaults: { personal: true, category: report, purpose: 'Lets administrators find and fix downloads that fail', retention: until_withdrawn, visibleTo: [owner, admins] }
+        fields:
+            id: ~
+            owner: { purpose: 'Lets the user see and withdraw their reports and limits duplicates', visibleTo: [owner] }
+            kind: ~
+            url: ~
+            userAgent: ~
+            referrer: ~
+            diagnosticsData: ~
+            comment: ~
+            host: ~
+            canonicalKey: { purpose: 'Detects duplicate reports', visibleTo: [nobody] }
+            status: ~
+            adminNote: { purpose: 'Internal notes of the administrators', visibleTo: [admins] }
+            createdAt: ~
+            updatedAt: ~
+            downloadJob: { visibleTo: [owner] }
+            site: { visibleTo: [admins] }
+
+    App\Entity\FileMoveBatch:
+        summary: An administrator's request to move files between download directories
+        defaults: { personal: false }
+        fields:
+            id: ~
+            scope: ~
+            status: ~
+            total: ~
+            moved: ~
+            skipped: ~
+            failed: ~
+            bytesTotal: ~
+            bytesMoved: ~
+            errors: ~
+            requestedBy: { personal: true, category: account, purpose: 'Records which administrator started the move', retention: with_account, visibleTo: [admins] }
+            createdAt: ~
+            startedAt: ~
+            finishedAt: ~
+            progressPublishedAt: ~
+            site: ~
+            sourceDirectory: ~
+            targetDirectory: ~
+
+    App\Entity\FileMoveItem:
+        summary: One file of a file move
+        defaults: { personal: false }
+        fields:
+            id: ~
+            sourceRelativePath: ~
+            status: ~
+            size: ~
+            error: ~
+            attempts: ~
+            updatedAt: ~
+            batch: ~
+            file: ~
+            sourceDirectory: ~
+
+    App\Entity\DownloadDirectory:
+        summary: A storage location managed by administrators
+        defaults: { personal: false }
+        fields:
+            id: ~
+            name: ~
+            path: ~
+            isDefault: ~
+            verifyChecksum: ~
+            createdAt: ~
+
+    App\Entity\Site:
+        summary: A supported website (instance configuration)
+        defaults: { personal: false }
+        fields:
+            id: ~
+            slug: ~
+            name: ~
+            domains: ~
+            enabled: ~
+            curated: ~
+            canonicalization: ~
+            downloadDirectory: ~
+
+    App\Entity\SiteExtractor:
+        summary: Which downloader extractors handle a site (instance configuration)
+        defaults: { personal: false }
+        fields:
+            id: ~
+            downloader: ~
+            extractorKey: ~
+            site: ~
+
+    App\Entity\SiteSetting:
+        summary: Administrator defaults for a site (instance configuration)
+        defaults: { personal: false }
+        fields:
+            id: ~
+            downloader: ~
+            sendCookies: ~
+            sendUserAgent: ~
+            sendReferrer: ~
+            site: ~
+
+    App\Entity\SiteCanonicalizationOverride:
+        summary: Administrator override of how a site's URLs are compared (instance configuration)
+        defaults: { personal: false }
+        fields:
+            id: ~
+            profile: ~
+            useExtractorId: ~
+            keepParams: ~
+            dropParams: ~
+            stripWww: ~
+            stripTrailingSlash: ~
+            idGroups: ~
+            site: ~
+
+    App\Entity\DownloaderOptionPolicy:
+        summary: Which downloader options users may set (instance configuration)
+        defaults: { personal: false }
+        fields:
+            id: ~
+            downloader: ~
+            option: ~
+            exposed: ~
+            label: ~
+            type: ~
+
+    App\Resource\Stats\UserDownloadStats:
+        summary: Counts of the user's jobs per state (database view)
+        derived: true
+        defaults: { personal: true, category: request, purpose: 'Shows the user how many of their downloads are pending, done or failed', retention: derived, visibleTo: [owner] }
+        fields:
+            owner: ~
+            total: ~
+            pending: ~
+            inProgress: ~
+            completed: ~
+            failed: ~
+            canceled: ~
+
+# Data outside the mapped entities. Not checked by DataInventoryTest; review it when you touch the code it names.
+storage:
+    - id: downloaded_files
+      what: The downloaded media files and the downloader's sidecar files (metadata, subtitles, thumbnails)
+      where: The instance's download directories (DOWNLOAD_ROOTS)
+      personal: true
+      category: content
+      purpose: Makes the downloaded media available to the users who requested it
+      retention: operator:files
+      notes: Files are reused across users who download the same media. Deleting a job does not delete its files from disk.
+    - id: download_archive
+      what: The yt-dlp download archive (extractor and media id of every completed yt-dlp download)
+      where: /downloads
+      personal: false
+      purpose: Lets yt-dlp skip media it already downloaded
+    - id: cookie_files
+      what: A temporary cookies.txt file with the job's cookies, readable only by the worker
+      where: The worker's temporary directory
+      personal: true
+      category: request
+      purpose: Passes the cookies to the downloader
+      retention: transient
+      notes: Removed when the downloader exits (AbstractCliDownloader).
+    - id: message_queue
+      what: Queued jobs and file moves (Messenger doctrine transport tables), including a queued job's URL and cookies
+      where: The database
+      personal: true
+      category: request
+      purpose: Hands work from the api to the worker
+      retention: transient
+      notes: A message is removed when it is handled; failed messages are retried and then dropped.
+    - id: application_logs
+      what: Application log entries, which can contain URLs, account identifiers and error details
+      where: Container output (stderr), in production only around errors
+      personal: true
+      category: technical
+      purpose: Security and troubleshooting
+      retention: operator:logs
+    - id: access_logs
+      what: Web server access logs with IP address, time, request path and user agent (Mercure tokens redacted)
+      where: Container output of the api container (Caddy)
+      personal: true
+      category: technical
+      purpose: Security and troubleshooting
+      retention: operator:logs
+    - id: mercure
+      what: Live updates about the user's jobs and settings, sent privately to the user's signed-in apps
+      where: Memory of the embedded Mercure hub
+      personal: true
+      category: request
+      purpose: Shows progress and changes without reloading
+      retention: transient
+    - id: pwa_browser_storage
+      what: The admin web app's sign-in session (tokens) and interface state, in the browser's local storage
+      where: The user's browser
+      personal: true
+      category: account
+      purpose: Keeps the user signed in to the admin web app
+      retention: until_deleted
+
+# Connections the instance makes to other parties.
+outgoingConnections:
+    - id: downloaded_sites
+      to: The websites the user submits
+      when: For every download, and when resolving a page's site (the network probe, ADR 0008)
+      sends: The instance's IP address, the URL and, if the user's settings allow it, the user's cookies, user agent and referrer for that site
+      personal: true
+    - id: identity_provider
+      to: The operator's OpenID Connect identity provider
+      when: On sign-in, token refresh and token validation
+      sends: The OAuth authorization code and refresh tokens; the provider returns the user's identifier and roles
+      personal: true
+    - id: downloader_updates
+      to: The Python Package Index (pip updates yt-dlp and gallery-dl)
+      when: Hourly (core:downloaders:update)
+      sends: The instance's IP address; no user data
+      personal: false

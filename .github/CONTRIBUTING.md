@@ -42,6 +42,9 @@ When you send a PR, just make sure that:
 
 * You add valid test cases.
 * Tests are green.
+* A change to stored data (a Doctrine field or entity) or to what the server sends elsewhere is classified in
+  `api/privacy/data-inventory.yaml`, with a new entry in `api/privacy/policy-version.yaml`. The generated privacy
+  policy is built from them (ADR 0013); `DataInventoryTest` and `PolicyVersionTest` tell you what's missing.
 * You make a PR on the related documentation in the [php-download-router/wiki](https://github.com/PBXg33k/php-download-router/wiki) repository.
 * You make the PR on the same branch you based your changes on. If you see commits
   that you did not make in your PR, you're doing it wrong.
