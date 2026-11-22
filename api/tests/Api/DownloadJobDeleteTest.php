@@ -7,6 +7,7 @@ use App\Entity\DownloadedFile;
 use App\Entity\DownloadJob;
 use App\Entity\OidcSubjectIdentifier;
 use App\Enum\DownloadStateEnum;
+use App\Tests\Double\DownloadLocations;
 use Doctrine\ORM\EntityManagerInterface;
 
 /**
@@ -134,7 +135,7 @@ class DownloadJobDeleteTest extends ApiTestCase
             ->setDownloader('mock')
             ->setState(DownloadStateEnum::COMPLETED)
             ->setOwner($this->owner($entityManager, $ownerSubject));
-        $file = new DownloadedFile()->setPath($path)->setVisible(true);
+        $file = DownloadLocations::persistedDirectoryFile($entityManager, $path)->setVisible(true);
         $job->addFile($file);
 
         $entityManager->persist($job);

@@ -8,6 +8,7 @@ use App\Entity\DownloadJob;
 use App\Entity\OidcSubjectIdentifier;
 use App\Enum\DownloadStateEnum;
 use App\Repository\DownloadJobRepository;
+use App\Tests\Double\DownloadLocations;
 use Doctrine\ORM\EntityManagerInterface;
 
 /**
@@ -76,7 +77,7 @@ class DownloadJobDuplicateTest extends ApiTestCase
             ->setDownloader('mock')
             ->setState(DownloadStateEnum::COMPLETED)
             ->setOwner($entityManager->getRepository(OidcSubjectIdentifier::class)->findOneBy(['subject' => 'user']));
-        $file = new DownloadedFile()->setPath($path)->setVisible(true);
+        $file = DownloadLocations::persistedDirectoryFile($entityManager, $path)->setVisible(true);
         $previousJob->addFile($file);
         $entityManager->persist($previousJob);
         $entityManager->persist($file);

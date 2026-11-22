@@ -6,6 +6,7 @@ use App\Entity\DownloadedFile;
 use App\Entity\DownloadJob;
 use App\Model\DownloadJobInterface;
 use App\Repository\DownloadedFileRepository;
+use App\Service\Storage\DownloadLocationResolver;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerInterface;
@@ -29,6 +30,7 @@ class GalleryDlCliDownloader extends AbstractCliDownloader implements CliDownloa
         protected EventDispatcherInterface $eventDispatcher,
         protected DownloadedFileRepository $downloadedFileRepository,
         protected EntityManagerInterface $entityManager,
+        protected DownloadLocationResolver $locationResolver,
     ) {
         parent::__construct($cache, $eventDispatcher, $configPath, $binaryPath, $downloadPath, $logger);
     }
@@ -149,10 +151,18 @@ class GalleryDlCliDownloader extends AbstractCliDownloader implements CliDownloa
             }
             $filePath = $this->downloadPath.'/'.ltrim($line, '/');
             if (file_exists($filePath) && is_file($filePath)) {
-                $downloadedFile = $this->downloadedFileRepository->findOneBy(['path' => $filePath]);
+                $location = $this->locationResolver->fromAbsolute($filePath);
+                if (null === $location) {
+                    continue;
+                }
+                $downloadedFile = $this->downloadedFileRepository->findOneByLocation($location->directory, $location->relativePath);
+                if ($downloadedFile?->isDeleted()) {
+                    // A location holds one row: a file no live job used anymore is in use again
+                    $downloadedFile->setDeletedAt(null);
+                }
                 if (!$downloadedFile) {
                     $downloadedFile = new DownloadedFile();
-                    $downloadedFile->setPath($filePath);
+                    $downloadedFile->setLocation($location->directory, $location->relativePath);
                     $downloadedFile->setVisible(true);
                     // TODO: Create a foolproof way to extract metadata if available
                     // Corrent .metadata.json filename generation is not foolproof right now

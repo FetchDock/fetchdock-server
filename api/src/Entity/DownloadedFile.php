@@ -37,6 +37,8 @@ use Gedmo\SoftDeleteable\Traits\SoftDeleteableEntity;
     )
 )]
 #[ORM\Entity(repositoryClass: DownloadedFileRepository::class)]
+// A file's location is its directory plus its path inside it (ADR 0011). Soft-deleted rows keep their location.
+#[ORM\UniqueConstraint(name: 'uniq_downloaded_file_location', columns: ['directory_id', 'relative_path'])]
 // Soft-deleted once no live (non-deleted) DownloadJob uses the file anymore. The file stays on disk.
 #[Gedmo\SoftDeleteable(fieldName: 'deletedAt', timeAware: false, hardDelete: false)]
 class DownloadedFile
@@ -54,8 +56,13 @@ class DownloadedFile
     #[ORM\ManyToMany(targetEntity: DownloadJob::class, inversedBy: 'files')]
     private Collection $downloadJob;
 
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?DownloadDirectory $directory = null;
+
+    /** Path inside the directory, without a leading slash (only legacy rows that don't fit any directory keep an absolute path) */
     #[ORM\Column(type: Types::TEXT)]
-    private ?string $path = null;
+    private ?string $relativePath = null;
 
     #[ORM\Column]
     private array $metadata = [];
@@ -93,14 +100,30 @@ class DownloadedFile
         return $this;
     }
 
+    /** Absolute path on the server, joined from the directory and the relative path */
     public function getPath(): ?string
     {
-        return $this->path;
+        if (null === $this->directory || null === $this->relativePath) {
+            return null;
+        }
+
+        return $this->directory->resolve($this->relativePath);
     }
 
-    public function setPath(string $path): static
+    public function getDirectory(): ?DownloadDirectory
     {
-        $this->path = $path;
+        return $this->directory;
+    }
+
+    public function getRelativePath(): ?string
+    {
+        return $this->relativePath;
+    }
+
+    public function setLocation(DownloadDirectory $directory, string $relativePath): static
+    {
+        $this->directory = $directory;
+        $this->relativePath = $relativePath;
 
         return $this;
     }
@@ -131,7 +154,7 @@ class DownloadedFile
 
     public function getFilename(): ?string
     {
-        return $this->path ? basename($this->path) : null;
+        return $this->relativePath ? basename($this->relativePath) : null;
     }
 
     /**

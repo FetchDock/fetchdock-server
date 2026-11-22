@@ -6,6 +6,7 @@ use App\Entity\DownloadJob;
 use App\Repository\DownloadedFileRepository;
 use App\Service\Downloader\CliDownloaderInterface;
 use App\Service\Downloader\GalleryDlCliDownloader;
+use App\Service\Storage\DownloadLocationResolver;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
@@ -37,7 +38,8 @@ class GalleryDlCliDownloaderTest extends TestCase
             $this->logger,
             $this->eventDispatcher,
             $this->downloadedFileRepository,
-            $this->entityManager
+            $this->entityManager,
+            $this->createStub(DownloadLocationResolver::class),
         );
     }
 

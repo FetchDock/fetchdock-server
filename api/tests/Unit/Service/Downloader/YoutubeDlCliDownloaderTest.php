@@ -2,11 +2,15 @@
 
 namespace App\Tests\Unit\Service\Downloader;
 
+use App\Entity\DownloadDirectory;
 use App\Entity\DownloadedFile;
 use App\Entity\DownloadJob;
 use App\Repository\DownloadedFileRepository;
 use App\Service\Downloader\CliDownloaderInterface;
 use App\Service\Downloader\YoutubeDlCliDownloader;
+use App\Service\Storage\DownloadLocation;
+use App\Service\Storage\DownloadLocationResolver;
+use App\Service\Storage\Paths;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
@@ -21,6 +25,8 @@ class YoutubeDlCliDownloaderTest extends TestCase
     private EventDispatcherInterface $eventDispatcher;
     private DownloadedFileRepository $downloadedFileRepository;
     private EntityManagerInterface $entityManager;
+    private DownloadLocationResolver $locationResolver;
+    private DownloadDirectory $directory;
     /** @var list<string> */
     private array $temporaryDirectories = [];
 
@@ -31,6 +37,14 @@ class YoutubeDlCliDownloaderTest extends TestCase
         $this->eventDispatcher = $this->createMock(EventDispatcherInterface::class);
         $this->downloadedFileRepository = $this->createMock(DownloadedFileRepository::class);
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
+        // Every file under the temporary directory is in one download directory
+        $this->directory = new DownloadDirectory('Temporary', sys_get_temp_dir());
+        $this->locationResolver = $this->createStub(DownloadLocationResolver::class);
+        $this->locationResolver->method('fromAbsolute')->willReturnCallback(function (string $path): ?DownloadLocation {
+            $relativePath = Paths::relativeTo(Paths::normalize($path), $this->directory->getPath());
+
+            return null === $relativePath ? null : new DownloadLocation($this->directory, $relativePath);
+        });
 
         $this->downloader = new YoutubeDlCliDownloader(
             $this->cache,
@@ -40,7 +54,8 @@ class YoutubeDlCliDownloaderTest extends TestCase
             $this->logger,
             $this->eventDispatcher,
             $this->downloadedFileRepository,
-            $this->entityManager
+            $this->entityManager,
+            $this->locationResolver,
         );
     }
 
@@ -120,9 +135,9 @@ class YoutubeDlCliDownloaderTest extends TestCase
     public function testAddFilesLinksMediaFileWhenShortcutIsAlreadyKnown(): void
     {
         $base = $this->createDownloadedFiles(desktop: true);
-        $knownShortcut = new DownloadedFile()->setPath("{$base}.desktop")->setVisible(true);
-        $this->downloadedFileRepository->method('findOneBy')
-            ->willReturnCallback(fn (array $criteria) => $criteria['path'] === "{$base}.desktop" ? $knownShortcut : null);
+        $knownShortcut = new DownloadedFile()->setLocation($this->directory, $this->relative("{$base}.desktop"))->setVisible(true);
+        $this->downloadedFileRepository->method('findOneByLocation')
+            ->willReturnCallback(fn (DownloadDirectory $directory, string $relativePath) => $relativePath === $this->relative("{$base}.desktop") ? $knownShortcut : null);
         $persistedFiles = $this->capturePersistedFiles();
         $downloadJob = new DownloadJob()->setUri('https://example.com/video');
 
@@ -265,10 +280,42 @@ class YoutubeDlCliDownloaderTest extends TestCase
             $this->logger,
             $this->eventDispatcher,
             $this->downloadedFileRepository,
-            $this->entityManager
+            $this->entityManager,
+            $this->locationResolver,
         );
 
         return [$downloader, $invocationLog];
+    }
+
+    public function testAddFilesRestoresAKnownSoftDeletedFile(): void
+    {
+        $base = $this->createDownloadedFiles(desktop: false);
+        $knownFile = new DownloadedFile()->setLocation($this->directory, $this->relative("{$base}.mp4"))->setVisible(true);
+        $knownFile->setDeletedAt(new \DateTime());
+        $this->downloadedFileRepository->method('findOneByLocation')->willReturn($knownFile);
+        $persistedFiles = $this->capturePersistedFiles();
+        $downloadJob = new DownloadJob()->setUri('https://example.com/video');
+
+        $this->downloader->addFilesToDownloadJobFromCommandOutput($downloadJob, "[download] {$base}.mp4 has already been downloaded\n");
+
+        $this->assertSame($knownFile, $persistedFiles["{$base}.mp4"]);
+        $this->assertFalse($knownFile->isDeleted());
+    }
+
+    public function testAddFilesSkipsFilesOutsideEveryDirectory(): void
+    {
+        $base = $this->createDownloadedFiles(desktop: false);
+        $this->directory->setPath('/nonexistent-download-directory');
+        $persistedFiles = $this->capturePersistedFiles();
+
+        $this->downloader->addFilesToDownloadJobFromCommandOutput(new DownloadJob()->setUri('https://example.com/video'), "[download] {$base}.mp4 has already been downloaded\n");
+
+        $this->assertSame([], $persistedFiles->getArrayCopy());
+    }
+
+    private function relative(string $path): string
+    {
+        return (string) Paths::relativeTo($path, $this->directory->getPath());
     }
 
     private function createTemporaryDirectory(): string

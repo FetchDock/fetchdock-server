@@ -2,6 +2,8 @@
 
 namespace App\Repository;
 
+use App\Doctrine\SoftDeleteFilter;
+use App\Entity\DownloadDirectory;
 use App\Entity\DownloadedFile;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -16,28 +18,14 @@ class DownloadedFileRepository extends ServiceEntityRepository
         parent::__construct($registry, DownloadedFile::class);
     }
 
-    //    /**
-    //     * @return DownloadedFile[] Returns an array of DownloadedFile objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('d')
-    //            ->andWhere('d.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('d.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
-
-    //    public function findOneBySomeField($value): ?DownloadedFile
-    //    {
-    //        return $this->createQueryBuilder('d')
-    //            ->andWhere('d.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+    /**
+     * The file at a location, soft-deleted or not: a location holds at most one row.
+     */
+    public function findOneByLocation(DownloadDirectory $directory, string $relativePath): ?DownloadedFile
+    {
+        return new SoftDeleteFilter($this->getEntityManager())->disabled(fn (): ?DownloadedFile => $this->findOneBy([
+            'directory' => $directory,
+            'relativePath' => $relativePath,
+        ]));
+    }
 }

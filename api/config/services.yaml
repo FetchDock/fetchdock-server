@@ -5,7 +5,11 @@
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
     locale: 'en'
+    # Directory the default DownloadDirectory is seeded with, and where the global yt-dlp archive lives
     app.download_dir: '/downloads'
+    # Comma-separated allowlist that every download directory must resolve inside (ADR 0011)
+    env(DOWNLOAD_ROOTS): '/downloads'
+    app.download_roots: '%env(csv:DOWNLOAD_ROOTS)%'
 
     # Lifetime in seconds of Mercure subscriber tokens issued to clients (POST /users/me/subscription-token)
     env(MERCURE_SUBSCRIPTION_TOKEN_TTL): '3600'
