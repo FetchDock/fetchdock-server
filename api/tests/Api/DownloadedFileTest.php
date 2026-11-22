@@ -110,6 +110,36 @@ class DownloadedFileTest extends ApiTestCase
         $this->assertStringNotContainsString($firstJob->getToken(), $files[0]['downloadUri']);
     }
 
+    /**
+     * A yt-dlp sidecar shares the media's .info.json metadata, its 'ext' included.
+     */
+    public function testYtDlpFileIsServedWithItsOwnExtension(): void
+    {
+        $client = static::createClient();
+        $directory = sys_get_temp_dir().'/files-test-'.bin2hex(random_bytes(6));
+        mkdir($directory);
+        touch($directory.'/video.mp4');
+        touch($directory.'/video.desktop');
+        $metadata = ['title' => 'A video', 'ext' => 'mp4'];
+
+        try {
+            [$job, $media] = $this->createJobWithFile('user', $directory.'/video.mp4', $metadata, 'yt-dlp-cli');
+            [, $shortcut] = $this->createJobWithFile('user', $directory.'/video.desktop', $metadata, 'yt-dlp-cli');
+            $this->linkFileToJob($shortcut, $job);
+
+            $client->request('GET', $this->expectedDownloadUri($job, $media->getId()));
+            $this->assertResponseIsSuccessful();
+            $this->assertStringContainsString('filename="A video.mp4"', $client->getResponse()->getHeaders()['content-disposition'][0]);
+
+            $client->request('GET', $this->expectedDownloadUri($job, $shortcut->getId()));
+            $this->assertResponseIsSuccessful();
+            $this->assertStringContainsString('filename="A video.desktop"', $client->getResponse()->getHeaders()['content-disposition'][0]);
+        } finally {
+            array_map('unlink', glob($directory.'/*'));
+            rmdir($directory);
+        }
+    }
+
     private function getFiles($client, DownloadJob $job, string $user): array
     {
         return $client->request('GET', '/download_jobs/'.$job->getUuid()->toRfc4122().'/files', ['headers' => $this->auth($user)])->toArray()['member'];
@@ -123,10 +153,10 @@ class DownloadedFileTest extends ApiTestCase
     /**
      * @return array{DownloadJob, DownloadedFile}
      */
-    private function createJobWithFile(string $ownerSubject, string $path, array $metadata = []): array
+    private function createJobWithFile(string $ownerSubject, string $path, array $metadata = [], string $downloader = 'mock'): array
     {
         $entityManager = $this->entityManager();
-        $job = $this->newJob($entityManager, $ownerSubject, DownloadStateEnum::COMPLETED);
+        $job = $this->newJob($entityManager, $ownerSubject, DownloadStateEnum::COMPLETED)->setDownloader($downloader);
         $file = DownloadLocations::persistedDirectoryFile($entityManager, $path)->setVisible(true)->setMetadata($metadata);
         $job->addFile($file);
 
@@ -137,6 +167,13 @@ class DownloadedFileTest extends ApiTestCase
         $this->fileIds[] = $file->getId();
 
         return [$job, $file];
+    }
+
+    private function linkFileToJob(DownloadedFile $file, DownloadJob $job): void
+    {
+        $entityManager = $this->entityManager();
+        $entityManager->find(DownloadJob::class, $job->getId())->addFile($entityManager->find(DownloadedFile::class, $file->getId()));
+        $entityManager->flush();
     }
 
     private function linkFileToNewJob(DownloadedFile $file, string $ownerSubject): DownloadJob
