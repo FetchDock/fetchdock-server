@@ -12,6 +12,7 @@ use App\Factory\DownloaderFactory;
 use App\Handler\DownloadJobHandler;
 use App\Repository\DownloadJobRepository;
 use App\Service\Downloader\DownloaderInterface;
+use App\Tests\Double\DownloadLocations;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -59,7 +60,8 @@ class DownloadJobHandlerEventTest extends TestCase
             $this->entityManager,
             $this->downloaderFactory,
             $this->logger,
-            $this->eventDispatcher
+            $this->eventDispatcher,
+            DownloadLocations::targets(),
         );
     }
 

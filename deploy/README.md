@@ -91,12 +91,18 @@ Check: `curl -sI https://<host>/ | grep -i '^link'` must show `https://<host>/do
 | `OIDC_*`, `NEXT_PUBLIC_OIDC_*` | Staging: the staging OIDC application. The `NEXT_PUBLIC_OIDC_*` variables are set on the `pwa` service and read at request time, so the published image needs no rebuild |
 | `GALLERY_DL_CONFIG` | Host path of the gallery-dl `config.json` |
 | `DOWNLOADS_PATH` | Host path mounted at `/downloads`. Staging: a **separate** directory |
+| `DOWNLOAD_ROOTS` | Optional, comma-separated. Download directories (admin: *Download directories*) must be inside these paths. Defaults to `/downloads,/mnt` in production and `/downloads` elsewhere |
 | `WORKER_REPLICAS` | Default `10`; e.g. `2` on staging |
 | `SOURCE_POSTGRES_HOST`, `SOURCE_POSTGRES_PORT` | Staging only; default to the staging server |
 | `SOURCE_POSTGRES_USER`, `SOURCE_POSTGRES_PASSWORD`, `SOURCE_POSTGRES_DB` | Staging only: the read-only production role |
 
 Production also mounts `/mnt`, because download destinations may point there. Staging must not: the
 copied settings may point at production paths. Downloads that target such paths fail on staging.
+
+Download directories are mounted POSIX paths (an S3 bucket through a FUSE or CSI driver, for example). The `php`
+and `worker` services need **the same mounts**: the api checks a directory when an admin adds it, and the worker
+writes into it. A job fails with "not mounted or not writable" when the worker can't reach its directory.
+`db-refresh` resets staging to its single default directory, `/downloads`.
 
 ## Operations
 - **Maintenance releases:** a stable release whose tag isn't the highest stable semver tag (e.g. 0.7.5 after 0.8.0) publishes its images, but the *Check production eligibility* job skips the deploy and notes it in the run summary.

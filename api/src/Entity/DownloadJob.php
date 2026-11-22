@@ -131,6 +131,16 @@ class DownloadJob implements DownloadJobInterface, OwnerFilterableInterface
     #[ORM\ManyToOne(cascade: ['persist'], inversedBy: 'downloadJobs')]
     private ?OidcSubjectIdentifier $owner = null;
 
+    /** The site of the URI, resolved at submission (null if unknown). Selects the download directory and the files of a site move. */
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(onDelete: 'SET NULL')]
+    private ?Site $site = null;
+
+    /** The directory the worker wrote the job's files to, captured when it started the job (ADR 0011) */
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(onDelete: 'SET NULL')]
+    private ?DownloadDirectory $downloadDirectory = null;
+
     public function __construct()
     {
         $this->downloadJobEvents = new ArrayCollection();
@@ -396,6 +406,34 @@ class DownloadJob implements DownloadJobInterface, OwnerFilterableInterface
     public function setOwner(?OidcSubjectIdentifier $owner): static
     {
         $this->owner = $owner;
+
+        return $this;
+    }
+
+    // Server-side only, like the owner
+    #[Ignore]
+    public function getSite(): ?Site
+    {
+        return $this->site;
+    }
+
+    public function setSite(?Site $site): static
+    {
+        $this->site = $site;
+
+        return $this;
+    }
+
+    // Storage paths are never serialized for clients
+    #[Ignore]
+    public function getDownloadDirectory(): ?DownloadDirectory
+    {
+        return $this->downloadDirectory;
+    }
+
+    public function setDownloadDirectory(?DownloadDirectory $downloadDirectory): static
+    {
+        $this->downloadDirectory = $downloadDirectory;
 
         return $this;
     }

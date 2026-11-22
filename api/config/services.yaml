@@ -117,6 +117,10 @@ services:
             $publish: ['*']
 
 when@test:
+    parameters:
+        # Tests create download directories under their own root (tests/Api/AdminDownloadDirectoriesTest)
+        app.download_roots: ['/downloads', '%kernel.project_dir%/var/test-download-roots']
+
     services:
         # Don't run bin/resolve_url.py in functional tests
         App\Service\Site\ExtractorMatcherInterface:
