@@ -19,7 +19,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
         new Get(uriTemplate: '/admin/sites/{slug}/storage'),
         new Put(
             uriTemplate: '/admin/sites/{slug}/storage',
-            description: "Sets the site's download directory (null: the default one). Applies to new downloads; jobs already started keep their directory, and existing files stay where they are.",
+            description: "Sets the site's download directory (null: the default one). Applies to new downloads; jobs already started keep their directory. Existing files stay where they are, unless moveExisting starts a file move batch (409 while one of the site is active).",
             extraProperties: ['standard_put' => true],
         ),
     ],
@@ -51,4 +51,12 @@ final class AdminSiteStorage
     /** Of those, the files stored in another directory than the effective one (read-only) */
     #[Groups(['site_storage:read'])]
     public int $filesElsewhere = 0;
+
+    /** Also move the site's existing files to the directory, as a tracked batch (see activeMove). 409 while a batch of the site is active */
+    #[Groups(['site_storage:write'])]
+    public bool $moveExisting = false;
+
+    /** The site's queued or running file move batch (read-only) */
+    #[Groups(['site_storage:read'])]
+    public ?AdminFileMoveBatch $activeMove = null;
 }

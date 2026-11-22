@@ -16,12 +16,15 @@ import {
   Toolbar,
   required,
   useNotify,
+  SelectInput,
+  useGetList,
   useRecordContext,
   useRedirect,
 } from "react-admin";
 import { apiFetch } from "../../common/api";
+import { DIRECTORY_RESOURCE, FILE_MOVE_RESOURCE } from "./resources";
 
-export const DIRECTORY_RESOURCE = "admin/download_directories";
+export { DIRECTORY_RESOURCE } from "./resources";
 
 /** GET /admin/download_directories/{id} */
 export type DownloadDirectory = {
@@ -149,8 +152,67 @@ const DownloadDirectoryForm = () => {
   );
 };
 
+/**
+ * POST {IRI}/file-moves: moves every file of the directory to another one, as a tracked batch, and by default
+ * switches the sites that use this directory to the target.
+ */
+const MoveFilesPanel = () => {
+  const record = useRecordContext<DownloadDirectory>();
+  const notify = useNotify();
+  const redirect = useRedirect();
+  const { data: directories } = useGetList<DownloadDirectory>(DIRECTORY_RESOURCE, { pagination: { page: 1, perPage: 1000 } });
+  const [busy, setBusy] = useState(false);
+  if (!record || 0 === record.fileCount) {
+    return null;
+  }
+  const iri = String(record["@id"] ?? record.id);
+
+  const move = async (values: Record<string, unknown>) => {
+    setBusy(true);
+    try {
+      const batch = await apiFetch<{ "@id": string }>(`${iri}/file-moves`, {
+        method: "POST",
+        headers: { "Content-Type": "application/ld+json" },
+        body: JSON.stringify({ targetDirectory: values.targetDirectory, reassignSites: Boolean(values.reassignSites) }),
+      });
+      notify("Moving the files", { type: "success" });
+      if (batch) {
+        redirect("show", FILE_MOVE_RESOURCE, batch["@id"]);
+      }
+    } catch (error) {
+      notify((error as Error).message || "The move could not start", { type: "error" });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Form defaultValues={{ targetDirectory: "", reassignSites: true }} onSubmit={move}>
+      <h3>Move all {record.fileCount} files to another directory</h3>
+      <SelectInput
+        source="targetDirectory"
+        label="Target directory"
+        validate={required()}
+        choices={(directories ?? [])
+          .filter((directory) => directory.id !== record.id)
+          .map((directory) => ({ id: String(directory.id), name: `${directory.name} (${directory.path})` }))}
+        fullWidth
+      />
+      <BooleanInput
+        source="reassignSites"
+        label="Also switch the sites that use this directory to the target"
+        helperText="New downloads of those sites then go to the target straight away."
+      />
+      <Toolbar>
+        <SaveButton label="Move files" icon={<></>} disabled={busy} alwaysEnable />
+      </Toolbar>
+    </Form>
+  );
+};
+
 export const DownloadDirectoryEdit = () => (
   <Edit actions={false} title="Download directory">
     <DownloadDirectoryForm />
+    <MoveFilesPanel />
   </Edit>
 );

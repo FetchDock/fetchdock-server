@@ -247,6 +247,15 @@ class YoutubeDlCliDownloader extends AbstractCliDownloader implements CliDownloa
     private function linkFile(DownloadJobInterface $downloadJob, string $path, ?array $metadata = null): void
     {
         if (!is_file($path)) {
+            // The output of an older job (app:scan:downloaded-files) may point where a file move took the file from
+            $location = $this->locationResolver->fromAbsolute($path);
+            $movedFile = null === $location ? null : $this->downloadedFileRepository->findMovedFrom($location->directory, $location->relativePath);
+            if (null !== $movedFile) {
+                $movedFile->addDownloadJob($downloadJob);
+                $this->entityManager->persist($movedFile);
+                $this->filesByPath[$path] = $movedFile;
+            }
+
             return;
         }
 

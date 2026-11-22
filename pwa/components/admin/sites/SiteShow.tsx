@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ArrayField,
   BooleanField,
+  BooleanInput,
   Button,
   ChipField,
   Datagrid,
@@ -24,6 +25,7 @@ import {
 import { apiFetch } from "../../common/api";
 import { hasRole, ROLE_ADMIN } from "../../common/permissions";
 import { DIRECTORY_RESOURCE, DownloadDirectory } from "../storage/DownloadDirectories";
+import { FileMoveStatus } from "../storage/FileMoves";
 
 /** GET /admin/sites/{slug}/canonicalization (null fields inherit) */
 type SiteCanonicalization = {
@@ -229,11 +231,12 @@ type SiteStorage = {
   effectiveDirectory: string;
   fileCount: number;
   filesElsewhere: number;
+  activeMove: string | null;
 };
 
 /**
- * The site's download directory (PUT /admin/sites/{slug}/storage). It applies to new downloads; existing files stay
- * where they are.
+ * The site's download directory (PUT /admin/sites/{slug}/storage). It applies to new downloads; existing files move
+ * only on request, as a tracked batch (moveExisting, or POST /admin/sites/{slug}/file-moves).
  */
 const StoragePanel = () => {
   const record = useRecordContext();
@@ -253,19 +256,29 @@ const StoragePanel = () => {
     queryFn: () => apiFetch<{ member: DownloadDirectory[] }>(`/${DIRECTORY_RESOURCE}`),
   });
 
+  const onError = (error: Error) => notify(error.message || "Saving failed", { type: "error" });
   const save = useMutation({
-    mutationFn: (directory: string | null) =>
+    mutationFn: ({ directory, moveExisting }: { directory: string | null; moveExisting: boolean }) =>
       apiFetch<SiteStorage>(path, {
         method: "PUT",
         headers: { "Content-Type": "application/ld+json" },
-        body: JSON.stringify({ directory }),
+        body: JSON.stringify({ directory, moveExisting }),
       }),
     onSuccess: (result) => {
-      notify("Download directory saved", { type: "success" });
+      notify(result?.activeMove ? "Download directory saved, moving the existing files" : "Download directory saved", { type: "success" });
       queryClient.setQueryData(queryKey, result);
       queryClient.invalidateQueries({ queryKey: ["admin-download-directories"] });
     },
-    onError: (error: Error) => notify(error.message || "Saving failed", { type: "error" }),
+    onError,
+  });
+  const moveNow = useMutation({
+    mutationFn: () =>
+      apiFetch(`/admin/sites/${slug}/file-moves`, { method: "POST", headers: { "Content-Type": "application/ld+json" }, body: "{}" }),
+    onSuccess: () => {
+      notify("Moving the files", { type: "success" });
+      queryClient.invalidateQueries({ queryKey });
+    },
+    onError,
   });
 
   const error = storage.error ?? directories.error;
@@ -287,16 +300,24 @@ const StoragePanel = () => {
     <div>
       <p>
         New downloads of this site go to {effective ? label(effective) : storage.data.effectiveDirectory}. Changing it
-        applies to new downloads only: jobs already started keep their directory, and existing files stay where they
-        are.
+        applies to new downloads: jobs already started keep their directory. Existing files move only when you ask,
+        in the background; their download links don&apos;t change.
       </p>
       <p>
         {storage.data.fileCount} files, {storage.data.filesElsewhere} of them in another directory.
+        {!storage.data.activeMove && storage.data.filesElsewhere > 0 && (
+          <Button label="Move them now" onClick={() => moveNow.mutate()} disabled={moveNow.isPending} sx={{ ml: 1 }} />
+        )}
       </p>
+      {storage.data.activeMove && (
+        <FileMoveStatus iri={storage.data.activeMove} onFinished={() => queryClient.invalidateQueries({ queryKey })} />
+      )}
       <Form
         key={JSON.stringify(storage.data)}
-        defaultValues={{ directory: storage.data.directory ?? "" }}
-        onSubmit={(values: Record<string, unknown>) => save.mutate((values.directory as string) || null)}
+        defaultValues={{ directory: storage.data.directory ?? "", moveExisting: false }}
+        onSubmit={(values: Record<string, unknown>) =>
+          save.mutate({ directory: (values.directory as string) || null, moveExisting: Boolean(values.moveExisting) })
+        }
       >
         <SelectInput
           source="directory"
@@ -304,6 +325,12 @@ const StoragePanel = () => {
           choices={all.filter((directory) => !directory.isDefault).map((directory) => ({ id: directory["@id"], name: label(directory) }))}
           emptyText={defaultDirectory ? `Default: ${label(defaultDirectory)}` : "Default"}
           fullWidth
+        />
+        <BooleanInput
+          source="moveExisting"
+          label="Also move the existing files there"
+          helperText="Files that other sites use too, and files of jobs in progress, stay where they are."
+          disabled={null !== storage.data.activeMove}
         />
         <Toolbar>
           <SaveButton label="Save directory" disabled={save.isPending} alwaysEnable />

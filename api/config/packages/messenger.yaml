@@ -9,10 +9,19 @@ framework:
             download-jobs: 'doctrine://default?auto_setup=false&queue_name=download-jobs'
             logs: 'doctrine://default?auto_setup=false&queue_name=logs'
             failed: 'doctrine://default?auto_setup=false&queue_name=failed'
+            # File moves (#109): consumed after "async" (messenger:consume async file-moves), so downloads go first
+            file-moves:
+                dsn: 'doctrine://default?auto_setup=false&queue_name=file-moves'
+                retry_strategy:
+                    max_retries: 2 # MoveFileHandler::MAX_ATTEMPTS in all
+                    delay: 30000
+                    multiplier: 4
             # sync: 'sync://'
 
         routing:
             'App\Entity\DownloadJob': async
+            'App\Message\StartFileMoveBatchMessage': file-moves
+            'App\Message\MoveFileMessage': file-moves
             # Route your messages to the transports
             # 'App\Message\YourMessage': async
 
@@ -23,3 +32,4 @@ when@test:
                 # replace with your transport name here (e.g., my_transport: 'in-memory://')
                 # For more Messenger testing tools, see https://github.com/zenstruck/messenger-test
                 async: 'in-memory://'
+                file-moves: 'in-memory://'

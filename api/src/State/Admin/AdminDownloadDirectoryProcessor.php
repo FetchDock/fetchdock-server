@@ -9,6 +9,7 @@ use ApiPlatform\State\ProcessorInterface;
 use ApiPlatform\Validator\Exception\ValidationException;
 use App\Entity\DownloadDirectory;
 use App\Repository\DownloadDirectoryRepository;
+use App\Repository\FileMoveBatchRepository;
 use App\Resource\Admin\AdminDownloadDirectory;
 use App\Service\Storage\DownloadDirectoryPathValidator;
 use Doctrine\ORM\EntityManagerInterface;
@@ -31,6 +32,7 @@ final readonly class AdminDownloadDirectoryProcessor implements ProcessorInterfa
         private AdminDownloadDirectoryProvider $provider,
         private DownloadDirectoryRepository $directoryRepository,
         private DownloadDirectoryPathValidator $pathValidator,
+        private FileMoveBatchRepository $batchRepository,
         private EntityManagerInterface $entityManager,
         private Security $security,
         private LoggerInterface $logger,
@@ -81,6 +83,7 @@ final readonly class AdminDownloadDirectoryProcessor implements ProcessorInterfa
         $path = str_starts_with($data->path, '/') ? $this->pathValidator->canonicalize($data->path) : $data->path;
         $pathChanged = $path !== $directory->getPath();
         if ($pathChanged) {
+            $this->assertNoActiveBatch($directory);
             $fileCount = $this->directoryRepository->countFiles()[$directory->getId()] ?? 0;
             if ($fileCount > 0 && !$data->relocate) {
                 $violations->add($this->violation(sprintf('The directory holds %d files. Move them first, or set relocate: true if the whole tree was already moved to the new path.', $fileCount), 'path', $data));
@@ -106,6 +109,7 @@ final readonly class AdminDownloadDirectoryProcessor implements ProcessorInterfa
 
     private function delete(DownloadDirectory $directory): void
     {
+        $this->assertNoActiveBatch($directory);
         if ($directory->isDefault()) {
             throw new ConflictHttpException('The default directory cannot be deleted.');
         }
@@ -118,6 +122,13 @@ final readonly class AdminDownloadDirectoryProcessor implements ProcessorInterfa
         $this->log('Download directory deleted', $directory);
         $this->entityManager->remove($directory);
         $this->entityManager->flush();
+    }
+
+    private function assertNoActiveBatch(DownloadDirectory $directory): void
+    {
+        if (null !== $active = $this->batchRepository->findActiveTouchingDirectory($directory)) {
+            throw new ConflictHttpException(sprintf('File move batch %d is moving files of this directory: wait for it or cancel it first.', $active->getId()));
+        }
     }
 
     private function validateName(ConstraintViolationList $violations, AdminDownloadDirectory $data, ?DownloadDirectory $self): void
