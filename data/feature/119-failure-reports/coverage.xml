@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage line-rate="0.87116169207644" branch-rate="0" lines-covered="4057" lines-valid="4657" branches-covered="0" branches-valid="0" complexity="1910" version="0.4" timestamp="1795364500">
+<coverage line-rate="0.87116169207644" branch-rate="0" lines-covered="4057" lines-valid="4657" branches-covered="0" branches-valid="0" complexity="1910" version="0.4" timestamp="1795364502">
   <sources>
     <source>/app/src</source>
   </sources>
