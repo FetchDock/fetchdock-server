@@ -44,7 +44,7 @@ final class PrivacyPolicyController extends AbstractController
             $number = $request->query->getString('revision');
             $revision = ctype_digit($number) ? $this->revisionRepository->findOneByNumber((int) $number) : null;
             if (null === $revision) {
-                return $this->page('privacy_page/unavailable.html.twig', ['revisionNotFound' => true, 'reason' => null], Response::HTTP_NOT_FOUND, 60);
+                return $this->page('privacy_page/unavailable.html.twig', ['revisionNotFound' => true, 'disabled' => false, 'reason' => null], Response::HTTP_NOT_FOUND, 60);
             }
 
             $isCurrent = $revision->getNumber() === $current?->getNumber();
@@ -53,7 +53,7 @@ final class PrivacyPolicyController extends AbstractController
                 'revision' => $revision,
                 'isCurrent' => $isCurrent,
                 'outdated' => $isCurrent && $this->publisher->isOutdated($status),
-                'currentUrl' => PrivacyPolicyStatus::UNAVAILABLE === $status ? null : $this->publisher->url($status),
+                'currentUrl' => $this->publisher->url($status),
                 'revisions' => $this->revisionRepository->findSummariesNewestFirst(),
                 'preview' => false,
             ], Response::HTTP_OK, 86400);
@@ -62,9 +62,17 @@ final class PrivacyPolicyController extends AbstractController
         if (PrivacyPolicyStatus::CUSTOM === $status) {
             return new RedirectResponse((string) $this->publisher->url($status));
         }
+        if (PrivacyPolicyStatus::DISABLED === $status) {
+            return $this->page('privacy_page/unavailable.html.twig', [
+                'revisionNotFound' => false,
+                'disabled' => true,
+                'reason' => null,
+            ], Response::HTTP_NOT_FOUND, 300);
+        }
         if (null === $current) {
             return $this->page('privacy_page/unavailable.html.twig', [
                 'revisionNotFound' => false,
+                'disabled' => false,
                 'reason' => $reason ?? PrivacyPolicyUnavailableReason::INCOMPLETE,
             ], Response::HTTP_NOT_FOUND, 60);
         }

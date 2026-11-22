@@ -1,10 +1,14 @@
 {% extends 'privacy_page/base.html.twig' %}
-{# revisionNotFound: bool, reason: PrivacyPolicyUnavailableReason|null #}
+{# revisionNotFound: bool, disabled: bool, reason: PrivacyPolicyUnavailableReason|null #}
 {% block title %}No privacy policy{% endblock %}
 {% block body %}
 {% if revisionNotFound %}
 <h1>Revision not found</h1>
 <p>This instance has no privacy policy revision with that number.</p>
+{% elseif disabled|default(false) %}
+<h1>No privacy policy</h1>
+<p>The privacy policy is disabled on this FetchDock instance by its operator.</p>
+<p>Ask the operator of this instance if you have questions about how it handles your data.</p>
 {% else %}
 <h1>No privacy policy published</h1>
 <p>This FetchDock instance currently publishes no privacy policy.</p>

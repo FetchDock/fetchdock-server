@@ -18,8 +18,9 @@ x-app-environment: &app-environment
   DATABASE_URL: postgresql://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:?}@${POSTGRES_HOST:?}:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-app}?serverVersion=${POSTGRES_VERSION:-16}&charset=${POSTGRES_CHARSET:-utf8}
   MERCURE_URL: ${CADDY_MERCURE_URL:-http://php/.well-known/mercure}
   MERCURE_PUBLIC_URL: ${CADDY_MERCURE_PUBLIC_URL:-https://${SERVER_NAME:?}/.well-known/mercure}
-  # Integrity check (ADR 0013), see deploy/README.md
+  # Integrity check and privacy policy toggle (ADR 0013), see deploy/README.md
   INTEGRITY_CHECK_ONLINE: ${INTEGRITY_CHECK_ONLINE:-1}
+  PRIVACY_POLICY_ENABLED: ${PRIVACY_POLICY_ENABLED:-1}
 
 services:
   php:

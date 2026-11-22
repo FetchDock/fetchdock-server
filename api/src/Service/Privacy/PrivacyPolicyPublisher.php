@@ -16,6 +16,7 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 /**
  * Decides which privacy policy the instance publishes (ADR 0013):
  *
+ *   PRIVACY_POLICY_ENABLED=0                                                  → disabled
  *   PRIVACY_POLICY_URL set                                                    → custom
  *   integrity verified, required answers complete, and a revision published   → generated (/privacy, last approved revision)
  *   otherwise                                                                 → unavailable, with the reason
@@ -34,6 +35,8 @@ class PrivacyPolicyPublisher
         private readonly UrlGeneratorInterface $urlGenerator,
         #[Autowire('%app.privacy_policy_url%')]
         private readonly string $customUrl,
+        #[Autowire('%app.privacy_policy.enabled%')]
+        private readonly bool $enabled = true,
     ) {
     }
 
@@ -47,6 +50,9 @@ class PrivacyPolicyPublisher
      */
     public function resolve(): array
     {
+        if (!$this->enabled) {
+            return [PrivacyPolicyStatus::DISABLED, null];
+        }
         if ('' !== $this->customUrl) {
             return [PrivacyPolicyStatus::CUSTOM, null];
         }
@@ -71,7 +77,7 @@ class PrivacyPolicyPublisher
         return match ($status ?? $this->status()) {
             PrivacyPolicyStatus::CUSTOM => $this->customUrl,
             PrivacyPolicyStatus::GENERATED => $this->urlGenerator->generate(self::ROUTE, [], UrlGeneratorInterface::ABSOLUTE_URL),
-            PrivacyPolicyStatus::UNAVAILABLE => null,
+            PrivacyPolicyStatus::DISABLED, PrivacyPolicyStatus::UNAVAILABLE => null,
         };
     }
 
@@ -104,6 +110,9 @@ class PrivacyPolicyPublisher
      */
     public function publish(\DateTimeImmutable $now = new \DateTimeImmutable()): PrivacyPolicyRevision
     {
+        if (!$this->enabled) {
+            throw new ConflictHttpException('Privacy policy is disabled on this instance (PRIVACY_POLICY_ENABLED=0).');
+        }
         if ('' !== $this->customUrl) {
             throw new ConflictHttpException('PRIVACY_POLICY_URL is set, so this instance publishes a custom privacy policy.');
         }

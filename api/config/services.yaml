@@ -19,9 +19,12 @@ parameters:
     app.mercure.publisher_jwt_secret: '%env(MERCURE_JWT_SECRET)%'
     app.mercure.subscriber_jwt_secret: '%env(default:app.mercure.publisher_jwt_secret:MERCURE_SUBSCRIBER_JWT_SECRET)%'
     # Failure reports from clients (ADR 0012): FAILURE_REPORTS_ENABLED=0 refuses new reports and hides the feature
-    # from clients; PRIVACY_POLICY_URL is the instance's privacy policy, linked by clients and the admin
+    # from clients; PRIVACY_POLICY_ENABLED=0 disables the instance privacy policy completely (e.g. personal/household
+    # installs); PRIVACY_POLICY_URL is the operator's own privacy policy, linked by clients and the admin
     env(FAILURE_REPORTS_ENABLED): 'true'
     app.failure_reports.enabled: '%env(bool:FAILURE_REPORTS_ENABLED)%'
+    env(PRIVACY_POLICY_ENABLED): 'true'
+    app.privacy_policy.enabled: '%env(bool:PRIVACY_POLICY_ENABLED)%'
     env(PRIVACY_POLICY_URL): ''
     app.privacy_policy_url: '%env(PRIVACY_POLICY_URL)%'
     # Integrity check (ADR 0013): INTEGRITY_CHECK_ONLINE=0 skips fetching the official manifest digest from GitHub,
