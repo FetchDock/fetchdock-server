@@ -90,7 +90,13 @@ class AdminFileMovesTest extends ApiTestCase
     public function testDirectoryBatchMovesFilesAndKeepsDownloadUrls(): void
     {
         [$job, $file] = $this->createJobWithFile('site/video.mp4', 'video');
-        file_put_contents($this->root.'/a/site/video.info.json', '{}');
+        foreach (['video.info.json', 'video.en.ass', 'video.de.ass', 'video.live_chat.json', 'video.jpg'] as $sidecar) {
+            file_put_contents($this->root.'/a/site/'.$sidecar, $sidecar);
+        }
+        // Tracked next to the media file: moves through its own item, not as a sidecar
+        [, $shortcut] = $this->createJobWithFile('site/video.desktop', 'shortcut');
+        // Another file whose name starts like the media file's is no sidecar
+        file_put_contents($this->root.'/a/site/videos.mp4', 'other');
         [, $busyFile] = $this->createJobWithFile('site/busy.mp4', 'busy', state: DownloadStateEnum::IN_PROGRESS);
         $site = $this->entityManager()->getRepository(Site::class)->findOneBy(['slug' => 'vimeo'])->setDownloadDirectory($this->source);
         $this->entityManager()->flush();
@@ -100,7 +106,7 @@ class AdminFileMovesTest extends ApiTestCase
         $this->assertSame('directory', $batch['scope']);
         $this->assertSame('queued', $batch['status']);
         $this->assertSame($this->iri($this->source), $batch['sourceDirectory']);
-        $this->assertSame([2, 1], [$batch['total'], $batch['skipped']], 'The file of the job in progress is skipped');
+        $this->assertSame([3, 1], [$batch['total'], $batch['skipped']], 'The file of the job in progress is skipped');
         $this->assertSame($this->iri($this->target), $this->request('GET', '/admin/sites/vimeo/storage')->toArray()['directory'], 'reassignSites defaults to true');
 
         // Before the move, the file is served from the source
@@ -111,13 +117,20 @@ class AdminFileMovesTest extends ApiTestCase
 
         $batch = $this->request('GET', $batch['@id'])->toArray();
         $this->assertSame('completed', $batch['status']);
-        $this->assertSame([2, 1, 1, 0], [$batch['total'], $batch['moved'], $batch['skipped'], $batch['failed']]);
-        $this->assertSame([5, 5], [$batch['bytesTotal'], $batch['bytesMoved']]);
+        $this->assertSame([3, 2, 1, 0], [$batch['total'], $batch['moved'], $batch['skipped'], $batch['failed']]);
+        $this->assertSame([], $batch['errors']);
+        $this->assertSame([13, 13], [$batch['bytesTotal'], $batch['bytesMoved']]);
         $this->assertNotNull($batch['finishedAt']);
 
         $this->assertFileExists($this->root.'/b/site/video.mp4');
         $this->assertFileDoesNotExist($this->root.'/a/site/video.mp4');
-        $this->assertFileExists($this->root.'/b/site/video.info.json', 'The untracked sidecar moves along');
+        foreach (['video.info.json', 'video.en.ass', 'video.de.ass', 'video.live_chat.json', 'video.jpg'] as $sidecar) {
+            $this->assertSame($sidecar, file_get_contents($this->root.'/b/site/'.$sidecar), "The untracked {$sidecar} moves along");
+            $this->assertFileDoesNotExist($this->root.'/a/site/'.$sidecar);
+        }
+        $this->assertSame('shortcut', file_get_contents($this->root.'/b/site/video.desktop'));
+        $this->assertSame($this->iri($this->target), $this->request('GET', '/admin/downloaded_files/'.$shortcut->getId())->toArray()['directory']);
+        $this->assertFileExists($this->root.'/a/site/videos.mp4');
         $this->assertFileExists($this->root.'/a/site/busy.mp4');
         $moved = $this->request('GET', '/admin/downloaded_files/'.$file->getId())->toArray();
         $this->assertSame([$this->iri($this->target), 'site/video.mp4'], [$moved['directory'], $moved['relativePath']]);
@@ -130,7 +143,7 @@ class AdminFileMovesTest extends ApiTestCase
         // A redelivered message changes nothing
         $this->dispatch(new MoveFileMessage($this->itemIds($batch['id'])[0]));
         $this->runMoves();
-        $this->assertSame(1, $this->request('GET', $batch['@id'])->toArray()['moved']);
+        $this->assertSame(2, $this->request('GET', $batch['@id'])->toArray()['moved']);
     }
 
     public function testSiteBatchSkipsSharedFilesAndRejectsOverlappingBatches(): void

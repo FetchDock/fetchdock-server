@@ -31,9 +31,6 @@ final readonly class MoveFileHandler
 {
     public const int MAX_ATTEMPTS = 3;
 
-    /** yt-dlp files next to the media that FetchDock doesn't track as files: they move along with it */
-    private const array SIDECAR_SUFFIXES = ['.info.json', '.desktop', '.description', '.jpg', '.webp', '.png'];
-
     public function __construct(
         private EntityManagerInterface $entityManager,
         private FileMoveItemRepository $itemRepository,
@@ -124,8 +121,9 @@ final readonly class MoveFileHandler
     }
 
     /**
-     * Moves the untracked files next to the media file (best effort: a sidecar that can't move stays at the source and
-     * is reported, the media file stays moved). Tracked files (e.g. a .desktop shortcut row) have their own items.
+     * Moves the untracked files named after the media file, "<stem>.*": yt-dlp's subtitles (<stem>.<lang>.ass),
+     * live chat, .info.json, .description and thumbnails. Best effort: a sidecar that can't move stays at the source
+     * and is reported, the media file stays moved. Tracked files (e.g. a .desktop shortcut row) have their own items.
      */
     private function moveSidecars(FileMoveItem $item, string $source, string $target, int $batchId, int $fileId): void
     {
@@ -133,9 +131,9 @@ final readonly class MoveFileHandler
         $targetStem = preg_replace('/\.[^.\/]+$/', '', $target);
         $relativeStem = preg_replace('/\.[^.\/]+$/', '', $item->getSourceRelativePath());
 
-        foreach (self::SIDECAR_SUFFIXES as $suffix) {
-            $sidecar = $sourceStem.$suffix;
-            if ($sidecar === $source || !is_file($sidecar)
+        foreach (glob(addcslashes($sourceStem, '*?[]\\').'.*', GLOB_NOSORT) ?: [] as $sidecar) {
+            $suffix = substr($sidecar, \strlen($sourceStem));
+            if ($sidecar === $source || !is_file($sidecar) || str_ends_with($sidecar, FileMover::PART_SUFFIX)
                 || (null !== $item->getSourceDirectory() && null !== $this->fileRepository->findOneByLocation($item->getSourceDirectory(), $relativeStem.$suffix))) {
                 continue;
             }
