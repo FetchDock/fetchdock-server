@@ -151,10 +151,18 @@ class YoutubeDlCliDownloader extends AbstractCliDownloader implements CliDownloa
     private const string ARCHIVE_SKIP_LINE_SUFFIX = 'has already been recorded in the archive';
 
     /**
-     * A shortcut written for a fresh download. Example:
+     * Prefix of the line yt-dlp prints for every media file once it's in its final place (--print after_move:...),
+     * downloaded now or kept from a previous download. Example:
+     * "[FetchDock] File: /downloads/generic/example.com/id.mp4".
+     */
+    private const string FILE_LINE_PREFIX = '[FetchDock] File: ';
+
+    /**
+     * The output of jobs from before #116, replayed by app:scan:downloaded-files: the media file was found through the
+     * .desktop shortcut (--write-link) and the "ext" of the .info.json next to it. The shortcut itself isn't linked. Example:
      * "[info] Writing internet shortcut (.desktop) to: /downloads/generic/example.com/id.desktop".
      */
-    private const string SHORTCUT_LINE_PREFIX = '[info] Writing internet shortcut (.desktop) to: ';
+    private const string LEGACY_SHORTCUT_LINE_PREFIX = '[info] Writing internet shortcut (.desktop) to: ';
 
     /**
      * A media file kept from a previous download (--no-force-overwrites). Example:
@@ -169,6 +177,18 @@ class YoutubeDlCliDownloader extends AbstractCliDownloader implements CliDownloa
      * @var array<string, DownloadedFile>
      */
     private array $filesByPath = [];
+
+    /**
+     * Report each media file on its own line. --print implies --quiet, which --no-quiet undoes to keep the log and progress.
+     */
+    protected function runDownloadProcess(DownloadJobInterface $downloadJob, array $extraOptions = []): Process
+    {
+        return parent::runDownloadProcess($downloadJob, [
+            '--print', 'after_move:'.self::FILE_LINE_PREFIX.'%(filepath)s',
+            '--no-quiet',
+            ...$extraOptions,
+        ]);
+    }
 
     /**
      * The download archive makes yt-dlp skip a video it downloaded before, even when its files were removed since.
@@ -206,17 +226,12 @@ class YoutubeDlCliDownloader extends AbstractCliDownloader implements CliDownloa
         foreach (explode("\n", $commandOutput) as $line) {
             $line = trim($line);
 
-            if (str_starts_with($line, self::SHORTCUT_LINE_PREFIX)) {
-                $this->addShortcutAndMediaFiles($downloadJob, trim(substr($line, strlen(self::SHORTCUT_LINE_PREFIX))));
+            if (str_starts_with($line, self::FILE_LINE_PREFIX)) {
+                $this->linkFile($downloadJob, substr($line, \strlen(self::FILE_LINE_PREFIX)));
+            } elseif (str_starts_with($line, self::LEGACY_SHORTCUT_LINE_PREFIX)) {
+                $this->linkMediaFileOfShortcut($downloadJob, substr($line, \strlen(self::LEGACY_SHORTCUT_LINE_PREFIX)));
             } elseif (1 === preg_match(self::ALREADY_DOWNLOADED_LINE_PATTERN, $line, $matches)) {
-                // An existing shortcut is reported without its path ("Internet shortcut (.desktop) is already present"),
-                // so derive it from the media file
-                $mediaPath = $matches[1];
-                $shortcutPath = preg_replace('/\.[^.\/]+$/', '.desktop', $mediaPath);
-                if (is_file($shortcutPath)) {
-                    $this->addShortcutAndMediaFiles($downloadJob, $shortcutPath);
-                }
-                $this->linkFile($downloadJob, $mediaPath);
+                $this->linkFile($downloadJob, $matches[1]);
             }
         }
 
@@ -226,25 +241,20 @@ class YoutubeDlCliDownloader extends AbstractCliDownloader implements CliDownloa
     }
 
     /**
-     * Link a .desktop shortcut and the media file it belongs to.
-     * The media file's extension is read from the .info.json metadata next to the shortcut.
+     * Link the media file a legacy .desktop shortcut belongs to; its extension is the "ext" of the .info.json next to it.
      */
-    private function addShortcutAndMediaFiles(DownloadJobInterface $downloadJob, string $shortcutPath): void
+    private function linkMediaFileOfShortcut(DownloadJobInterface $downloadJob, string $shortcutPath): void
     {
-        $metadata = $this->readMetadataFile(preg_replace('/\.desktop$/', '.info.json', $shortcutPath));
-        $this->linkFile($downloadJob, $shortcutPath, $metadata);
-
-        $extension = $metadata['ext'] ?? null;
-        if (is_string($extension) && '' !== $extension) {
+        $extension = $this->readMetadataFile(preg_replace('/\.desktop$/', '.info.json', $shortcutPath))['ext'] ?? null;
+        if (\is_string($extension) && '' !== $extension) {
             $this->linkFile($downloadJob, preg_replace('/\.desktop$/', '.'.$extension, $shortcutPath));
         }
     }
 
     /**
-     * Link an existing file to the job, creating its DownloadedFile if it isn't known yet.
-     * A new DownloadedFile gets the given metadata, or else the .info.json next to the file.
+     * Link an existing file to the job, creating its DownloadedFile if it isn't known yet, with the .info.json next to it as metadata.
      */
-    private function linkFile(DownloadJobInterface $downloadJob, string $path, ?array $metadata = null): void
+    private function linkFile(DownloadJobInterface $downloadJob, string $path): void
     {
         if (!is_file($path)) {
             // The output of an older job (app:scan:downloaded-files) may point where a file move took the file from
@@ -271,7 +281,7 @@ class YoutubeDlCliDownloader extends AbstractCliDownloader implements CliDownloa
                 $downloadedFile = new DownloadedFile()
                     ->setLocation($location->directory, $location->relativePath)
                     ->setVisible(true)
-                    ->setMetadata($metadata ?? $this->readMetadataFile(preg_replace('/\.[^.\/]+$/', '.info.json', $path)) ?? []);
+                    ->setMetadata($this->readMetadataFile(preg_replace('/\.[^.\/]+$/', '.info.json', $path)) ?? []);
             } elseif ($downloadedFile->isDeleted()) {
                 // A location holds one row: a file no live job used anymore is in use again
                 $downloadedFile->setDeletedAt(null);
@@ -365,7 +375,6 @@ class YoutubeDlCliDownloader extends AbstractCliDownloader implements CliDownloa
 --write-info-json
 --write-playlist-metafiles
 --write-thumbnail
---write-link
 --write-subs
 --check-formats
 --convert-subs ass

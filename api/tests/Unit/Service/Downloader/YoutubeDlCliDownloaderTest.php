@@ -86,7 +86,40 @@ class YoutubeDlCliDownloaderTest extends TestCase
         $this->assertSame([], $this->downloader->getSupportedDomains());
     }
 
-    public function testAddFilesLinksShortcutAndMediaFileOfFreshDownload(): void
+    public function testAddFilesLinksPrintedMediaFile(): void
+    {
+        $base = $this->createDownloadedFiles(desktop: false);
+        $persistedFiles = $this->capturePersistedFiles();
+        $downloadJob = new DownloadJob()->setUri('https://example.com/video');
+
+        $this->downloader->addFilesToDownloadJobFromCommandOutput(
+            $downloadJob,
+            "[download] Destination: {$base}.f137.mp4\n[Merger] Merging formats into \"{$base}.mp4\"\n[FetchDock] File: {$base}.mp4\n"
+        );
+
+        $this->assertLinkedPaths(["{$base}.mp4"], $persistedFiles, $downloadJob);
+        $this->assertSame('video-id', $persistedFiles["{$base}.mp4"]->getMetadata()['id']);
+    }
+
+    public function testAddFilesNeverLinksTheShortcut(): void
+    {
+        $base = $this->createDownloadedFiles(desktop: true);
+        $persistedFiles = $this->capturePersistedFiles();
+        $downloadJob = new DownloadJob()->setUri('https://example.com/video');
+
+        // Output of a run without the download archive while the files exist, with a config that still has --write-link
+        $this->downloader->addFilesToDownloadJobFromCommandOutput(
+            $downloadJob,
+            "[info] Internet shortcut (.desktop) is already present\n[download] {$base}.mp4 has already been downloaded\n[FetchDock] File: {$base}.mp4\n"
+        );
+
+        $this->assertLinkedPaths(["{$base}.mp4"], $persistedFiles, $downloadJob);
+    }
+
+    /**
+     * Jobs from before #116 are replayed by app:scan:downloaded-files.
+     */
+    public function testAddFilesLinksTheMediaFileOfALegacyShortcutLine(): void
     {
         $base = $this->createDownloadedFiles(desktop: true);
         $persistedFiles = $this->capturePersistedFiles();
@@ -97,27 +130,11 @@ class YoutubeDlCliDownloaderTest extends TestCase
             "[info] Writing internet shortcut (.desktop) to: {$base}.desktop\n[download] Destination: {$base}.mp4\n"
         );
 
-        $this->assertLinkedPaths(["{$base}.desktop", "{$base}.mp4"], $persistedFiles, $downloadJob);
+        $this->assertLinkedPaths(["{$base}.mp4"], $persistedFiles, $downloadJob);
         $this->assertSame('video-id', $persistedFiles["{$base}.mp4"]->getMetadata()['id']);
-        $this->assertSame('video-id', $persistedFiles["{$base}.desktop"]->getMetadata()['id']);
     }
 
-    public function testAddFilesLinksFilesThatWereAlreadyDownloaded(): void
-    {
-        $base = $this->createDownloadedFiles(desktop: true);
-        $persistedFiles = $this->capturePersistedFiles();
-        $downloadJob = new DownloadJob()->setUri('https://example.com/video');
-
-        // Output of a run without the download archive while the files exist
-        $this->downloader->addFilesToDownloadJobFromCommandOutput(
-            $downloadJob,
-            "[info] Internet shortcut (.desktop) is already present\n[download] {$base}.mp4 has already been downloaded\n[download] 100% of    2.72MiB\n"
-        );
-
-        $this->assertLinkedPaths(["{$base}.desktop", "{$base}.mp4"], $persistedFiles, $downloadJob);
-    }
-
-    public function testAddFilesLinksAlreadyDownloadedMediaFileWithoutShortcut(): void
+    public function testAddFilesLinksAlreadyDownloadedMediaFile(): void
     {
         $base = $this->createDownloadedFiles(desktop: false);
         $persistedFiles = $this->capturePersistedFiles();
@@ -132,27 +149,9 @@ class YoutubeDlCliDownloaderTest extends TestCase
         $this->assertSame('video-id', $persistedFiles["{$base}.mp4"]->getMetadata()['id']);
     }
 
-    public function testAddFilesLinksMediaFileWhenShortcutIsAlreadyKnown(): void
-    {
-        $base = $this->createDownloadedFiles(desktop: true);
-        $knownShortcut = new DownloadedFile()->setLocation($this->directory, $this->relative("{$base}.desktop"))->setVisible(true);
-        $this->downloadedFileRepository->method('findOneByLocation')
-            ->willReturnCallback(fn (DownloadDirectory $directory, string $relativePath) => $relativePath === $this->relative("{$base}.desktop") ? $knownShortcut : null);
-        $persistedFiles = $this->capturePersistedFiles();
-        $downloadJob = new DownloadJob()->setUri('https://example.com/video');
-
-        $this->downloader->addFilesToDownloadJobFromCommandOutput(
-            $downloadJob,
-            "[info] Writing internet shortcut (.desktop) to: {$base}.desktop\n"
-        );
-
-        $this->assertLinkedPaths(["{$base}.desktop", "{$base}.mp4"], $persistedFiles, $downloadJob);
-        $this->assertSame($knownShortcut, $persistedFiles["{$base}.desktop"]);
-    }
-
     public function testAddFilesCreatesOneDownloadedFilePerPath(): void
     {
-        $base = $this->createDownloadedFiles(desktop: true);
+        $base = $this->createDownloadedFiles(desktop: false);
         $createdFiles = [];
         $this->entityManager->method('persist')->willReturnCallback(function (object $entity) use (&$createdFiles) {
             if ($entity instanceof DownloadedFile) {
@@ -161,13 +160,13 @@ class YoutubeDlCliDownloaderTest extends TestCase
         });
         $downloadJob = new DownloadJob()->setUri('https://example.com/video');
 
-        // The media file is reported through the shortcut and the "already downloaded" line
+        // The media file is reported through the "already downloaded" line and the printed file line
         $this->downloader->addFilesToDownloadJobFromCommandOutput(
             $downloadJob,
-            "[info] Writing internet shortcut (.desktop) to: {$base}.desktop\n[download] {$base}.mp4 has already been downloaded\n"
+            "[download] {$base}.mp4 has already been downloaded\n[FetchDock] File: {$base}.mp4\n"
         );
 
-        $this->assertEqualsCanonicalizing(["{$base}.desktop", "{$base}.mp4"], array_values($createdFiles));
+        $this->assertSame(["{$base}.mp4"], array_values($createdFiles));
     }
 
     public function testAddFilesIgnoresFilesThatDoNotExist(): void
@@ -196,6 +195,26 @@ class YoutubeDlCliDownloaderTest extends TestCase
         $this->assertStringNotContainsString('--no-download-archive', $invocations[0]);
         $this->assertStringContainsString('--no-download-archive', $invocations[1]);
         $this->assertStringEndsWith('https://example.com/video', $invocations[1]);
+    }
+
+    public function testDownloadPrintsEveryMediaFileWithoutGoingQuiet(): void
+    {
+        [$downloader, $invocationLog] = $this->createDownloaderWithFakeBinary(
+            '[download] video-id: Video has already been recorded in the archive'
+        );
+
+        $downloader->download(new DownloadJob()->setUri('https://example.com/video'));
+
+        foreach (file($invocationLog, FILE_IGNORE_NEW_LINES) as $invocation) {
+            $this->assertStringContainsString('--print after_move:[FetchDock] File: %(filepath)s --no-quiet', $invocation);
+        }
+    }
+
+    public function testNewConfigDoesNotWriteShortcuts(): void
+    {
+        $config = new \ReflectionMethod($this->downloader, 'getConfigFileContents')->invoke($this->downloader);
+
+        $this->assertStringNotContainsString('--write-link', $config);
     }
 
     public function testDownloadWritesToTheJobsDirectory(): void

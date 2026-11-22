@@ -122,8 +122,8 @@ final readonly class MoveFileHandler
 
     /**
      * Moves the untracked files named after the media file, "<stem>.*": yt-dlp's subtitles (<stem>.<lang>.ass),
-     * live chat, .info.json, .description and thumbnails. Best effort: a sidecar that can't move stays at the source
-     * and is reported, the media file stays moved. Tracked files (e.g. a .desktop shortcut row) have their own items.
+     * live chat, .info.json, .description, thumbnails and .desktop shortcuts. Best effort: a sidecar that can't move
+     * stays at the source and is reported, the media file stays moved. Tracked files have their own items.
      */
     private function moveSidecars(FileMoveItem $item, string $source, string $target, int $batchId, int $fileId): void
     {
