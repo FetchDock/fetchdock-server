@@ -63,6 +63,9 @@ jobs:
         env:
           IMAGES_PREFIX: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}
           TAGS: ${{ steps.version.outputs.tag }},develop
+          # compose.prod.yaml requires the Mercure secret, and bake interpolates the whole file although it only
+          # uses the build sections: a placeholder satisfies it and never ends up in the images
+          CADDY_MERCURE_JWT_SECRET: bake-placeholder-not-a-secret
         with:
           source: .
           pull: true
