@@ -1,5 +1,18 @@
-import { HttpError } from "react-admin";
+import { HttpError, useTheme } from "react-admin";
 import { apiFetch, getAuthHeaders } from "../../common/api";
+
+/** Whether react-admin's active theme is dark (falling back to the browser preference when unset) */
+export const useIsDarkTheme = (): boolean => {
+  const [theme] = useTheme();
+  if ("dark" === theme) {
+    return true;
+  }
+  if ("light" === theme) {
+    return false;
+  }
+
+  return typeof window !== "undefined" && Boolean(window.matchMedia?.("(prefers-color-scheme: dark)").matches);
+};
 
 /** react-admin resource names of the privacy policy admin (ADR 0013). Singletons: only their list page is used. */
 export const PRIVACY_POLICY_RESOURCE = "admin/privacy_policy";
@@ -126,17 +139,37 @@ export const fetchPreview = async (): Promise<string> => {
   return response.text();
 };
 
-/** The answers of a policy, without the read-only fields */
+/** The answers of a policy, without the read-only or JSON-LD (@id, @type) fields */
 export const toAnswers = (policy: AdminPrivacyPolicy | PrivacyPolicyAnswers): PrivacyPolicyAnswers => ({
-  instanceName: policy.instanceName,
-  operator: { ...policy.operator },
-  identityProvider: { ...policy.identityProvider },
-  hosting: { ...policy.hosting },
-  processors: policy.processors.map(({ name, purpose, country }) => ({ name, purpose, country })),
-  retention: { ...policy.retention },
-  legalBasis: policy.legalBasis,
-  supervisoryAuthority: policy.supervisoryAuthority,
-  additionalText: policy.additionalText,
+  instanceName: policy.instanceName ?? null,
+  operator: {
+    name: policy.operator?.name ?? null,
+    address: policy.operator?.address ?? null,
+    contactEmail: policy.operator?.contactEmail ?? null,
+    dpoContact: policy.operator?.dpoContact ?? null,
+  },
+  identityProvider: {
+    name: policy.identityProvider?.name ?? null,
+    privacyPolicyUrl: policy.identityProvider?.privacyPolicyUrl ?? null,
+  },
+  hosting: {
+    provider: policy.hosting?.provider ?? null,
+    country: policy.hosting?.country ?? null,
+  },
+  processors: (policy.processors ?? []).map(({ name, purpose, country }) => ({
+    name: name ?? null,
+    purpose: purpose ?? null,
+    country: country ?? null,
+  })),
+  retention: {
+    logsDays: policy.retention?.logsDays ?? null,
+    backups: policy.retention?.backups ?? null,
+    softDeletedJobsDays: policy.retention?.softDeletedJobsDays ?? null,
+    reportsDays: policy.retention?.reportsDays ?? null,
+  },
+  legalBasis: policy.legalBasis ?? null,
+  supervisoryAuthority: policy.supervisoryAuthority ?? null,
+  additionalText: policy.additionalText ?? null,
 });
 
 /**

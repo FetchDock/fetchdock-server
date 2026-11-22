@@ -60,8 +60,9 @@
 				&& !path(
 					'/download*', '/docs*', '/graphql*', '/bundles*', '/contexts*', '/_profiler*', '/_wdt*', '/auth*',
 					'/.well-known/browser-extension*',
-					'*.json*', '*.html', '*.csv', '*.yml', '*.yaml', '*.xml'
+					'/privacy', '/admin/privacy_policy/preview'
 				)
+				&& !path('*.json*', '*.html', '*.csv', '*.yml', '*.yaml', '*.xml')
 			)
 			|| path('/favicon.ico', '/manifest.json', '/robots.txt', '/sitemap*', '/_next*', '/__next*', '/auth-callback*')
 			|| query({'_rsc': '*'})`

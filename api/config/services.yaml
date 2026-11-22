@@ -28,6 +28,8 @@ parameters:
     # so the instance reads "unknown" at best
     env(INTEGRITY_CHECK_ONLINE): 'true'
     app.integrity.check_online: '%env(bool:INTEGRITY_CHECK_ONLINE)%'
+    # Never true in prod or test; enabled under when@dev so local dev can test the published generated policy
+    app.integrity.trust_dev: false
     downloader.gallery_dl_web.enabled: false
     downloader.gallery_dl_web.host: 'http://gallery-dl:9080'
 
@@ -125,6 +127,10 @@ services:
                 class: Symfony\Component\Mercure\Jwt\LcobucciFactory
                 arguments: ['%app.mercure.publisher_jwt_secret%']
             $publish: ['*']
+
+when@dev:
+    parameters:
+        app.integrity.trust_dev: true
 
 when@test:
     parameters:

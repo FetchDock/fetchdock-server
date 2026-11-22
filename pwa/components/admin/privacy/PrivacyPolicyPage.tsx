@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import {
   ArrayInput,
+  AutocompleteInput,
   Button,
   Form,
   HttpError,
@@ -16,6 +17,7 @@ import {
   minValue,
   useNotify,
 } from "react-admin";
+import { COUNTRY_CHOICES } from "./countries";
 import {
   AdminPrivacyPolicy,
   FIELD_LABELS,
@@ -29,91 +31,103 @@ import {
   fetchRevisions,
   savePrivacyPolicy,
   toAnswers,
+  useIsDarkTheme,
   violationsToErrors,
 } from "./api";
 
-/** ISO 3166-1 alpha-2 codes are upper case; the API rejects lower case ones */
-const upperCase = (value: string | null) => (value ? value.toUpperCase() : value);
 const days = [minValue(0), (value: unknown) => (null == value || Number.isInteger(Number(value)) ? undefined : "Whole days")];
 
-const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
-  <section className="mb-6 rounded border border-gray-200 bg-white p-4">
-    <h2 className="mb-3 text-lg font-semibold">{title}</h2>
-    {children}
-  </section>
-);
+const Section = ({ title, children }: { title: string; children: React.ReactNode }) => {
+  const isDark = useIsDarkTheme();
 
-const StatusPanel = ({ policy }: { policy: AdminPrivacyPolicy }) => (
-  <Section title="Status">
-    {"generated" === policy.status && (
-      <p>
-        The generated policy is published at{" "}
-        <a className="underline" href="/privacy" target="_blank" rel="noreferrer">
-          /privacy
-        </a>{" "}
-        (revision {policy.revision}).
-      </p>
-    )}
-    {"custom" === policy.status && (
-      <p>
-        PRIVACY_POLICY_URL is set, so clients link the operator&apos;s own policy. The answers below are only used if it
-        is removed.
-      </p>
-    )}
-    {"unavailable" === policy.status && (
-      <p className="font-medium text-red-700">
-        No privacy policy is published: {policy.reason ? REASON_LABELS[policy.reason] : "unknown reason"}. Clients show
-        that this instance has none.
-      </p>
-    )}
-    {policy.missing.length > 0 && (
-      <p className="mt-2">Missing: {policy.missing.map((path) => FIELD_LABELS[path] ?? path).join(", ")}.</p>
-    )}
-    <p className="mt-2 text-sm text-gray-600">
-      Integrity: {INTEGRITY_LABELS[policy.integrity.status]}. The generated policy is only published while the code reads
-      verified. See Instance integrity for details.
-    </p>
-  </Section>
-);
+  return (
+    <section className={`mb-6 rounded border p-4 ${isDark ? "border-white/15 bg-white/[0.04]" : "border-gray-200 bg-white"}`}>
+      <h2 className="mb-3 text-lg font-semibold">{title}</h2>
+      {children}
+    </section>
+  );
+};
 
-const RevisionsPanel = ({ revisions }: { revisions: PolicyRevision[] }) => (
-  <Section title="Revisions">
-    {0 === revisions.length ? (
-      <p>None yet: the first revision is created when the generated policy is published.</p>
-    ) : (
-      <table className="w-full text-left text-sm">
-        <thead>
-          <tr>
-            <th className="py-1">Revision</th>
-            <th>Created</th>
-            <th>Why</th>
-            <th>FetchDock</th>
-            <th>Text version</th>
-          </tr>
-        </thead>
-        <tbody>
-          {revisions.map((revision) => (
-            <tr key={revision.number} className="border-t border-gray-100">
-              <td className="py-1">
-                <a className="underline" href={`/privacy?revision=${revision.number}`} target="_blank" rel="noreferrer">
-                  {revision.number}
-                </a>
-                {revision.current && " (current)"}
-              </td>
-              <td>{new Date(revision.createdAt).toLocaleString()}</td>
-              <td>{REVISION_REASON_LABELS[revision.reason] ?? revision.reason}</td>
-              <td>{revision.appVersion}</td>
-              <td>{revision.textVersion}</td>
+const StatusPanel = ({ policy }: { policy: AdminPrivacyPolicy }) => {
+  const isDark = useIsDarkTheme();
+
+  return (
+    <Section title="Status">
+      {"generated" === policy.status && (
+        <p>
+          The generated policy is published at{" "}
+          <a className="underline" href="/privacy" target="_blank" rel="noreferrer">
+            /privacy
+          </a>{" "}
+          (revision {policy.revision}).
+        </p>
+      )}
+      {"custom" === policy.status && (
+        <p>
+          PRIVACY_POLICY_URL is set, so clients link the operator&apos;s own policy. The answers below are only used if it
+          is removed.
+        </p>
+      )}
+      {"unavailable" === policy.status && (
+        <p className={`font-medium ${isDark ? "text-red-400" : "text-red-700"}`}>
+          No privacy policy is published: {policy.reason ? REASON_LABELS[policy.reason] : "unknown reason"}. Clients show
+          that this instance has none.
+        </p>
+      )}
+      {policy.missing.length > 0 && (
+        <p className="mt-2">Missing: {policy.missing.map((path) => FIELD_LABELS[path] ?? path).join(", ")}.</p>
+      )}
+      <p className="mt-2 text-sm opacity-75">
+        Integrity: {INTEGRITY_LABELS[policy.integrity.status]}. The generated policy is only published while the code reads
+        verified. See Instance integrity for details.
+      </p>
+    </Section>
+  );
+};
+
+const RevisionsPanel = ({ revisions }: { revisions: PolicyRevision[] }) => {
+  const isDark = useIsDarkTheme();
+
+  return (
+    <Section title="Revisions">
+      {0 === revisions.length ? (
+        <p>None yet: the first revision is created when the generated policy is published.</p>
+      ) : (
+        <table className="w-full text-left text-sm">
+          <thead>
+            <tr>
+              <th className="py-1">Revision</th>
+              <th>Created</th>
+              <th>Why</th>
+              <th>FetchDock</th>
+              <th>Text version</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-    )}
-  </Section>
-);
+          </thead>
+          <tbody>
+            {revisions.map((revision) => (
+              <tr key={revision.number} className={`border-t ${isDark ? "border-white/10" : "border-gray-100"}`}>
+                <td className="py-1">
+                  <a className="underline" href={`/privacy?revision=${revision.number}`} target="_blank" rel="noreferrer">
+                    {revision.number}
+                  </a>
+                  {revision.current && " (current)"}
+                </td>
+                <td>{new Date(revision.createdAt).toLocaleString()}</td>
+                <td>{REVISION_REASON_LABELS[revision.reason] ?? revision.reason}</td>
+                <td>{revision.appVersion}</td>
+                <td>{revision.textVersion}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </Section>
+  );
+};
 
 const PreviewPanel = () => {
   const notify = useNotify();
+  const isDark = useIsDarkTheme();
   const [html, setHtml] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -130,11 +144,16 @@ const PreviewPanel = () => {
 
   return (
     <Section title="Preview">
-      <p className="mb-2 text-sm text-gray-600">The policy as rendered from the saved answers, also while it isn&apos;t published.</p>
+      <p className="mb-2 text-sm opacity-75">The policy as rendered from the saved answers, also while it isn&apos;t published.</p>
       <Button label={html ? "Refresh preview" : "Show preview"} onClick={load} disabled={busy} />
       {html && (
         // No scripts or same-origin access: the page is static HTML
-        <iframe title="Privacy policy preview" sandbox="" srcDoc={html} className="mt-3 h-[36rem] w-full rounded border border-gray-200" />
+        <iframe
+          title="Privacy policy preview"
+          sandbox=""
+          srcDoc={html}
+          className={`mt-3 h-[36rem] w-full rounded border ${isDark ? "border-white/15" : "border-gray-200"}`}
+        />
       )}
     </Section>
   );
@@ -146,6 +165,7 @@ const PreviewPanel = () => {
  */
 export const PrivacyPolicyPage = () => {
   const notify = useNotify();
+  const isDark = useIsDarkTheme();
   const [policy, setPolicy] = useState<AdminPrivacyPolicy | null>(null);
   const [revisions, setRevisions] = useState<PolicyRevision[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -182,7 +202,7 @@ export const PrivacyPolicyPage = () => {
   };
 
   if (error) {
-    return <p className="p-4 text-red-700">{error}</p>;
+    return <p className={`p-4 ${isDark ? "text-red-400" : "text-red-700"}`}>{error}</p>;
   }
   if (!policy) {
     return <Loading />;
@@ -193,7 +213,7 @@ export const PrivacyPolicyPage = () => {
       <Title title="Privacy policy" />
       <StatusPanel policy={policy} />
       <Section title="Answers">
-        <p className="mb-3 text-sm text-gray-600">
+        <p className="mb-3 text-sm opacity-75">
           FetchDock writes the policy from what the software stores and from the instance&apos;s configuration. These
           answers cover what only you know. You adopt the text as the operator; it is not legal advice.
         </p>
@@ -209,12 +229,18 @@ export const PrivacyPolicyPage = () => {
           <TextInput source="identityProvider.privacyPolicyUrl" label="Its privacy policy (URL)" validate={maxLength(2048)} fullWidth />
           <h3 className="mt-2 font-medium">Hosting</h3>
           <TextInput source="hosting.provider" label="Hosting provider" helperText='Or "self-hosted"' validate={maxLength(255)} fullWidth />
-          <TextInput source="hosting.country" label="Country" helperText="ISO 3166-1 alpha-2 code, e.g. NL" parse={upperCase} validate={maxLength(2)} />
+          <AutocompleteInput
+            source="hosting.country"
+            label="Country"
+            choices={COUNTRY_CHOICES}
+            helperText="Search by country name or ISO 3166-1 alpha-2 code"
+            fullWidth
+          />
           <ArrayInput source="processors" label="Other service providers (processors)" helperText="For example a backup service">
             <SimpleFormIterator inline disableReordering>
               <TextInput source="name" label="Name" validate={maxLength(255)} />
               <TextInput source="purpose" label="Purpose" validate={maxLength(500)} />
-              <TextInput source="country" label="Country" parse={upperCase} validate={maxLength(2)} />
+              <AutocompleteInput source="country" label="Country" choices={COUNTRY_CHOICES} sx={{ minWidth: 220 }} />
             </SimpleFormIterator>
           </ArrayInput>
           <h3 className="mt-2 font-medium">Retention</h3>
