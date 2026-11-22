@@ -12,7 +12,7 @@ import LoginPage from "../loginPage";
 import { Navigate } from "react-router-dom";
 import { useIntrospection } from "@api-platform/admin";
 import { useEffect, useMemo, useState } from "react";
-import { Resource } from "react-admin";
+import { Layout, LayoutProps, Resource } from "react-admin";
 import { AdminDownloadJobList, AdminDownloadJobShow } from "./downloads/AdminDownloadJobs";
 import { AdminDownloadedFileList, AdminDownloadedFileShow } from "./downloads/AdminDownloadedFiles";
 import { FILE_RESOURCE, JOB_RESOURCE } from "./downloads/common";
@@ -32,6 +32,10 @@ import {
   FailureReportShow,
   FailureReportSummaryList,
 } from "./reports/FailureReports";
+import { INSTANCE_INTEGRITY_RESOURCE, PRIVACY_POLICY_RESOURCE } from "./privacy/api";
+import { InstanceIntegrityPage } from "./privacy/InstanceIntegrityPage";
+import { PrivacyPolicyBanner } from "./privacy/PrivacyPolicyBanner";
+import { PrivacyPolicyPage } from "./privacy/PrivacyPolicyPage";
 
 const fetchHydra = (url: URL, options?: Record<string, any>) =>
   baseFetchHydra(url, {
@@ -197,11 +201,45 @@ const resources = (roles: Permissions) => [
           options={{ label: "Failure report summary" }}
           list={FailureReportSummaryList}
         />,
+        // Singletons (ADR 0013): only their list page is used, as a custom page
+        <Resource
+          key={PRIVACY_POLICY_RESOURCE}
+          name={PRIVACY_POLICY_RESOURCE}
+          options={{ label: "Privacy policy" }}
+          list={PrivacyPolicyPage}
+        />,
+        <Resource
+          key={INSTANCE_INTEGRITY_RESOURCE}
+          name={INSTANCE_INTEGRITY_RESOURCE}
+          options={{ label: "Instance integrity" }}
+          list={InstanceIntegrityPage}
+        />,
         <ResourceGuesser key="downloader_option_policies" name="downloader_option_policies" />,
         <ResourceGuesser key="oidc_subject_identifiers" name="oidc_subject_identifiers" />,
       ]
     : []),
 ];
+
+/** The admin layout, with the banner admins see while no privacy policy is published */
+const AdminLayout = ({ children }: LayoutProps) => {
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchRoles().then((roles) => !cancelled && setIsAdmin(hasRole(roles, ROLE_ADMIN)));
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  return (
+    <Layout>
+      <PrivacyPolicyBanner enabled={isAdmin} />
+      {children}
+    </Layout>
+  );
+};
 
 const App = () => {
   const [redirectToLogin, setRedirectToLogin] = useState(false);
@@ -227,6 +265,7 @@ const App = () => {
     authProvider={authProvider}
     dataProvider={provider}
     loginPage={LoginPage}
+    layout={AdminLayout}
     entrypoint={window.origin}
     title="API Platform admin"
   >

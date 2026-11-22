@@ -80,11 +80,25 @@ jobs:
             pwa.cache-from=type=gha,scope=pwa-staging
             pwa.cache-to=type=gha,scope=pwa-staging,mode=max
             api.args.APP_VERSION=${{ steps.version.outputs.version }}
+            api.args.GIT_SHA=${{ steps.version.outputs.sha }}
             pwa.args.APP_VERSION=${{ steps.version.outputs.version }}
+
+  # Publishes the image's integrity manifest digest (ADR 0013), so staging can read "verified"
+  integrity-digest:
+    name: Integrity digest
+    needs: publish
+    permissions:
+      contents: write
+      packages: read
+    uses: ./.github/workflows/integrity-digest.yml
+    with:
+      image-tag: ${{ needs.publish.outputs.tag }}
+      version: ${{ needs.publish.outputs.version }}
 
   deploy:
     name: Staging
-    needs: publish
+    # After the digest upload, so the new containers read "verified" on their first check
+    needs: [publish, integrity-digest]
     uses: ./.github/workflows/deploy.yml
     with:
       environment: staging

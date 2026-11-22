@@ -1,0 +1,27 @@
+{# Pages around the generated privacy policy (PrivacyPolicyController). Not part of the policy text. #}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Privacy policy{% endblock %}</title>
+    <style>
+        :root { color-scheme: light dark; --fg: #1d1d1f; --bg: #fff; --muted: #5c5c66; --note: #fff6d6; --border: #e3e3e8; }
+        @media (prefers-color-scheme: dark) { :root { --fg: #ececf1; --bg: #16161a; --muted: #a3a3ad; --note: #3a3320; --border: #2e2e35; } }
+        body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif; }
+        main { max-width: 46rem; margin: 0 auto; padding: 2rem 1rem 4rem; }
+        h1 { font-size: 1.8rem; line-height: 1.25; }
+        h2 { margin-top: 2.2rem; font-size: 1.3rem; border-bottom: 1px solid var(--border); padding-bottom: .3rem; }
+        h3 { font-size: 1.05rem; }
+        a { color: inherit; }
+        li { margin: .4rem 0; }
+        .note { background: var(--note); border: 1px solid var(--border); border-radius: .5rem; padding: .75rem 1rem; }
+        footer { margin-top: 3rem; color: var(--muted); font-size: .875rem; }
+    </style>
+</head>
+<body>
+<main>
+{% block body %}{% endblock %}
+</main>
+</body>
+</html>

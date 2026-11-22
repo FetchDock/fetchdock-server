@@ -2,6 +2,8 @@
 
 namespace App\Controller;
 
+use App\Service\Integrity\IntegrityStatusResolver;
+use App\Service\Privacy\PrivacyPolicyPublisher;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\Response;
@@ -22,10 +24,10 @@ final class WellKnownController extends AbstractController
         private string $clientId,
         #[Autowire('%app.version%')]
         private string $appVersion,
+        private PrivacyPolicyPublisher $privacyPolicyPublisher,
+        private IntegrityStatusResolver $integrityStatusResolver,
         #[Autowire('%app.failure_reports.enabled%')]
         private bool $failureReportsEnabled = true,
-        #[Autowire('%app.privacy_policy_url%')]
-        private string $privacyPolicyUrl = '',
     ) {
     }
 
@@ -79,8 +81,14 @@ final class WellKnownController extends AbstractController
                         'upstreamForwarding' => null,
                     ],
                 ],
-                // The instance's privacy policy, null if the operator published none
-                'privacyPolicyUrl' => '' === $this->privacyPolicyUrl ? null : $this->privacyPolicyUrl,
+                // The instance's privacy policy (ADR 0013): the operator's own (PRIVACY_POLICY_URL), else the generated
+                // /privacy while it is published, else null
+                'privacyPolicyUrl' => $this->privacyPolicyPublisher->url(),
+                // Whether the instance runs unmodified FetchDock code: a signal that catches honest drift, not proof
+                'integrity' => [
+                    'status' => $this->integrityStatusResolver->effectiveStatus()->value,
+                    'appVersion' => $this->appVersion,
+                ],
                 'version' => $this->appVersion,
             ]
         );
