@@ -1,12 +1,10 @@
 name: Integrity digest
 
 # Publishes the integrity manifest digest of a pushed api image (ADR 0013, server#121). Instances fetch
-# releases/download/integrity-digests/<APP_VERSION>.sha256 and compare it with their own manifest, so every official
-# build (release, staging -dev, preview -dev) uploads one to the rolling "integrity-digests" pre-release. Release
-# builds also attach integrity-manifest.sha256 to their own release. -dev digests older than 90 days are pruned.
-#
-# The "integrity-digests" pre-release is created on first use. It is not a version: publish.yml ignores it, and a
-# release created with GITHUB_TOKEN doesn't trigger workflows anyway.
+# https://raw.githubusercontent.com/FetchDock/fetchdock-server/integrity-data/<APP_VERSION>.sha256 and compare it
+# with their own manifest. Every official build (release, staging -dev, preview -dev) commits its digest to the
+# orphan "integrity-data" branch (which works with GitHub Immutable Releases enabled). -dev digests older than
+# 90 days are pruned.
 on:
   workflow_call:
     inputs:
@@ -18,20 +16,19 @@ on:
         description: APP_VERSION the image was built with
         type: string
         required: true
-      release-tag:
-        description: Release to attach integrity-manifest.sha256 to (release builds only)
-        type: string
-        default: ''
 
 env:
   REGISTRY: ghcr.io
-  DIGESTS_TAG: integrity-digests
+  DIGESTS_BRANCH: integrity-data
   DEV_RETENTION_DAYS: 90
 
 jobs:
   digest:
     name: Publish integrity digest
     runs-on: ubuntu-latest
+    concurrency:
+      group: integrity-data
+      cancel-in-progress: false
     permissions:
       contents: write
       packages: read
@@ -59,42 +56,68 @@ jobs:
           fi
           digest=$(sha256sum digest/integrity-manifest.json | cut -d' ' -f1)
           printf '%s  integrity-manifest.json\n' "$digest" > "digest/${VERSION}.sha256"
-          cp "digest/${VERSION}.sha256" digest/integrity-manifest.sha256
           echo "digest=$digest" >> "$GITHUB_OUTPUT"
           {
             echo "### Integrity digest ($VERSION)"
             echo "\`$digest\` ($(jq '.files | length' digest/integrity-manifest.json) files, \`$image\`)"
           } >> "$GITHUB_STEP_SUMMARY"
-      - name: Upload to the integrity-digests pre-release
+      - name: Publish to the integrity-data branch
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERSION: ${{ inputs.version }}
         run: |
           set -euo pipefail
-          if ! gh release view "$DIGESTS_TAG" -R "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
-            # Parallel builds may race to create it
-            gh release create "$DIGESTS_TAG" -R "$GITHUB_REPOSITORY" --prerelease --latest=false \
-              --title "Integrity digests" \
-              --notes "Manifest digests of every official api image (ADR 0013). Instances compare their integrity manifest with <version>.sha256. Not a release; -dev digests are removed after ${DEV_RETENTION_DAYS} days." \
-              || gh release view "$DIGESTS_TAG" -R "$GITHUB_REPOSITORY" > /dev/null
-          fi
-          gh release upload "$DIGESTS_TAG" "digest/${VERSION}.sha256" -R "$GITHUB_REPOSITORY" --clobber
-      - name: Attach to the release
-        if: ${{ inputs.release-tag != '' }}
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RELEASE_TAG: ${{ inputs.release-tag }}
-        run: gh release upload "$RELEASE_TAG" digest/integrity-manifest.sha256 -R "$GITHUB_REPOSITORY" --clobber
-      - name: Prune old -dev digests
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          set -euo pipefail
-          cutoff=$(date -u -d "${DEV_RETENTION_DAYS} days ago" +%Y-%m-%dT%H:%M:%SZ)
-          release_id=$(gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${DIGESTS_TAG}" --jq '.id')
-          gh api --paginate "repos/${GITHUB_REPOSITORY}/releases/${release_id}/assets?per_page=100" \
-            --jq ".[] | select(.name | test(\"-dev\\\\.\")) | select(.created_at < \"${cutoff}\") | \"\(.id) \(.name)\"" \
-            | while read -r id name; do
-                echo "Deleting $name"
-                gh api -X DELETE "repos/${GITHUB_REPOSITORY}/releases/assets/${id}"
+          cutoff=$(date -u -d "${DEV_RETENTION_DAYS} days ago" +%s)
+          remote="https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+
+          for attempt in 1 2 3 4 5; do
+            rm -rf digests-repo
+            git init -q digests-repo
+            (
+              cd digests-repo
+              git config user.name "github-actions[bot]"
+              git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+              git remote add origin "$remote"
+
+              if git fetch -q origin "$DIGESTS_BRANCH" 2>/dev/null; then
+                git checkout -q -B "$DIGESTS_BRANCH" FETCH_HEAD
+              else
+                git checkout -q --orphan "$DIGESTS_BRANCH"
+                printf '%s\n' \
+                  '# FetchDock integrity digests' \
+                  '' \
+                  'Manifest digests of official `fetchdock-server-api` images (ADR 0013).' \
+                  'Instances compare their baked `integrity-manifest.json` digest with `<version>.sha256`.' \
+                  "\`-dev\` digests older than ${DEV_RETENTION_DAYS} days are pruned automatically." \
+                  > README.md
+                git add README.md
+              fi
+
+              cp "../digest/${VERSION}.sha256" "${VERSION}.sha256"
+              git add "${VERSION}.sha256"
+
+              shopt -s nullglob
+              for file in *-dev.*.sha256; do
+                [ "$file" = "${VERSION}.sha256" ] && continue
+                ts=$(git log -1 --format=%ct -- "$file" 2>/dev/null || true)
+                if [ -n "$ts" ] && [ "$ts" -lt "$cutoff" ]; then
+                  echo "Pruning expired digest $file"
+                  git rm -q "$file"
+                fi
               done
+
+              if git diff --cached --quiet; then
+                echo "Digest for ${VERSION} is already up to date."
+                exit 0
+              fi
+
+              git commit -q -m "Publish integrity digest for ${VERSION}"
+              git push -q origin "$DIGESTS_BRANCH"
+            ) && exit 0
+
+            echo "Push attempt ${attempt} failed; retrying..."
+            sleep 2
+          done
+
+          echo "::error title=Failed to publish integrity digest::Could not push to ${DIGESTS_BRANCH} after 5 attempts"
+          exit 1
