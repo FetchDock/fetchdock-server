@@ -43,6 +43,7 @@ final class PrivacyPolicyTest extends ApiTestCase
         $this->assertSame('integrity_unknown', $data['reason']);
         $this->assertNull($data['url']);
         $this->assertNull($data['revision']);
+        $this->assertFalse($data['outdated']);
 
         $this->recordCheck(IntegrityStatus::VERIFIED, 'api-1');
         $this->recordCheck(IntegrityStatus::MODIFIED, 'worker-1', IntegrityRole::WORKER, ['src/Kernel.php']);
@@ -73,10 +74,26 @@ final class PrivacyPolicyTest extends ApiTestCase
         $this->assertStringContainsString('has not completed the information', $response->getContent(false));
     }
 
-    public function testPublishesTheGeneratedPolicyWhileVerifiedAndComplete(): void
+    public function testPublishesTheGeneratedPolicyOnlyAfterExplicitApproval(): void
     {
         $this->recordCheck(IntegrityStatus::VERIFIED, 'api-1');
         $this->saveAnswers(PrivacyPolicyAnswersTest::complete());
+
+        // Saving complete answers alone does not publish automatically
+        $before = $this->client->request('GET', '/privacy_policy')->toArray();
+        $this->assertResponseIsSuccessful();
+        $this->assertSame('unavailable', $before['status']);
+        $this->assertSame('not_published', $before['reason']);
+        $this->assertNull($before['url']);
+        $this->assertNull($before['revision']);
+        $this->assertFalse($before['outdated']);
+
+        $notPublishedHtml = $this->client->request('GET', '/privacy', ['headers' => ['Accept' => 'text/html']]);
+        $this->assertResponseStatusCodeSame(404);
+        $this->assertStringContainsString('has not reviewed and published', $notPublishedHtml->getContent(false));
+
+        // Explicit admin publish makes it live
+        $this->publish();
 
         $data = $this->client->request('GET', '/privacy_policy')->toArray();
         $this->assertResponseIsSuccessful();
@@ -86,10 +103,11 @@ final class PrivacyPolicyTest extends ApiTestCase
         $this->assertSame(1, $data['revision']);
         $this->assertMatchesRegularExpression('/^\d+\.\d+$/', $data['textVersion']);
         $this->assertNotNull($data['updatedAt']);
+        $this->assertFalse($data['outdated']);
         $this->assertSame('verified', $data['integrity']['status']);
         $this->assertNotNull($data['integrity']['checkedAt']);
         // Clients learn the policy and the integrity status, nothing about the containers or the answers
-        $this->assertSame(['status', 'reason', 'url', 'revision', 'textVersion', 'appVersion', 'updatedAt', 'integrity'], array_values(array_diff(array_keys($data), ['@context', '@id', '@type'])));
+        $this->assertSame(['status', 'reason', 'url', 'revision', 'textVersion', 'appVersion', 'updatedAt', 'outdated', 'integrity'], array_values(array_diff(array_keys($data), ['@context', '@id', '@type'])));
         $this->assertSame(['status', 'manifestDigest', 'gitSha', 'checkedAt'], array_values(array_diff(array_keys($data['integrity']), ['@type', '@id'])));
 
         $response = $this->client->request('GET', '/privacy', ['headers' => ['Accept' => 'text/html']]);
@@ -101,6 +119,7 @@ final class PrivacyPolicyTest extends ApiTestCase
         $this->assertStringContainsString('<h1>Privacy policy of Family downloads</h1>', $html);
         $this->assertStringContainsString('Revision 1 of', $html);
         $this->assertStringNotContainsString('an earlier version', $html);
+        $this->assertStringNotContainsString('Update pending review', $html);
         // The page forbids scripts, so Cloudflare Email Address Obfuscation must not rewrite contact/DPO addresses
         $this->assertMatchesRegularExpression('/<!--email_off-->.*privacy@example\.org.*<!--\/email_off-->/s', $html);
 
@@ -109,12 +128,60 @@ final class PrivacyPolicyTest extends ApiTestCase
         $this->assertSame('verified', $wellKnown['integrity']['status']);
     }
 
+    public function testKeepsServingApprovedRevisionWithNoticeUntilOperatorApprovesUpdate(): void
+    {
+        $this->recordCheck(IntegrityStatus::VERIFIED, 'api-1');
+        $this->saveAnswers(PrivacyPolicyAnswersTest::complete());
+        $this->publish();
+
+        // Simulate an app/policy-text upgrade (revision 1 was approved on 0.3) and a runtime config change
+        $connection = static::getContainer()->get(EntityManagerInterface::class)->getConnection();
+        $connection->executeStatement("UPDATE privacy_policy_revision SET text_version = '0.3' WHERE number = 1");
+        $connection->executeStatement('UPDATE privacy_policy_settings SET view_all_role_seen_at = NOW()');
+        static::getContainer()->get(EntityManagerInterface::class)->clear();
+
+        // Public endpoints do NOT auto-publish a new revision; they serve revision 1 with a calm pending-review notice
+        $publicStatus = $this->client->request('GET', '/privacy_policy')->toArray();
+        $this->assertSame('generated', $publicStatus['status']);
+        $this->assertSame(1, $publicStatus['revision']);
+        $this->assertSame('0.3', $publicStatus['textVersion']);
+        $this->assertTrue($publicStatus['outdated']);
+
+        $html = $this->client->request('GET', '/privacy', ['headers' => ['Accept' => 'text/html']])->getContent();
+        $this->assertStringContainsString('<h1>Privacy policy of Family downloads</h1>', $html);
+        $this->assertStringContainsString('Revision 1 of', $html);
+        $this->assertStringContainsString('Update pending review:', $html);
+
+        // Admin API exposes the pending reasons and the policy-version.yaml changelog entries
+        $admin = $this->client->request('GET', '/admin/privacy_policy', ['headers' => $this->auth('admin')])->toArray();
+        $this->assertSame('generated', $admin['status']);
+        $this->assertSame(1, $admin['revision']);
+        $this->assertTrue($admin['outdated']);
+        $this->assertTrue($admin['pendingPublish']);
+        $this->assertSame('0.3', $admin['publishedTextVersion']);
+        $this->assertSame(['policy_text', 'configuration'], $admin['pendingReasons']);
+        $this->assertNotEmpty($admin['pendingTextChanges']);
+
+        // Explicitly publishing resolves the pending update and clears the notice
+        $published = $this->publish();
+        $this->assertSame(2, $published['revision']);
+        $this->assertFalse($published['outdated']);
+        $this->assertFalse($published['pendingPublish']);
+        $this->assertSame([], $published['pendingReasons']);
+        $this->assertSame([], $published['pendingTextChanges']);
+
+        $afterHtml = $this->client->request('GET', '/privacy', ['headers' => ['Accept' => 'text/html']])->getContent();
+        $this->assertStringContainsString('Revision 2 of', $afterHtml);
+        $this->assertStringNotContainsString('Update pending review:', $afterHtml);
+    }
+
     public function testEarlierRevisionsStayReadable(): void
     {
         $this->recordCheck(IntegrityStatus::VERIFIED, 'api-1');
         $this->saveAnswers(PrivacyPolicyAnswersTest::complete());
-        $this->client->request('GET', '/privacy');
+        $this->publish();
         $this->saveAnswers(['instanceName' => 'Our downloads'] + PrivacyPolicyAnswersTest::complete());
+        $this->publish();
 
         $current = $this->client->request('GET', '/privacy')->getContent();
         $this->assertStringContainsString('<h1>Privacy policy of Our downloads</h1>', $current);
@@ -136,13 +203,15 @@ final class PrivacyPolicyTest extends ApiTestCase
         $this->assertStringContainsString('The instance publishes no current policy.', $first);
     }
 
-    public function testAdminsManageTheAnswers(): void
+    public function testAdminsManageTheAnswersAndExplicitlyPublish(): void
     {
         $this->recordCheck(IntegrityStatus::VERIFIED, 'api-1');
 
         $this->client->request('GET', '/admin/privacy_policy', ['headers' => $this->auth('user')]);
         $this->assertResponseStatusCodeSame(403);
         $this->client->request('PUT', '/admin/privacy_policy', ['headers' => $this->auth('viewer'), 'json' => []]);
+        $this->assertResponseStatusCodeSame(403);
+        $this->client->request('POST', '/admin/privacy_policy/publish', ['headers' => $this->auth('viewer'), 'json' => []]);
         $this->assertResponseStatusCodeSame(403);
 
         $data = $this->client->request('GET', '/admin/privacy_policy', ['headers' => $this->auth('admin')])->toArray();
@@ -151,7 +220,7 @@ final class PrivacyPolicyTest extends ApiTestCase
         $this->assertSame('incomplete', $data['reason']);
         $this->assertSame(['name' => null, 'address' => null, 'contactEmail' => null, 'dpoContact' => null], $this->withoutJsonLd($data['operator']));
 
-        // Incomplete answers can be saved
+        // Incomplete answers can be saved, and cannot be published yet
         $data = $this->put(['instanceName' => 'Family downloads', 'operator' => ['name' => 'Alex Example']]);
         $this->assertResponseIsSuccessful();
         $this->assertSame('Family downloads', $data['instanceName']);
@@ -159,6 +228,10 @@ final class PrivacyPolicyTest extends ApiTestCase
         $this->assertContains('operator.contactEmail', $data['missing']);
         $this->assertNull($data['revision']);
 
+        $this->client->request('POST', '/admin/privacy_policy/publish', ['headers' => $this->auth('admin') + ['Content-Type' => 'application/ld+json'], 'json' => []]);
+        $this->assertResponseStatusCodeSame(422);
+
+        // Saving complete answers does not publish until POST /admin/privacy_policy/publish
         $answers = [
             'processors' => [['name' => 'Backup Co', 'purpose' => 'Off-site backups', 'country' => 'DE']],
             'additionalText' => 'We also **care**.',
@@ -166,18 +239,43 @@ final class PrivacyPolicyTest extends ApiTestCase
         $data = $this->put($answers);
         $this->assertResponseIsSuccessful();
         $this->assertSame([], $data['missing']);
-        $this->assertSame('generated', $data['status']);
-        $this->assertSame(1, $data['revision']);
-        $this->assertSame('DE', $data['processors'][0]['country']);
-        $this->assertSame('verified', $data['integrity']['status']);
+        $this->assertSame('unavailable', $data['status']);
+        $this->assertSame('not_published', $data['reason']);
+        $this->assertNull($data['revision']);
+        $this->assertTrue($data['pendingPublish']);
+        $this->assertSame(['initial'], $data['pendingReasons']);
 
-        $this->assertSame(1, $this->put($answers)['revision'], 'saving the same answers creates no revision');
-        $this->assertSame(2, $this->put(['instanceName' => 'Our downloads'] + $answers)['revision']);
+        $published = $this->publish();
+        $this->assertSame('generated', $published['status']);
+        $this->assertSame(1, $published['revision']);
+        $this->assertSame('DE', $published['processors'][0]['country']);
+        $this->assertSame('verified', $published['integrity']['status']);
+        $this->assertFalse($published['pendingPublish']);
+
+        // Publishing again with no changes is idempotent
+        $this->assertSame(1, $this->publish()['revision'], 'publishing the same answers creates no revision');
+
+        // Editing answers saves a draft without altering the published revision until published
+        $draft = $this->put(['instanceName' => 'Our downloads'] + $answers);
+        $this->assertSame(1, $draft['revision']);
+        $this->assertTrue($draft['pendingPublish']);
+        $this->assertFalse($draft['outdated']);
+        $this->assertSame(['answers'], $draft['pendingReasons']);
+        $this->assertStringContainsString('<h1>Privacy policy of Family downloads</h1>', $this->client->request('GET', '/privacy')->getContent());
+
+        $this->assertSame(2, $this->publish()['revision']);
+        $this->assertStringContainsString('<h1>Privacy policy of Our downloads</h1>', $this->client->request('GET', '/privacy')->getContent());
 
         // PUT replaces: omitted answers are cleared
         $data = $this->put(['instanceName' => 'Our downloads']);
         $this->assertSame([], $data['processors']);
         $this->assertSame('incomplete', $data['reason']);
+
+        // Publishing fails when integrity is not verified
+        $this->saveAnswers($answers);
+        $this->recordCheck(IntegrityStatus::MODIFIED, 'api-2');
+        $this->client->request('POST', '/admin/privacy_policy/publish', ['headers' => $this->auth('admin') + ['Content-Type' => 'application/ld+json'], 'json' => []]);
+        $this->assertResponseStatusCodeSame(409);
     }
 
     public function testInvalidAnswersAreRejected(): void
@@ -204,8 +302,10 @@ final class PrivacyPolicyTest extends ApiTestCase
     {
         $this->recordCheck(IntegrityStatus::VERIFIED, 'api-1');
         $answers = PrivacyPolicyAnswersTest::complete();
-        $this->put($answers);
-        $this->put(['instanceName' => 'Our downloads'] + $answers);
+        $this->saveAnswers($answers);
+        $this->publish();
+        $this->saveAnswers(['instanceName' => 'Our downloads'] + $answers);
+        $this->publish();
 
         $revisions = $this->client->request('GET', '/admin/privacy_policy/revisions', ['headers' => $this->auth('admin')])->toArray()['member'];
         $this->assertSame([2, 1], array_column($revisions, 'number'));
@@ -270,6 +370,20 @@ final class PrivacyPolicyTest extends ApiTestCase
             'headers' => $this->auth('admin') + ['Content-Type' => 'application/ld+json'],
             'json' => $answers,
         ])->toArray(false);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function publish(): array
+    {
+        $data = $this->client->request('POST', '/admin/privacy_policy/publish', [
+            'headers' => $this->auth('admin') + ['Content-Type' => 'application/ld+json'],
+            'json' => [],
+        ])->toArray(false);
+        $this->assertResponseIsSuccessful();
+
+        return $data;
     }
 
     /**

@@ -14,4 +14,6 @@ enum PrivacyPolicyUnavailableReason: string
     case INTEGRITY_UNKNOWN = 'integrity_unknown';
     /** The operator hasn't answered every required question */
     case INCOMPLETE = 'incomplete';
+    /** Required answers are complete, but an administrator hasn't reviewed and published the first revision yet */
+    case NOT_PUBLISHED = 'not_published';
 }

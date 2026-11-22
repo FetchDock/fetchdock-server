@@ -57,7 +57,8 @@ final readonly class PolicyReleaseNotes
             $lines[] = 'This is a major change: what the server does with personal data changed.';
             $lines[] = '';
         }
-        $lines[] = 'If the instance publishes the generated policy, review your answers under *Admin → Privacy policy*: the server publishes a new revision after the upgrade. '
+        $lines[] = 'If the instance publishes the generated policy, review the changes and your answers under *Admin → Privacy policy*, then explicitly approve and publish a new revision. '
+            .'Until you publish, `/privacy` keeps serving your last approved revision with a pending-review notice. '
             .'If you link your own policy through `PRIVACY_POLICY_URL`, check that it still matches.';
 
         return implode("\n", $lines)."\n";

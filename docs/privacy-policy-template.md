@@ -6,14 +6,16 @@ FetchDock can generate and publish your instance's privacy policy automatically 
 
 1. Leave `PRIVACY_POLICY_URL` unset.
 2. Open the admin web app and go to **Privacy policy**.
-3. Fill in the required operator details (instance name, operator name and contact email, identity provider, hosting provider and country, log retention, legal basis) and save.
+3. Fill in the required operator details (instance name, operator name and contact email, identity provider, hosting provider and country, log retention, legal basis), save, review the preview, and click **Approve & publish**.
 
 The server renders the policy from:
 - a CI-verified data inventory of everything FetchDock stores and sends (`api/privacy/data-inventory.yaml`),
 - your instance's runtime configuration (failure reports, upstream forwarding, site defaults, `ROLE_VIEW_ALL_DOWNLOADS`), and
 - the answers you entered in the admin app.
 
-Once the required answers are saved and the instance's code integrity check reads **verified** (official unmodified image with `INTEGRITY_CHECK_ONLINE=1`), the policy is published automatically at `/privacy` and linked by the browser extension and admin footer. Every change to your answers, FetchDock's version/policy text or relevant configuration creates a new numbered revision; earlier revisions stay readable at `/privacy?revision=N`.
+Once you approve and publish a revision and the instance's code integrity check reads **verified** (official unmodified image with `INTEGRITY_CHECK_ONLINE=1`), the policy is published at `/privacy` and linked by the browser extension and admin footer. Earlier revisions stay readable at `/privacy?revision=N`.
+
+FetchDock **never** modifies or replaces a published privacy policy automatically. Whenever FetchDock's policy text, data inventory, or instance configuration changes, `/privacy` continues serving your last approved revision with a calm pending-review notice while the admin app shows a prominent warning until you review the changes and publish a new revision.
 
 ### What the generated policy covers
 

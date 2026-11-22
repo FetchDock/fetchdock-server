@@ -36,14 +36,17 @@ trait PolicyServicesTrait
         return new PolicyRenderer(self::getContainer()->get(Environment::class));
     }
 
-    private function revisions(?PolicyInputsBuilder $inputsBuilder = null): PrivacyPolicyRevisions
+    private function revisions(?PolicyInputsBuilder $inputsBuilder = null, ?PolicyTextVersion $textVersion = null): PrivacyPolicyRevisions
     {
+        $projectDir = self::getContainer()->getParameter('kernel.project_dir');
+
         return new PrivacyPolicyRevisions(
             self::getContainer()->get(EntityManagerInterface::class),
             self::getContainer()->get(PrivacyPolicySettingsRepository::class),
             self::getContainer()->get(PrivacyPolicyRevisionRepository::class),
             $inputsBuilder ?? $this->inputsBuilder(),
             $this->renderer(),
+            $textVersion ?? new PolicyTextVersion($projectDir),
         );
     }
 }

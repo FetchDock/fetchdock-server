@@ -11,12 +11,11 @@ use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\EntityManagerInterface;
 
 /**
- * Revisions of the generated privacy policy (ADR 0013). A new revision is created when the inputs differ from the
- * latest revision: the operator saved different answers, the app version or policy text changed, or the runtime
- * configuration changed the text. Saving the same answers again creates none. Old revisions are kept.
+ * Revisions of the generated privacy policy (ADR 0013).
  *
- * Whether the generated policy may be published (integrity verified, PRIVACY_POLICY_URL not set) is up to the
- * caller; sync() only refuses incomplete answers.
+ * A new revision is ONLY created when an administrator explicitly approves and publishes it (publish()). Passive reads
+ * never create or modify revisions; pendingUpdate() reports when the running policy text, runtime configuration or
+ * saved answers differ from the last approved revision. Old revisions are kept unchanged.
  */
 class PrivacyPolicyRevisions
 {
@@ -26,14 +25,34 @@ class PrivacyPolicyRevisions
         private readonly PrivacyPolicyRevisionRepository $revisionRepository,
         private readonly PolicyInputsBuilder $inputsBuilder,
         private readonly PolicyRenderer $renderer,
+        private readonly PolicyTextVersion $textVersion,
     ) {
     }
 
     /**
-     * The revision for the current inputs, created if they changed since the latest one. Null while the operator's
-     * answers are incomplete.
+     * The latest operator-approved revision, or null if none has been published yet. Read-only.
      */
-    public function sync(\DateTimeImmutable $now = new \DateTimeImmutable()): ?PrivacyPolicyRevision
+    public function latest(): ?PrivacyPolicyRevision
+    {
+        return $this->revisionRepository->findLatest();
+    }
+
+    /**
+     * Compares the latest operator-approved revision against the current inputs without writing anything.
+     */
+    public function pendingUpdate(?\DateTimeImmutable $now = null): PendingPolicyUpdate
+    {
+        $settings = $this->settingsRepository->get();
+        $inputs = $this->inputsBuilder->build($settings, now: $now ?? new \DateTimeImmutable());
+
+        return $this->diff($this->revisionRepository->findLatest(), $inputs);
+    }
+
+    /**
+     * Explicitly approves and publishes the current inputs as the next revision. Idempotent when nothing changed
+     * since the latest revision. Returns null when required answers are incomplete.
+     */
+    public function publish(\DateTimeImmutable $now = new \DateTimeImmutable()): ?PrivacyPolicyRevision
     {
         $settings = $this->settingsRepository->get();
         $inputs = $this->inputsBuilder->build($settings, now: $now);
@@ -41,17 +60,21 @@ class PrivacyPolicyRevisions
             return null;
         }
         $latest = $this->revisionRepository->findLatest();
-        if (null !== $latest && $latest->getInputsHash() === $inputs->hash()) {
+        if (null !== $latest && !$this->diff($latest, $inputs)->hasChanges()) {
             return $latest;
         }
 
-        // Concurrent requests wait on the settings row, then find the revision the first one created
-        return $this->entityManager->wrapInTransaction(function () use ($now): PrivacyPolicyRevision {
+        // Concurrent publish requests wait on the settings row, then find the revision the first one created
+        return $this->entityManager->wrapInTransaction(function () use ($now): ?PrivacyPolicyRevision {
             $settings = $this->settingsRepository->get(LockMode::PESSIMISTIC_WRITE);
             $this->entityManager->refresh($settings);
             $inputs = $this->inputsBuilder->build($settings, now: $now);
+            if (!$inputs->answers->isComplete()) {
+                return null;
+            }
             $latest = $this->revisionRepository->findLatest();
-            if (null !== $latest && $latest->getInputsHash() === $inputs->hash()) {
+            $pending = $this->diff($latest, $inputs);
+            if (null !== $latest && !$pending->hasChanges()) {
                 return $latest;
             }
 
@@ -59,7 +82,7 @@ class PrivacyPolicyRevisions
             $rendered = $this->renderer->render($inputs, $number);
             $revision = new PrivacyPolicyRevision(
                 number: $number,
-                reason: self::reason($latest, $inputs),
+                reason: self::reason($pending),
                 textVersion: $inputs->textVersion,
                 appVersion: $inputs->appVersion,
                 inputsHash: $inputs->hash(),
@@ -86,14 +109,45 @@ class PrivacyPolicyRevisions
         return $this->renderer->render($this->inputsBuilder->build($this->settingsRepository->get(), $answers, $now), null);
     }
 
-    private static function reason(?PrivacyPolicyRevision $latest, PolicyInputs $inputs): PrivacyPolicyRevisionReason
+    private function diff(?PrivacyPolicyRevision $latest, PolicyInputs $inputs): PendingPolicyUpdate
+    {
+        if (null === $latest) {
+            return new PendingPolicyUpdate(
+                initial: true,
+                policyTextChanged: false,
+                configurationChanged: false,
+                answersChanged: false,
+                publishedTextVersion: null,
+                currentTextVersion: $inputs->textVersion,
+                textChanges: [],
+            );
+        }
+
+        $answersChanged = $latest->getAnswersHash() !== $inputs->answersHash();
+        $configurationChanged = $latest->getConfigurationHash() !== $inputs->configurationHash();
+        $publishedTextDigest = $this->textVersion->digestFor($latest->getTextVersion());
+        $policyTextChanged = $latest->getTextVersion() !== $inputs->textVersion
+            || null === $publishedTextDigest
+            || $publishedTextDigest !== $inputs->textDigest;
+
+        return new PendingPolicyUpdate(
+            initial: false,
+            policyTextChanged: $policyTextChanged,
+            configurationChanged: $configurationChanged,
+            answersChanged: $answersChanged,
+            publishedTextVersion: $latest->getTextVersion(),
+            currentTextVersion: $inputs->textVersion,
+            textChanges: $policyTextChanged ? $this->textVersion->changesSince($latest->getTextVersion()) : [],
+        );
+    }
+
+    private static function reason(PendingPolicyUpdate $pending): PrivacyPolicyRevisionReason
     {
         return match (true) {
-            null === $latest => PrivacyPolicyRevisionReason::INITIAL,
-            $latest->getAnswersHash() !== $inputs->answersHash() => PrivacyPolicyRevisionReason::ANSWERS,
-            $latest->getConfigurationHash() !== $inputs->configurationHash() => PrivacyPolicyRevisionReason::CONFIGURATION,
-            // The app version, or the policy text within the same version (development builds)
-            default => PrivacyPolicyRevisionReason::APP_VERSION,
+            $pending->initial => PrivacyPolicyRevisionReason::INITIAL,
+            $pending->policyTextChanged => PrivacyPolicyRevisionReason::APP_VERSION,
+            $pending->configurationChanged => PrivacyPolicyRevisionReason::CONFIGURATION,
+            default => PrivacyPolicyRevisionReason::ANSWERS,
         };
     }
 }

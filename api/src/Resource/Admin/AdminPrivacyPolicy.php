@@ -4,6 +4,7 @@ namespace App\Resource\Admin;
 
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
 use App\Dto\PrivacyPolicy\PrivacyPolicyHosting;
 use App\Dto\PrivacyPolicy\PrivacyPolicyIdentityProvider;
@@ -16,6 +17,7 @@ use App\Model\IntegritySummary;
 use App\Model\PrivacyPolicyAnswers;
 use App\State\Admin\AdminPrivacyPolicyProcessor;
 use App\State\Admin\AdminPrivacyPolicyProvider;
+use App\State\Admin\AdminPrivacyPolicyPublishProcessor;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -27,12 +29,20 @@ use Symfony\Component\Validator\Constraints as Assert;
     operations: [
         new Get(
             uriTemplate: '/admin/privacy_policy',
-            description: 'The answers, what is still missing, and whether the generated policy is published. The rendered text: GET /admin/privacy_policy/preview (HTML).',
+            description: 'The answers, what is still missing, whether the generated policy is published, and whether a review/publish is pending. The rendered text: GET /admin/privacy_policy/preview (HTML).',
         ),
         new Put(
             uriTemplate: '/admin/privacy_policy',
-            description: 'Replaces the answers. Incomplete answers can be saved; the policy stays unavailable until the required ones (see missing) are set. While the generated policy is published, a change creates a new revision.',
+            description: 'Replaces the saved answers without changing the published policy. Incomplete answers can be saved. Call POST /admin/privacy_policy/publish after reviewing the preview to publish a new revision.',
             extraProperties: ['standard_put' => true],
+        ),
+        new Post(
+            uriTemplate: '/admin/privacy_policy/publish',
+            description: 'Explicitly approves and publishes the current generated privacy policy as a new revision. Only works while PRIVACY_POLICY_URL is unset, integrity reads verified, and required answers are complete.',
+            read: false,
+            deserialize: false,
+            validate: false,
+            processor: AdminPrivacyPolicyPublishProcessor::class,
         ),
     ],
     normalizationContext: ['groups' => ['privacy_policy:read'], 'skip_null_values' => false],
@@ -108,6 +118,38 @@ final class AdminPrivacyPolicy
     /** The published revision of the generated policy (read-only) */
     #[Groups(['privacy_policy:read'])]
     public ?int $revision = null;
+
+    /** Policy text version of the last published revision (read-only) */
+    #[Groups(['privacy_policy:read'])]
+    public ?string $publishedTextVersion = null;
+
+    /** Policy text version bundled with this FetchDock build (read-only) */
+    #[Groups(['privacy_policy:read'])]
+    public string $currentTextVersion = '';
+
+    /** True when the published generated policy no longer reflects the running software's policy text or configuration (read-only) */
+    #[Groups(['privacy_policy:read'])]
+    public bool $outdated = false;
+
+    /** True when an admin review and explicit publish is pending (initial publish or any change since the last revision) (read-only) */
+    #[Groups(['privacy_policy:read'])]
+    public bool $pendingPublish = false;
+
+    /**
+     * Why a publish is pending: "initial", or any subset of "policy_text", "configuration", "answers" (read-only).
+     *
+     * @var list<string>
+     */
+    #[Groups(['privacy_policy:read'])]
+    public array $pendingReasons = [];
+
+    /**
+     * Entries added to privacy/policy-version.yaml since publishedTextVersion (read-only).
+     *
+     * @var list<array{version: string, changes: string}>
+     */
+    #[Groups(['privacy_policy:read'])]
+    public array $pendingTextChanges = [];
 
     /** The integrity status; the generated policy is only published while it reads verified (read-only) */
     #[Groups(['privacy_policy:read'])]

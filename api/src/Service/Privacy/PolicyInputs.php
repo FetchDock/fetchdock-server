@@ -35,14 +35,15 @@ final readonly class PolicyInputs
     }
 
     /**
-     * sha256 over all inputs. The inventory is covered by the text digest.
+     * sha256 over the inputs that affect the policy's substance (inventory, template, answers and runtime
+     * configuration). appVersion is recorded on each published revision but omitted here so patch releases that change
+     * no data practices don't mark an already-approved policy as outdated.
      */
     public function hash(): string
     {
         return hash('sha256', implode("\n", [
             $this->textVersion,
             $this->textDigest,
-            $this->appVersion,
             $this->answersHash(),
             $this->configurationHash(),
         ]));
