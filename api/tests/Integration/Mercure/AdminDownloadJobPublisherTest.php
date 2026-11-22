@@ -83,7 +83,8 @@ class AdminDownloadJobPublisherTest extends KernelTestCase
         $this->assertCount(1, $this->published);
         $update = $this->published[0];
         $this->assertTrue($update->isPrivate());
-        $this->assertSame(['https://hub.example.test/admin/download_jobs/'.$uuid], $update->getTopics());
+        // New jobs also go to the collection topic, for open lists
+        $this->assertSame(['https://hub.example.test/admin/download_jobs/'.$uuid, 'https://hub.example.test/admin/download_jobs'], $update->getTopics());
         $data = json_decode($update->getData(), true, flags: JSON_THROW_ON_ERROR);
         // The admin resource's JSON-LD item output: the admin replaces its cached record with it
         $this->assertSame('/admin/download_jobs/'.$uuid, $data['@id']);
@@ -98,6 +99,7 @@ class AdminDownloadJobPublisherTest extends KernelTestCase
         $this->entityManager->flush();
 
         $this->assertCount(1, $this->published);
+        $this->assertSame(['https://hub.example.test/admin/download_jobs/'.$uuid], $this->published[0]->getTopics());
         $this->assertNotNull(json_decode($this->published[0]->getData(), true, flags: JSON_THROW_ON_ERROR)['deletedAt']);
     }
 
@@ -112,5 +114,6 @@ class AdminDownloadJobPublisherTest extends KernelTestCase
     {
         $this->assertSame('https://hub.example.test', $this->topics->base());
         $this->assertSame('https://hub.example.test/admin/{+path}', $this->topics->subscribeSelector());
+        $this->assertSame('https://hub.example.test/admin/download_jobs', $this->topics->downloadJobs());
     }
 }

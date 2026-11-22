@@ -19,7 +19,7 @@ import {
   useRecordContext,
 } from "react-admin";
 import { canManageAllDownloads } from "../../common/permissions";
-import { RestoreButton, STATE_CHOICES, SubresourceList } from "./common";
+import { LiveListUpdates, LiveRecordUpdates, RestoreButton, STATE_CHOICES, SubresourceList } from "./common";
 import { FileActions } from "./AdminDownloadedFiles";
 
 const jobFilters = [
@@ -32,6 +32,7 @@ const jobFilters = [
 /** GET /admin/download_jobs: all users' jobs, including soft-deleted ones */
 export const AdminDownloadJobList = () => (
   <List filters={jobFilters} sort={{ field: "createdAt", order: "DESC" }} perPage={30} title="All download jobs">
+    <LiveListUpdates newRecords />
     <Datagrid rowClick="show" bulkActionButtons={false}>
       <TextField source="uri" sortable={false} />
       <SelectField source="state" choices={STATE_CHOICES} sortable={false} />
@@ -72,6 +73,7 @@ const JobActions = () => {
 /** GET /admin/download_jobs/{uuid}, with its files and events */
 export const AdminDownloadJobShow = () => (
   <Show actions={<JobActions />}>
+    <LiveRecordUpdates />
     <TabbedShowLayout>
       <Tab label="Job">
         <TextField source="uuid" />

@@ -1,14 +1,18 @@
-import { ReactNode } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { ReactNode, useEffect, useMemo } from "react";
+import { keepPreviousData, useMutation, useQuery } from "@tanstack/react-query";
+import { useMercureSubscription } from "@api-platform/admin";
 import {
   Button,
   ListContextProvider,
   RaRecord,
   useList,
+  useListContext,
   useNotify,
   usePermissions,
   useRecordContext,
   useRefresh,
+  useDataProvider,
+  useResourceContext,
 } from "react-admin";
 import { apiFetch } from "../../common/api";
 import { canManageAllDownloads } from "../../common/permissions";
@@ -65,16 +69,68 @@ export const RestoreButton = ({ label = "Restore", disabledReason }: { label?: s
   );
 };
 
+/** Delay that coalesces bursts of new records into one list refresh */
+const NEW_RECORDS_REFRESH_DELAY_MS = 500;
+
+/**
+ * Live (Mercure) updates of the records shown by a react-admin <List> (#86). The API Platform guessers subscribe their
+ * records themselves, custom views have to render this inside their List. Without Mercure options (users without
+ * ROLE_VIEW_ALL_DOWNLOADS, no subscriber token) the admin's subscribe is a no-op.
+ *
+ * With newRecords, the list also subscribes to its collection IRI ("/{resource}"), on which the API publishes new
+ * records (AdminTopics::downloadJobs()), and re-fetches when one arrives.
+ */
+export const LiveListUpdates = ({ newRecords = false }: { newRecords?: boolean }) => {
+  const { data, refetch } = useListContext();
+  const resource = useResourceContext();
+  const dataProvider = useDataProvider();
+
+  useEffect(() => {
+    if (!newRecords || !resource || !dataProvider.subscribe || !dataProvider.unsubscribe) {
+      return undefined;
+    }
+    const collection = `/${resource}`;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    dataProvider.subscribe([collection], () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => refetch(), NEW_RECORDS_REFRESH_DELAY_MS);
+    });
+
+    return () => {
+      clearTimeout(timer);
+      dataProvider.unsubscribe(resource, [collection]);
+    };
+  }, [newRecords, resource, dataProvider, refetch]);
+
+  // Same ids, same array: a new array would close and reopen the subscriptions on every render
+  const idsKey = (data ?? []).map((record) => String(record.id)).join("\n");
+  const ids = useMemo(() => (idsKey ? idsKey.split("\n") : undefined), [idsKey]);
+  useMercureSubscription(resource, ids);
+
+  return null;
+};
+
+/** Live (Mercure) updates of the record shown by a custom react-admin <Show>, see LiveListUpdates */
+export const LiveRecordUpdates = () => {
+  const record = useRecordContext();
+  const resource = useResourceContext();
+  useMercureSubscription(resource, record?.id);
+
+  return null;
+};
+
 /**
  * Renders a sub-collection of the current record (e.g. "{job IRI}/files") with react-admin list components.
+ * Re-fetched when the record's updatedAt changes, e.g. on a live update of a running job (its events and files).
  */
 export const SubresourceList = ({ path, children }: { path: string; children: ReactNode }) => {
   const record = useRecordContext();
   const url = `${record?.id}/${path}?${ALL_ITEMS}`;
   const { data, isPending, error } = useQuery({
-    queryKey: ["admin-subresource", url],
+    queryKey: ["admin-subresource", url, record?.updatedAt],
     queryFn: () => apiFetch<{ member?: RaRecord[] }>(url),
     enabled: undefined !== record?.id,
+    placeholderData: keepPreviousData,
   });
   const listContext = useList({
     data: (data?.member ?? []).map((item: any) => ({ ...item, id: item["@id"] ?? item.id })),
