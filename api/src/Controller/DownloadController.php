@@ -55,7 +55,7 @@ final class DownloadController extends AbstractController
         switch ($downloadJob->getDownloader()) {
             case 'yt-dlp-cli':
                 $metadata = $file->getMetadata();
-                // Sidecars (e.g. the .desktop shortcut) share the media's .info.json, so its 'ext' isn't theirs
+                // The .info.json 'ext' is the media's, not necessarily this file's: name the file after its own extension
                 $extension = pathinfo($file->getPath() ?: '', \PATHINFO_EXTENSION);
                 if (isset($metadata['title']) && \is_string($metadata['title']) && '' !== $metadata['title'] && '' !== $extension) {
                     $filename = $metadata['title'].'.'.$extension;
