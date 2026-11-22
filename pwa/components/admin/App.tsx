@@ -23,6 +23,7 @@ import {
   DownloadDirectoryEdit,
   DownloadDirectoryList,
 } from "./storage/DownloadDirectories";
+import { FILE_MOVE_RESOURCE, FileMoveList, FileMoveShow } from "./storage/FileMoves";
 
 const fetchHydra = (url: URL, options?: Record<string, any>) =>
   baseFetchHydra(url, {
@@ -166,6 +167,13 @@ const resources = (roles: Permissions) => [
           list={DownloadDirectoryList}
           create={DownloadDirectoryCreate}
           edit={DownloadDirectoryEdit}
+        />,
+        <Resource
+          key={FILE_MOVE_RESOURCE}
+          name={FILE_MOVE_RESOURCE}
+          options={{ label: "File moves" }}
+          list={FileMoveList}
+          show={FileMoveShow}
         />,
         <ResourceGuesser key="downloader_option_policies" name="downloader_option_policies" />,
         <ResourceGuesser key="oidc_subject_identifiers" name="oidc_subject_identifiers" />,

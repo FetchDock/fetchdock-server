@@ -5,7 +5,9 @@ namespace App\Repository;
 use App\Doctrine\SoftDeleteFilter;
 use App\Entity\DownloadDirectory;
 use App\Entity\DownloadedFile;
+use App\Entity\FileMoveItem;
 use App\Entity\Site;
+use App\Enum\FileMoveItemStatus;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -47,5 +49,22 @@ class DownloadedFileRepository extends ServiceEntityRepository
         );
 
         return ['total' => (int) ($row['total'] ?? 0), 'elsewhere' => (int) ($row['elsewhere'] ?? 0)];
+    }
+
+    /**
+     * The file that a completed move took away from this location (tool output of old jobs points there).
+     */
+    public function findMovedFrom(DownloadDirectory $directory, string $relativePath): ?DownloadedFile
+    {
+        return new SoftDeleteFilter($this->getEntityManager())->disabled(fn (): ?DownloadedFile => $this->createQueryBuilder('f')
+            ->join(FileMoveItem::class, 'i', 'WITH', 'i.file = f')
+            ->andWhere('i.sourceDirectory = :directory AND i.sourceRelativePath = :path AND i.status = :moved')
+            ->setParameter('directory', $directory)
+            ->setParameter('path', $relativePath)
+            ->setParameter('moved', FileMoveItemStatus::MOVED)
+            ->orderBy('i.id', 'DESC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult());
     }
 }

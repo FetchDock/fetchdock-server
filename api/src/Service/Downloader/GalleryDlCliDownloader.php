@@ -179,6 +179,15 @@ class GalleryDlCliDownloader extends AbstractCliDownloader implements CliDownloa
                 $this->entityManager->flush();
                 $this->logger->info('Added file to download job: '.$filePath);
             } else {
+                // The output of an older job (app:scan:downloaded-files) may point where a file move took the file from
+                $location = $this->locationResolver->fromAbsolute($filePath);
+                $movedFile = null === $location ? null : $this->downloadedFileRepository->findMovedFrom($location->directory, $location->relativePath);
+                if (null !== $movedFile) {
+                    $movedFile->addDownloadJob($downloadJob);
+                    $this->entityManager->persist($downloadJob);
+                    $this->entityManager->flush();
+                    continue;
+                }
                 $this->logger->warning('File listed in command output does not exist: '.$filePath);
             }
         }

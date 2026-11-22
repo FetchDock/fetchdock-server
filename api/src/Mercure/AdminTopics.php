@@ -53,4 +53,20 @@ final readonly class AdminTopics
     {
         return $this->base().'/admin/download_jobs/'.$uuid;
     }
+
+    /**
+     * Topic of file move batches (the AdminFileMoveBatch collection IRI, absolute), for lists to show their progress.
+     */
+    public function fileMoves(): string
+    {
+        return $this->base().'/admin/file_moves';
+    }
+
+    /**
+     * Topic of a file move batch's progress (the AdminFileMoveBatch resource's IRI, absolute; #109).
+     */
+    public function fileMove(int $id): string
+    {
+        return $this->base().'/admin/file_moves/'.$id;
+    }
 }

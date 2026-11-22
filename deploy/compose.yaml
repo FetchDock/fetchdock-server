@@ -66,7 +66,8 @@ services:
     volumes:
       - ${GALLERY_DL_CONFIG:?}:/app/config/gallery-dl/config.json:ro
       - ${DOWNLOADS_PATH:?}:/downloads
-    command: bin/console messenger:consume async --limit=100 -vv
+    # Downloads first, then file moves (#109) and the scheduled tasks (app:file-moves:recover); restart regularly
+    command: bin/console messenger:consume async file-moves scheduler_default --limit=100 --time-limit=3600 --memory-limit=512M -vv
     healthcheck:
       test: ["CMD", "true"]
       timeout: 5s

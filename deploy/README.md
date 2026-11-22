@@ -104,6 +104,11 @@ and `worker` services need **the same mounts**: the api checks a directory when 
 writes into it. A job fails with "not mounted or not writable" when the worker can't reach its directory.
 `db-refresh` resets staging to its single default directory, `/downloads`.
 
+Workers consume `async file-moves scheduler_default`. Downloads come first. File moves (admin: *File moves*)
+follow, one message per file, and the scheduler runs `app:file-moves:recover` hourly. The recovery command resumes
+moves that a stopped worker left behind. Workers restart after an hour (`--time-limit`) or 100 messages. Moves to
+slow storage can take hours: follow them in the admin, and cancel them there if needed.
+
 ## Operations
 - **Maintenance releases:** a stable release whose tag isn't the highest stable semver tag (e.g. 0.7.5 after 0.8.0) publishes its images, but the *Check production eligibility* job skips the deploy and notes it in the run summary.
 - **Roll back production:** re-run the *Production* job of an older release's *Publish Docker images* run,
