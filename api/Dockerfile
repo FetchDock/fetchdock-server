@@ -136,3 +136,8 @@ RUN set -eux; \
 	composer dump-env prod; \
 	composer run-script --no-dev post-install-cmd; \
 	chmod +x bin/console; sync;
+
+# Integrity manifest (ADR 0013): sha256 of the application files, checked at runtime by app:integrity:check. Must stay
+# the last step that writes below /app. CI publishes the printed digest as <APP_VERSION>.sha256.
+ARG GIT_SHA=unknown
+RUN php bin/console app:integrity:manifest --git-sha="${GIT_SHA}" --no-debug

@@ -278,6 +278,19 @@ entities:
             label: ~
             type: ~
 
+    App\Entity\InstanceIntegrityCheck:
+        summary: Results of the instance integrity check (ADR 0013), deleted after 30 days
+        defaults: { personal: false }
+        fields:
+            id: ~
+            host: ~
+            role: ~
+            status: ~
+            manifestDigest: ~
+            appVersion: ~
+            mismatches: ~
+            checkedAt: ~
+
     App\Resource\Stats\UserDownloadStats:
         summary: Counts of the user's jobs per state (database view)
         derived: true
@@ -367,4 +380,9 @@ outgoingConnections:
       to: The Python Package Index (pip updates yt-dlp and gallery-dl)
       when: Hourly (core:downloaders:update)
       sends: The instance's IP address; no user data
+      personal: false
+    - id: integrity_digest
+      to: GitHub (the fetchdock-server releases)
+      when: When the api and worker containers start and daily, until it has the digest of the running version; not with INTEGRITY_CHECK_ONLINE=0
+      sends: The instance's IP address and its FetchDock version; no user data
       personal: false

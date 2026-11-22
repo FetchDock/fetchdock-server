@@ -26,6 +26,9 @@ jobs:
     permissions:
       contents: read
       packages: write
+    outputs:
+      tag: ${{ steps.version.outputs.tag }}
+      version: ${{ steps.version.outputs.version }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -45,6 +48,8 @@ jobs:
           last=$(git tag --list --sort=-v:refname | grep -E '^v?[0-9]+\.[0-9]+\.[0-9]+$' | head -n1 | sed 's/^v//')
           IFS=. read -r major minor patch <<<"${last:-0.0.0}"
           {
+            echo "sha=$(git rev-parse HEAD)"
+            echo "tag=sha-$short"
             echo "tags=sha-$short,$branch_tag"
             echo "version=$major.$minor.$((patch + 1))-dev.$short"
           } >> "$GITHUB_OUTPUT"
@@ -80,6 +85,7 @@ jobs:
             pwa.cache-from=type=gha,scope=pwa-preview
             pwa.cache-to=type=gha,scope=pwa-preview,mode=max
             api.args.APP_VERSION=${{ steps.version.outputs.version }}
+            api.args.GIT_SHA=${{ steps.version.outputs.sha }}
             pwa.args.APP_VERSION=${{ steps.version.outputs.version }}
       - name: Summary
         env:
@@ -90,3 +96,15 @@ jobs:
             echo "### Preview images ($VERSION)"
             echo "Tags: \`${TAGS//,/\`, \`}\` on \`${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-api\` and \`-pwa\`"
           } >> "$GITHUB_STEP_SUMMARY"
+
+  # Publishes the image's integrity manifest digest (ADR 0013), so preview instances can read "verified"
+  integrity-digest:
+    name: Integrity digest
+    needs: publish
+    permissions:
+      contents: write
+      packages: read
+    uses: ./.github/workflows/integrity-digest.yml
+    with:
+      image-tag: ${{ needs.publish.outputs.tag }}
+      version: ${{ needs.publish.outputs.version }}

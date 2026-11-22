@@ -120,6 +120,16 @@ if [ "$1" = 'frankenphp' ] || [ "$1" = 'php' ] || [ "$1" = 'bin/console' ]; then
 		else
 			echo "[migration-coordinator] NODE_MODE=${NODE_MODE} -> skipping migrations"
 		fi
+
+		# Integrity check (ADR 0013): compares the files with the image's manifest and records the result; not fatal
+		case "$NODE_MODE" in
+			php) INTEGRITY_ROLE=api ;;
+			worker) INTEGRITY_ROLE=worker ;;
+			*) INTEGRITY_ROLE= ;;
+		esac
+		if [ -n "$INTEGRITY_ROLE" ] && ! php bin/console app:integrity:check --role="$INTEGRITY_ROLE" --no-interaction; then
+			echo "[integrity] WARNING: app:integrity:check failed" >&2
+		fi
 	fi
 
 	if ! { setfacl -R -m u:www-data:rwX -m u:"$(whoami)":rwX var 2>/dev/null && \
