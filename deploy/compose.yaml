@@ -37,6 +37,9 @@ services:
       OIDC_AUTHORIZATION_URL: ${OIDC_AUTHORIZATION_URL:?}
       OIDC_DISCOVERY_BASE_URI: ${OIDC_DISCOVERY_BASE_URI:?}
       OIDC_ISSUER: ${OIDC_ISSUER:?}
+      # Failure reports (ADR 0012) and the instance's privacy policy, see deploy/README.md
+      FAILURE_REPORTS_ENABLED: ${FAILURE_REPORTS_ENABLED:-1}
+      PRIVACY_POLICY_URL: ${PRIVACY_POLICY_URL:-}
     volumes:
       - caddy_data:/data
       - caddy_config:/config

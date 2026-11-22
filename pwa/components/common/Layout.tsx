@@ -5,6 +5,7 @@ import {
   QueryClient,
   QueryClientProvider,
 } from "@tanstack/react-query";
+import PrivacyFooter from "./PrivacyFooter";
 
 const Layout = ({
   children,
@@ -18,6 +19,7 @@ const Layout = ({
   return (
     <QueryClientProvider client={queryClient}>
       <HydrationBoundary state={dehydratedState}>{children}</HydrationBoundary>
+      <PrivacyFooter />
     </QueryClientProvider>
   );
 };

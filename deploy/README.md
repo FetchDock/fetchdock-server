@@ -92,6 +92,8 @@ Check: `curl -sI https://<host>/ | grep -i '^link'` must show `https://<host>/do
 | `GALLERY_DL_CONFIG` | Host path of the gallery-dl `config.json` |
 | `DOWNLOADS_PATH` | Host path mounted at `/downloads`. Staging: a **separate** directory |
 | `DOWNLOAD_ROOTS` | Optional, comma-separated. Download directories (admin: *Download directories*) must be inside these paths. Defaults to `/downloads,/mnt` in production and `/downloads` elsewhere |
+| `PRIVACY_POLICY_URL` | Optional. URL of this instance's privacy policy, linked by clients (failure report form) and the admin footer. Start from [`docs/privacy-policy-template.md`](../docs/privacy-policy-template.md) |
+| `FAILURE_REPORTS_ENABLED` | Optional, default `1`. `0` refuses new failure reports (403) and hides reporting in clients; existing reports stay visible to admins and withdrawable by their reporters |
 | `WORKER_REPLICAS` | Default `10`; e.g. `2` on staging |
 | `SOURCE_POSTGRES_HOST`, `SOURCE_POSTGRES_PORT` | Staging only; default to the staging server |
 | `SOURCE_POSTGRES_USER`, `SOURCE_POSTGRES_PASSWORD`, `SOURCE_POSTGRES_DB` | Staging only: the read-only production role |
