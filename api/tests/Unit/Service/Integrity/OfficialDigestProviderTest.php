@@ -25,7 +25,7 @@ final class OfficialDigestProviderTest extends TestCase
 
         self::assertSame(self::DIGEST, $provider->fetch('0.9.1-dev.abc1234', self::DIGEST));
         self::assertSame(self::DIGEST, $provider->fetch('0.9.1-dev.abc1234', self::DIGEST));
-        self::assertSame(['https://github.com/FetchDock/fetchdock-server/releases/download/integrity-digests/0.9.1-dev.abc1234.sha256'], $requests);
+        self::assertSame(['https://raw.githubusercontent.com/FetchDock/fetchdock-server/integrity-data/0.9.1-dev.abc1234.sha256'], $requests);
     }
 
     public function testMissingDigestIsNotCached(): void

@@ -9,15 +9,15 @@ use Symfony\Contracts\HttpClient\Exception\ExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 /**
- * The manifest digest CI published for an app version (ADR 0013): the asset <version>.sha256 of the rolling
- * "integrity-digests" pre-release of fetchdock-server. Every official build uploads one.
+ * The manifest digest CI published for an app version (ADR 0013): <version>.sha256 on the orphan "integrity-data"
+ * branch of fetchdock-server. Every official build publishes one.
  *
  * A fetched digest is cached for the version and the local manifest digest, so an instance asks GitHub once per
  * image. Failures aren't cached: the next check asks again.
  */
 class OfficialDigestProvider
 {
-    public const string DIGEST_URL = 'https://github.com/FetchDock/fetchdock-server/releases/download/integrity-digests/%s.sha256';
+    public const string DIGEST_URL = 'https://raw.githubusercontent.com/FetchDock/fetchdock-server/integrity-data/%s.sha256';
 
     /** Semantic versions only: "dev" and "undefined" (local builds) have no published digest. */
     private const string VERSION_PATTERN = '/^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$/';
