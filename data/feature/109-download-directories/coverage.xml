@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage line-rate="0.85415488976823" branch-rate="0" lines-covered="3022" lines-valid="3538" branches-covered="0" branches-valid="0" complexity="1421" version="0.4" timestamp="1795349287">
+<coverage line-rate="0.85219274499188" branch-rate="0" lines-covered="3148" lines-valid="3694" branches-covered="0" branches-valid="0" complexity="1515" version="0.4" timestamp="1795349483">
   <sources>
     <source>/app/src</source>
   </sources>
@@ -488,6 +488,146 @@
             <line number="98" hits="2"/>
             <line number="100" hits="0"/>
             <line number="102" hits="0"/>
+          </lines>
+        </class>
+      </classes>
+    </package>
+    <package name="Command/VerifyFileLocationsCommand.php" line-rate="0.82456140350877" branch-rate="0" complexity="30">
+      <classes>
+        <class name="App\Command\VerifyFileLocationsCommand" filename="Command/VerifyFileLocationsCommand.php" line-rate="0.82456140350877" branch-rate="0" complexity="30">
+          <methods>
+            <method name="__construct" signature="DownloadDirectoryRepository $directoryRepository, DownloadedFileRepository $fileRepository, DownloadLocationResolver $locationResolver, DownloadRoots $roots, EntityManagerInterface $entityManager, SoftDeleteFilter $softDeleteFilter" line-rate="1" branch-rate="0" complexity="1">
+              <lines>
+                <line number="38" hits="2"/>
+              </lines>
+            </method>
+            <method name="__invoke" signature="SymfonyStyle $io, bool $fix, bool $checkDisk" line-rate="0.71428571428571" branch-rate="0" complexity="2">
+              <lines>
+                <line number="47" hits="2"/>
+                <line number="49" hits="2"/>
+                <line number="51" hits="2"/>
+                <line number="52" hits="0"/>
+                <line number="54" hits="0"/>
+                <line number="57" hits="2"/>
+                <line number="59" hits="2"/>
+              </lines>
+            </method>
+            <method name="verifyDirectories" signature="SymfonyStyle $io" line-rate="1" branch-rate="0" complexity="8">
+              <lines>
+                <line number="64" hits="2"/>
+                <line number="65" hits="2"/>
+                <line number="66" hits="2"/>
+                <line number="67" hits="2"/>
+                <line number="68" hits="2"/>
+                <line number="69" hits="2"/>
+                <line number="70" hits="2"/>
+                <line number="71" hits="2"/>
+                <line number="73" hits="2"/>
+                <line number="74" hits="2"/>
+                <line number="78" hits="2"/>
+                <line number="79" hits="2"/>
+                <line number="80" hits="2"/>
+                <line number="83" hits="2"/>
+              </lines>
+            </method>
+            <method name="verifyFiles" signature="SymfonyStyle $io, bool $fix, bool $checkDisk" line-rate="0.77142857142857" branch-rate="0" complexity="19">
+              <lines>
+                <line number="88" hits="2"/>
+                <line number="89" hits="2"/>
+                <line number="91" hits="2"/>
+                <line number="92" hits="2"/>
+                <line number="93" hits="2"/>
+                <line number="96" hits="2"/>
+                <line number="98" hits="2"/>
+                <line number="99" hits="1"/>
+                <line number="100" hits="1"/>
+                <line number="102" hits="1"/>
+                <line number="103" hits="1"/>
+                <line number="104" hits="1"/>
+                <line number="105" hits="1"/>
+                <line number="106" hits="1"/>
+                <line number="108" hits="1"/>
+                <line number="109" hits="1"/>
+                <line number="110" hits="1"/>
+                <line number="111" hits="0"/>
+                <line number="114" hits="0"/>
+                <line number="115" hits="0"/>
+                <line number="116" hits="0"/>
+                <line number="117" hits="0"/>
+                <line number="120" hits="1"/>
+                <line number="121" hits="1"/>
+                <line number="124" hits="1"/>
+                <line number="125" hits="0"/>
+                <line number="126" hits="0"/>
+                <line number="127" hits="0"/>
+                <line number="130" hits="2"/>
+                <line number="132" hits="2"/>
+                <line number="133" hits="1"/>
+                <line number="135" hits="2"/>
+                <line number="136" hits="1"/>
+                <line number="137" hits="1"/>
+                <line number="140" hits="2"/>
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="38" hits="2"/>
+            <line number="47" hits="2"/>
+            <line number="49" hits="2"/>
+            <line number="51" hits="2"/>
+            <line number="52" hits="0"/>
+            <line number="54" hits="0"/>
+            <line number="57" hits="2"/>
+            <line number="59" hits="2"/>
+            <line number="64" hits="2"/>
+            <line number="65" hits="2"/>
+            <line number="66" hits="2"/>
+            <line number="67" hits="2"/>
+            <line number="68" hits="2"/>
+            <line number="69" hits="2"/>
+            <line number="70" hits="2"/>
+            <line number="71" hits="2"/>
+            <line number="73" hits="2"/>
+            <line number="74" hits="2"/>
+            <line number="78" hits="2"/>
+            <line number="79" hits="2"/>
+            <line number="80" hits="2"/>
+            <line number="83" hits="2"/>
+            <line number="88" hits="2"/>
+            <line number="89" hits="2"/>
+            <line number="91" hits="2"/>
+            <line number="92" hits="2"/>
+            <line number="93" hits="2"/>
+            <line number="96" hits="2"/>
+            <line number="98" hits="2"/>
+            <line number="99" hits="1"/>
+            <line number="100" hits="1"/>
+            <line number="102" hits="1"/>
+            <line number="103" hits="1"/>
+            <line number="104" hits="1"/>
+            <line number="105" hits="1"/>
+            <line number="106" hits="1"/>
+            <line number="108" hits="1"/>
+            <line number="109" hits="1"/>
+            <line number="110" hits="1"/>
+            <line number="111" hits="0"/>
+            <line number="114" hits="0"/>
+            <line number="115" hits="0"/>
+            <line number="116" hits="0"/>
+            <line number="117" hits="0"/>
+            <line number="120" hits="1"/>
+            <line number="121" hits="1"/>
+            <line number="124" hits="1"/>
+            <line number="125" hits="0"/>
+            <line number="126" hits="0"/>
+            <line number="127" hits="0"/>
+            <line number="130" hits="2"/>
+            <line number="132" hits="2"/>
+            <line number="133" hits="1"/>
+            <line number="135" hits="2"/>
+            <line number="136" hits="1"/>
+            <line number="137" hits="1"/>
+            <line number="140" hits="2"/>
           </lines>
         </class>
       </classes>
@@ -1244,6 +1384,30 @@
         </class>
       </classes>
     </package>
+    <package name="DataFixtures/DownloadDirectoryFixtures.php" line-rate="0" branch-rate="0" complexity="2">
+      <classes>
+        <class name="App\DataFixtures\DownloadDirectoryFixtures" filename="DataFixtures/DownloadDirectoryFixtures.php" line-rate="0" branch-rate="0" complexity="2">
+          <methods>
+            <method name="__construct" signature="string $downloadDir" line-rate="0" branch-rate="0" complexity="1">
+              <lines>
+                <line number="17" hits="0"/>
+              </lines>
+            </method>
+            <method name="load" signature="ObjectManager $manager" line-rate="0" branch-rate="0" complexity="1">
+              <lines>
+                <line number="21" hits="0"/>
+                <line number="22" hits="0"/>
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="17" hits="0"/>
+            <line number="21" hits="0"/>
+            <line number="22" hits="0"/>
+          </lines>
+        </class>
+      </classes>
+    </package>
     <package name="DataFixtures/TestUserFixtures.php" line-rate="1" branch-rate="0" complexity="2">
       <classes>
         <class name="App\DataFixtures\TestUserFixtures" filename="DataFixtures/TestUserFixtures.php" line-rate="1" branch-rate="0" complexity="2">
@@ -1370,30 +1534,30 @@
           <methods>
             <method name="__construct" signature="EntityManagerInterface $entityManager" line-rate="1" branch-rate="0" complexity="1">
               <lines>
-                <line number="18" hits="170"/>
+                <line number="18" hits="172"/>
               </lines>
             </method>
             <method name="disabled" signature="callable $callback" line-rate="1" branch-rate="0" complexity="3">
               <lines>
-                <line number="29" hits="46"/>
-                <line number="30" hits="46"/>
-                <line number="31" hits="46"/>
-                <line number="32" hits="46"/>
-                <line number="36" hits="46"/>
-                <line number="38" hits="46"/>
-                <line number="39" hits="46"/>
+                <line number="29" hits="48"/>
+                <line number="30" hits="48"/>
+                <line number="31" hits="48"/>
+                <line number="32" hits="48"/>
+                <line number="36" hits="48"/>
+                <line number="38" hits="48"/>
+                <line number="39" hits="48"/>
               </lines>
             </method>
           </methods>
           <lines>
-            <line number="18" hits="170"/>
-            <line number="29" hits="46"/>
-            <line number="30" hits="46"/>
-            <line number="31" hits="46"/>
-            <line number="32" hits="46"/>
-            <line number="36" hits="46"/>
-            <line number="38" hits="46"/>
-            <line number="39" hits="46"/>
+            <line number="18" hits="172"/>
+            <line number="29" hits="48"/>
+            <line number="30" hits="48"/>
+            <line number="31" hits="48"/>
+            <line number="32" hits="48"/>
+            <line number="36" hits="48"/>
+            <line number="38" hits="48"/>
+            <line number="39" hits="48"/>
           </lines>
         </class>
       </classes>
@@ -2012,16 +2176,116 @@
         </class>
       </classes>
     </package>
+    <package name="Entity/DownloadDirectory.php" line-rate="0.57142857142857" branch-rate="0" complexity="15">
+      <classes>
+        <class name="App\Entity\DownloadDirectory" filename="Entity/DownloadDirectory.php" line-rate="0.57142857142857" branch-rate="0" complexity="15">
+          <methods>
+            <method name="__construct" signature="string $name, string $path, bool $isDefault" line-rate="1" branch-rate="0" complexity="1">
+              <lines>
+                <line number="42" hits="31"/>
+                <line number="43" hits="31"/>
+                <line number="44" hits="31"/>
+                <line number="45" hits="31"/>
+              </lines>
+            </method>
+            <method name="getId" signature="" line-rate="1" branch-rate="0" complexity="1">
+              <lines>
+                <line number="50" hits="6"/>
+              </lines>
+            </method>
+            <method name="getName" signature="" line-rate="1" branch-rate="0" complexity="1">
+              <lines>
+                <line number="55" hits="5"/>
+              </lines>
+            </method>
+            <method name="setName" signature="string $name" line-rate="0" branch-rate="0" complexity="1">
+              <lines>
+                <line number="60" hits="0"/>
+                <line number="62" hits="0"/>
+              </lines>
+            </method>
+            <method name="getPath" signature="" line-rate="1" branch-rate="0" complexity="1">
+              <lines>
+                <line number="68" hits="13"/>
+              </lines>
+            </method>
+            <method name="setPath" signature="string $path" line-rate="1" branch-rate="0" complexity="2">
+              <lines>
+                <line number="73" hits="31"/>
+                <line number="75" hits="31"/>
+              </lines>
+            </method>
+            <method name="isDefault" signature="" line-rate="0" branch-rate="0" complexity="1">
+              <lines>
+                <line number="80" hits="0"/>
+              </lines>
+            </method>
+            <method name="setIsDefault" signature="bool $isDefault" line-rate="0" branch-rate="0" complexity="1">
+              <lines>
+                <line number="85" hits="0"/>
+                <line number="87" hits="0"/>
+              </lines>
+            </method>
+            <method name="isVerifyChecksum" signature="" line-rate="0" branch-rate="0" complexity="1">
+              <lines>
+                <line number="92" hits="0"/>
+              </lines>
+            </method>
+            <method name="setVerifyChecksum" signature="bool $verifyChecksum" line-rate="0" branch-rate="0" complexity="1">
+              <lines>
+                <line number="97" hits="0"/>
+                <line number="99" hits="0"/>
+              </lines>
+            </method>
+            <method name="getCreatedAt" signature="" line-rate="0" branch-rate="0" complexity="1">
+              <lines>
+                <line number="104" hits="0"/>
+              </lines>
+            </method>
+            <method name="resolve" signature="string $relativePath" line-rate="1" branch-rate="0" complexity="3">
+              <lines>
+                <line number="111" hits="19"/>
+                <line number="112" hits="2"/>
+                <line number="115" hits="18"/>
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="42" hits="31"/>
+            <line number="43" hits="31"/>
+            <line number="44" hits="31"/>
+            <line number="45" hits="31"/>
+            <line number="50" hits="6"/>
+            <line number="55" hits="5"/>
+            <line number="60" hits="0"/>
+            <line number="62" hits="0"/>
+            <line number="68" hits="13"/>
+            <line number="73" hits="31"/>
+            <line number="75" hits="31"/>
+            <line number="80" hits="0"/>
+            <line number="85" hits="0"/>
+            <line number="87" hits="0"/>
+            <line number="92" hits="0"/>
+            <line number="97" hits="0"/>
+            <line number="99" hits="0"/>
+            <line number="104" hits="0"/>
+            <line number="111" hits="19"/>
+            <line number="112" hits="2"/>
+            <line number="115" hits="18"/>
+          </lines>
+        </class>
+      </classes>
+    </package>
     <package name="Entity/DownloadJob.php" line-rate="0.92592592592593" branch-rate="0" complexity="53">
       <classes>
         <class name="App\Entity\DownloadJob" filename="Entity/DownloadJob.php" line-rate="0.92592592592593" branch-rate="0" complexity="53">
           <methods>
             <method name="__construct" signature="" line-rate="1" branch-rate="0" complexity="1">
               <lines>
-                <line number="136" hits="187"/>
-                <line number="137" hits="187"/>
-                <line number="138" hits="187"/>
-                <line number="139" hits="187"/>
+                <line number="136" hits="189"/>
+                <line number="137" hits="189"/>
+                <line number="138" hits="189"/>
+                <line number="139" hits="189"/>
               </lines>
             </method>
             <method name="getId" signature="" line-rate="1" branch-rate="0" complexity="1">
@@ -2046,8 +2310,8 @@
             </method>
             <method name="setUri" signature="string $uri" line-rate="1" branch-rate="0" complexity="1">
               <lines>
-                <line number="167" hits="146"/>
-                <line number="169" hits="146"/>
+                <line number="167" hits="148"/>
+                <line number="169" hits="148"/>
               </lines>
             </method>
             <method name="getCanonicalKey" signature="" line-rate="1" branch-rate="0" complexity="1">
@@ -2239,16 +2503,16 @@
             </method>
           </methods>
           <lines>
-            <line number="136" hits="187"/>
-            <line number="137" hits="187"/>
-            <line number="138" hits="187"/>
-            <line number="139" hits="187"/>
+            <line number="136" hits="189"/>
+            <line number="137" hits="189"/>
+            <line number="138" hits="189"/>
+            <line number="139" hits="189"/>
             <line number="144" hits="75"/>
             <line number="149" hits="81"/>
             <line number="157" hits="40"/>
             <line number="162" hits="82"/>
-            <line number="167" hits="146"/>
-            <line number="169" hits="146"/>
+            <line number="167" hits="148"/>
+            <line number="169" hits="148"/>
             <line number="176" hits="19"/>
             <line number="181" hits="37"/>
             <line number="183" hits="37"/>
@@ -2486,110 +2750,128 @@
         </class>
       </classes>
     </package>
-    <package name="Entity/DownloadedFile.php" line-rate="1" branch-rate="0" complexity="15">
+    <package name="Entity/DownloadedFile.php" line-rate="1" branch-rate="0" complexity="19">
       <classes>
-        <class name="App\Entity\DownloadedFile" filename="Entity/DownloadedFile.php" line-rate="1" branch-rate="0" complexity="15">
+        <class name="App\Entity\DownloadedFile" filename="Entity/DownloadedFile.php" line-rate="1" branch-rate="0" complexity="19">
           <methods>
             <method name="__construct" signature="" line-rate="1" branch-rate="0" complexity="1">
               <lines>
-                <line number="68" hits="32"/>
+                <line number="75" hits="37"/>
               </lines>
             </method>
             <method name="handleLinks" signature="QueryBuilder $queryBuilder, array $uriVariables, QueryNameGeneratorInterface $queryNameGenerator" line-rate="1" branch-rate="0" complexity="1">
               <lines>
-                <line number="73" hits="4"/>
-                <line number="74" hits="4"/>
-                <line number="75" hits="4"/>
-                <line number="76" hits="4"/>
-                <line number="77" hits="4"/>
+                <line number="80" hits="4"/>
+                <line number="81" hits="4"/>
+                <line number="82" hits="4"/>
+                <line number="83" hits="4"/>
+                <line number="84" hits="4"/>
               </lines>
             </method>
             <method name="addDownloadJob" signature="DownloadJob $downloadJob" line-rate="1" branch-rate="0" complexity="2">
               <lines>
-                <line number="82" hits="32"/>
-                <line number="83" hits="32"/>
-                <line number="86" hits="32"/>
+                <line number="89" hits="33"/>
+                <line number="90" hits="33"/>
+                <line number="93" hits="33"/>
               </lines>
             </method>
             <method name="removeDownloadJob" signature="DownloadJob $downloadJob" line-rate="1" branch-rate="0" complexity="1">
               <lines>
-                <line number="91" hits="2"/>
-                <line number="93" hits="2"/>
+                <line number="98" hits="2"/>
+                <line number="100" hits="2"/>
               </lines>
             </method>
-            <method name="getPath" signature="" line-rate="1" branch-rate="0" complexity="1">
+            <method name="getPath" signature="" line-rate="1" branch-rate="0" complexity="3">
               <lines>
-                <line number="98" hits="15"/>
+                <line number="106" hits="20"/>
+                <line number="107" hits="1"/>
+                <line number="110" hits="19"/>
               </lines>
             </method>
-            <method name="setPath" signature="string $path" line-rate="1" branch-rate="0" complexity="1">
+            <method name="getDirectory" signature="" line-rate="1" branch-rate="0" complexity="1">
               <lines>
-                <line number="103" hits="30"/>
-                <line number="105" hits="30"/>
+                <line number="115" hits="1"/>
+              </lines>
+            </method>
+            <method name="getRelativePath" signature="" line-rate="1" branch-rate="0" complexity="1">
+              <lines>
+                <line number="120" hits="1"/>
+              </lines>
+            </method>
+            <method name="setLocation" signature="DownloadDirectory $directory, string $relativePath" line-rate="1" branch-rate="0" complexity="1">
+              <lines>
+                <line number="125" hits="34"/>
+                <line number="126" hits="34"/>
+                <line number="128" hits="34"/>
               </lines>
             </method>
             <method name="getMetadata" signature="" line-rate="1" branch-rate="0" complexity="1">
               <lines>
-                <line number="110" hits="17"/>
+                <line number="133" hits="17"/>
               </lines>
             </method>
             <method name="setMetadata" signature="array $metadata" line-rate="1" branch-rate="0" complexity="1">
               <lines>
-                <line number="115" hits="10"/>
-                <line number="117" hits="10"/>
+                <line number="138" hits="10"/>
+                <line number="140" hits="10"/>
               </lines>
             </method>
             <method name="isVisible" signature="" line-rate="1" branch-rate="0" complexity="1">
               <lines>
-                <line number="122" hits="15"/>
+                <line number="145" hits="15"/>
               </lines>
             </method>
             <method name="setVisible" signature="bool $visible" line-rate="1" branch-rate="0" complexity="1">
               <lines>
-                <line number="127" hits="30"/>
-                <line number="129" hits="30"/>
+                <line number="150" hits="32"/>
+                <line number="152" hits="32"/>
               </lines>
             </method>
             <method name="getFilename" signature="" line-rate="1" branch-rate="0" complexity="2">
               <lines>
-                <line number="134" hits="15"/>
+                <line number="157" hits="16"/>
               </lines>
             </method>
             <method name="getDownloadJob" signature="" line-rate="1" branch-rate="0" complexity="1">
               <lines>
-                <line number="142" hits="12"/>
+                <line number="165" hits="12"/>
               </lines>
             </method>
             <method name="getId" signature="" line-rate="1" branch-rate="0" complexity="1">
               <lines>
-                <line number="147" hits="18"/>
+                <line number="170" hits="19"/>
               </lines>
             </method>
           </methods>
           <lines>
-            <line number="68" hits="32"/>
-            <line number="73" hits="4"/>
-            <line number="74" hits="4"/>
-            <line number="75" hits="4"/>
-            <line number="76" hits="4"/>
-            <line number="77" hits="4"/>
-            <line number="82" hits="32"/>
-            <line number="83" hits="32"/>
-            <line number="86" hits="32"/>
-            <line number="91" hits="2"/>
-            <line number="93" hits="2"/>
-            <line number="98" hits="15"/>
-            <line number="103" hits="30"/>
-            <line number="105" hits="30"/>
-            <line number="110" hits="17"/>
-            <line number="115" hits="10"/>
-            <line number="117" hits="10"/>
-            <line number="122" hits="15"/>
-            <line number="127" hits="30"/>
-            <line number="129" hits="30"/>
-            <line number="134" hits="15"/>
-            <line number="142" hits="12"/>
-            <line number="147" hits="18"/>
+            <line number="75" hits="37"/>
+            <line number="80" hits="4"/>
+            <line number="81" hits="4"/>
+            <line number="82" hits="4"/>
+            <line number="83" hits="4"/>
+            <line number="84" hits="4"/>
+            <line number="89" hits="33"/>
+            <line number="90" hits="33"/>
+            <line number="93" hits="33"/>
+            <line number="98" hits="2"/>
+            <line number="100" hits="2"/>
+            <line number="106" hits="20"/>
+            <line number="107" hits="1"/>
+            <line number="110" hits="19"/>
+            <line number="115" hits="1"/>
+            <line number="120" hits="1"/>
+            <line number="125" hits="34"/>
+            <line number="126" hits="34"/>
+            <line number="128" hits="34"/>
+            <line number="133" hits="17"/>
+            <line number="138" hits="10"/>
+            <line number="140" hits="10"/>
+            <line number="145" hits="15"/>
+            <line number="150" hits="32"/>
+            <line number="152" hits="32"/>
+            <line number="157" hits="16"/>
+            <line number="165" hits="12"/>
+            <line number="170" hits="19"/>
           </lines>
         </class>
       </classes>
@@ -3829,18 +4111,18 @@
           <methods>
             <method name="__construct" signature="HubInterface $hub, AdminTopics $adminTopics, SerializerInterface $serializer, ResourceMetadataCollectionFactoryInterface $resourceMetadataCollectionFactory, SoftDeleteFilter $softDeleteFilter, LoggerInterface $logger" line-rate="1" branch-rate="0" complexity="1">
               <lines>
-                <line number="48" hits="167"/>
+                <line number="48" hits="169"/>
               </lines>
             </method>
             <method name="onFlush" signature="OnFlushEventArgs $args" line-rate="1" branch-rate="0" complexity="6">
               <lines>
-                <line number="52" hits="133"/>
-                <line number="53" hits="133"/>
-                <line number="54" hits="83"/>
+                <line number="52" hits="135"/>
+                <line number="53" hits="135"/>
+                <line number="54" hits="85"/>
                 <line number="55" hits="43"/>
-                <line number="58" hits="133"/>
-                <line number="59" hits="133"/>
-                <line number="60" hits="84"/>
+                <line number="58" hits="135"/>
+                <line number="59" hits="135"/>
+                <line number="60" hits="86"/>
                 <line number="61" hits="43"/>
               </lines>
             </method>
@@ -3853,12 +4135,12 @@
             </method>
             <method name="postFlush" signature="PostFlushEventArgs $args" line-rate="0.84210526315789" branch-rate="0" complexity="7">
               <lines>
-                <line number="81" hits="133"/>
-                <line number="82" hits="133"/>
-                <line number="83" hits="133"/>
-                <line number="84" hits="133"/>
-                <line number="85" hits="133"/>
-                <line number="86" hits="102"/>
+                <line number="81" hits="135"/>
+                <line number="82" hits="135"/>
+                <line number="83" hits="135"/>
+                <line number="84" hits="135"/>
+                <line number="85" hits="135"/>
+                <line number="86" hits="106"/>
                 <line number="89" hits="43"/>
                 <line number="90" hits="43"/>
                 <line number="92" hits="43"/>
@@ -3876,24 +4158,24 @@
             </method>
           </methods>
           <lines>
-            <line number="48" hits="167"/>
-            <line number="52" hits="133"/>
-            <line number="53" hits="133"/>
-            <line number="54" hits="83"/>
+            <line number="48" hits="169"/>
+            <line number="52" hits="135"/>
+            <line number="53" hits="135"/>
+            <line number="54" hits="85"/>
             <line number="55" hits="43"/>
-            <line number="58" hits="133"/>
-            <line number="59" hits="133"/>
-            <line number="60" hits="84"/>
+            <line number="58" hits="135"/>
+            <line number="59" hits="135"/>
+            <line number="60" hits="86"/>
             <line number="61" hits="43"/>
             <line number="73" hits="5"/>
             <line number="74" hits="5"/>
             <line number="75" hits="5"/>
-            <line number="81" hits="133"/>
-            <line number="82" hits="133"/>
-            <line number="83" hits="133"/>
-            <line number="84" hits="133"/>
-            <line number="85" hits="133"/>
-            <line number="86" hits="102"/>
+            <line number="81" hits="135"/>
+            <line number="82" hits="135"/>
+            <line number="83" hits="135"/>
+            <line number="84" hits="135"/>
+            <line number="85" hits="135"/>
+            <line number="86" hits="106"/>
             <line number="89" hits="43"/>
             <line number="90" hits="43"/>
             <line number="92" hits="43"/>
@@ -3917,32 +4199,32 @@
           <methods>
             <method name="__construct" signature="SettingsChangePublisher $publisher" line-rate="1" branch-rate="0" complexity="1">
               <lines>
-                <line number="28" hits="166"/>
+                <line number="28" hits="168"/>
               </lines>
             </method>
             <method name="onFlush" signature="OnFlushEventArgs $args" line-rate="1" branch-rate="0" complexity="4">
               <lines>
-                <line number="32" hits="133"/>
-                <line number="33" hits="133"/>
-                <line number="34" hits="133"/>
-                <line number="35" hits="84"/>
-                <line number="38" hits="133"/>
+                <line number="32" hits="135"/>
+                <line number="33" hits="135"/>
+                <line number="34" hits="135"/>
+                <line number="35" hits="86"/>
+                <line number="38" hits="135"/>
                 <line number="39" hits="18"/>
               </lines>
             </method>
             <method name="postFlush" signature="PostFlushEventArgs $args" line-rate="1" branch-rate="0" complexity="2">
               <lines>
-                <line number="45" hits="133"/>
-                <line number="46" hits="133"/>
-                <line number="47" hits="133"/>
+                <line number="45" hits="135"/>
+                <line number="46" hits="135"/>
+                <line number="47" hits="135"/>
                 <line number="48" hits="7"/>
               </lines>
             </method>
             <method name="collect" signature="UnitOfWork $unitOfWork, object $entity, string $action" line-rate="0.85714285714286" branch-rate="0" complexity="4">
               <lines>
-                <line number="57" hits="84"/>
+                <line number="57" hits="86"/>
                 <line number="58" hits="3"/>
-                <line number="59" hits="81"/>
+                <line number="59" hits="83"/>
                 <line number="61" hits="4"/>
                 <line number="63" hits="4"/>
                 <line number="64" hits="4"/>
@@ -3958,20 +4240,20 @@
             </method>
           </methods>
           <lines>
-            <line number="28" hits="166"/>
-            <line number="32" hits="133"/>
-            <line number="33" hits="133"/>
-            <line number="34" hits="133"/>
-            <line number="35" hits="84"/>
-            <line number="38" hits="133"/>
+            <line number="28" hits="168"/>
+            <line number="32" hits="135"/>
+            <line number="33" hits="135"/>
+            <line number="34" hits="135"/>
+            <line number="35" hits="86"/>
+            <line number="38" hits="135"/>
             <line number="39" hits="18"/>
-            <line number="45" hits="133"/>
-            <line number="46" hits="133"/>
-            <line number="47" hits="133"/>
+            <line number="45" hits="135"/>
+            <line number="46" hits="135"/>
+            <line number="47" hits="135"/>
             <line number="48" hits="7"/>
-            <line number="57" hits="84"/>
+            <line number="57" hits="86"/>
             <line number="58" hits="3"/>
-            <line number="59" hits="81"/>
+            <line number="59" hits="83"/>
             <line number="61" hits="4"/>
             <line number="63" hits="4"/>
             <line number="64" hits="4"/>
@@ -4758,7 +5040,7 @@
           <methods>
             <method name="__construct" signature="HubInterface $hub" line-rate="1" branch-rate="0" complexity="1">
               <lines>
-                <line number="18" hits="167"/>
+                <line number="18" hits="169"/>
               </lines>
             </method>
             <method name="base" signature="" line-rate="1" branch-rate="0" complexity="3">
@@ -4787,7 +5069,7 @@
             </method>
           </methods>
           <lines>
-            <line number="18" hits="167"/>
+            <line number="18" hits="169"/>
             <line number="25" hits="48"/>
             <line number="26" hits="48"/>
             <line number="27" hits="48"/>
@@ -4860,7 +5142,7 @@
           <methods>
             <method name="__construct" signature="HubInterface $hub, CurrentClient $currentClient, LoggerInterface $logger, OidcSubjectIdentifierRepository $users" line-rate="1" branch-rate="0" complexity="1">
               <lines>
-                <line number="49" hits="169"/>
+                <line number="49" hits="171"/>
               </lines>
             </method>
             <method name="publish" signature="OidcSubjectIdentifier $owner, string $layer, array $keys, string $action" line-rate="1" branch-rate="0" complexity="1">
@@ -4892,7 +5174,7 @@
             </method>
           </methods>
           <lines>
-            <line number="49" hits="169"/>
+            <line number="49" hits="171"/>
             <line number="58" hits="31"/>
             <line number="70" hits="9"/>
             <line number="72" hits="9"/>
@@ -5123,7 +5405,7 @@
           <methods>
             <method name="__construct" signature="ManagerRegistry $registry" line-rate="1" branch-rate="0" complexity="1">
               <lines>
-                <line number="18" hits="176"/>
+                <line number="18" hits="178"/>
               </lines>
             </method>
             <method name="findOneByIdAndOwner" signature="string $id, OidcSubjectIdentifier $owner" line-rate="1" branch-rate="0" complexity="2">
@@ -5135,7 +5417,7 @@
             </method>
           </methods>
           <lines>
-            <line number="18" hits="176"/>
+            <line number="18" hits="178"/>
             <line number="26" hits="6"/>
             <line number="27" hits="1"/>
             <line number="30" hits="6"/>
@@ -5155,6 +5437,30 @@
           </methods>
           <lines>
             <line number="16" hits="0"/>
+          </lines>
+        </class>
+      </classes>
+    </package>
+    <package name="Repository/DownloadDirectoryRepository.php" line-rate="0.33333333333333" branch-rate="0" complexity="2">
+      <classes>
+        <class name="App\Repository\DownloadDirectoryRepository" filename="Repository/DownloadDirectoryRepository.php" line-rate="0.33333333333333" branch-rate="0" complexity="2">
+          <methods>
+            <method name="__construct" signature="ManagerRegistry $registry" line-rate="1" branch-rate="0" complexity="1">
+              <lines>
+                <line number="16" hits="81"/>
+              </lines>
+            </method>
+            <method name="findDefault" signature="" line-rate="0" branch-rate="0" complexity="1">
+              <lines>
+                <line number="21" hits="0"/>
+                <line number="22" hits="0"/>
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="16" hits="81"/>
+            <line number="21" hits="0"/>
+            <line number="22" hits="0"/>
           </lines>
         </class>
       </classes>
@@ -5367,18 +5673,30 @@
         </class>
       </classes>
     </package>
-    <package name="Repository/DownloadedFileRepository.php" line-rate="1" branch-rate="0" complexity="1">
+    <package name="Repository/DownloadedFileRepository.php" line-rate="1" branch-rate="0" complexity="2">
       <classes>
-        <class name="App\Repository\DownloadedFileRepository" filename="Repository/DownloadedFileRepository.php" line-rate="1" branch-rate="0" complexity="1">
+        <class name="App\Repository\DownloadedFileRepository" filename="Repository/DownloadedFileRepository.php" line-rate="1" branch-rate="0" complexity="2">
           <methods>
             <method name="__construct" signature="ManagerRegistry $registry" line-rate="1" branch-rate="0" complexity="1">
               <lines>
-                <line number="16" hits="75"/>
+                <line number="18" hits="77"/>
+              </lines>
+            </method>
+            <method name="findOneByLocation" signature="DownloadDirectory $directory, string $relativePath" line-rate="1" branch-rate="0" complexity="1">
+              <lines>
+                <line number="26" hits="1"/>
+                <line number="27" hits="1"/>
+                <line number="28" hits="1"/>
+                <line number="29" hits="1"/>
               </lines>
             </method>
           </methods>
           <lines>
-            <line number="16" hits="75"/>
+            <line number="18" hits="77"/>
+            <line number="26" hits="1"/>
+            <line number="27" hits="1"/>
+            <line number="28" hits="1"/>
+            <line number="29" hits="1"/>
           </lines>
         </class>
       </classes>
@@ -5417,7 +5735,7 @@
           <methods>
             <method name="__construct" signature="ManagerRegistry $registry" line-rate="1" branch-rate="0" complexity="1">
               <lines>
-                <line number="17" hits="176"/>
+                <line number="17" hits="178"/>
               </lines>
             </method>
             <method name="iterateUuids" signature="" line-rate="1" branch-rate="0" complexity="2">
@@ -5428,7 +5746,7 @@
             </method>
           </methods>
           <lines>
-            <line number="17" hits="176"/>
+            <line number="17" hits="178"/>
             <line number="27" hits="7"/>
             <line number="28" hits="7"/>
           </lines>
@@ -6397,7 +6715,7 @@
           <methods>
             <method name="__construct" signature="Security $security, OidcSubjectIdentifierRepository $oidcSubjectIdentifierRepository" line-rate="1" branch-rate="0" complexity="1">
               <lines>
-                <line number="19" hits="176"/>
+                <line number="19" hits="178"/>
               </lines>
             </method>
             <method name="find" signature="" line-rate="0.75" branch-rate="0" complexity="2">
@@ -6415,7 +6733,7 @@
             </method>
           </methods>
           <lines>
-            <line number="19" hits="176"/>
+            <line number="19" hits="178"/>
             <line number="23" hits="66"/>
             <line number="24" hits="66"/>
             <line number="25" hits="0"/>
@@ -6885,7 +7203,7 @@
           <methods>
             <method name="__construct" signature="TagAwareCacheInterface $cache, EventDispatcherInterface $eventDispatcher, string $configPath, string $binaryPath, string $downloadPath, LoggerInterface $logger" line-rate="1" branch-rate="0" complexity="1">
               <lines>
-                <line number="41" hits="96"/>
+                <line number="41" hits="98"/>
               </lines>
             </method>
             <method name="setOptionsArgumentsBuilder" signature="OptionsArgumentsBuilder $optionsArgumentsBuilder" line-rate="1" branch-rate="0" complexity="1">
@@ -7068,7 +7386,7 @@
             </method>
           </methods>
           <lines>
-            <line number="41" hits="96"/>
+            <line number="41" hits="98"/>
             <line number="51" hits="61"/>
             <line number="58" hits="5"/>
             <line number="59" hits="5"/>
@@ -7205,24 +7523,22 @@
     <package name="Service/Downloader/DownloaderInterface.php" line-rate="0" branch-rate="0" complexity="0">
       <classes/>
     </package>
-    <package name="Service/Downloader/GalleryDlCliDownloader.php" line-rate="0.14953271028037" branch-rate="0" complexity="30">
+    <package name="Service/Downloader/GalleryDlCliDownloader.php" line-rate="0.14285714285714" branch-rate="0" complexity="32">
       <classes>
-        <class name="App\Service\Downloader\GalleryDlCliDownloader" filename="Service/Downloader/GalleryDlCliDownloader.php" line-rate="0.14953271028037" branch-rate="0" complexity="30">
+        <class name="App\Service\Downloader\GalleryDlCliDownloader" filename="Service/Downloader/GalleryDlCliDownloader.php" line-rate="0.14285714285714" branch-rate="0" complexity="32">
           <methods>
-            <method name="__construct" signature="TagAwareCacheInterface $cache, string $configPath, string $binaryPath, string $downloadPath, LoggerInterface $logger, EventDispatcherInterface $eventDispatcher, DownloadedFileRepository $downloadedFileRepository, EntityManagerInterface $entityManager" line-rate="1" branch-rate="0" complexity="1">
+            <method name="__construct" signature="TagAwareCacheInterface $cache, string $configPath, string $binaryPath, string $downloadPath, LoggerInterface $logger, EventDispatcherInterface $eventDispatcher, DownloadedFileRepository $downloadedFileRepository, EntityManagerInterface $entityManager, DownloadLocationResolver $locationResolver" line-rate="1" branch-rate="0" complexity="1">
               <lines>
-                <line number="33" hits="65"/>
+                <line number="35" hits="65"/>
               </lines>
             </method>
             <method name="getIdentifier" signature="" line-rate="1" branch-rate="0" complexity="1">
               <lines>
-                <line number="38" hits="61"/>
+                <line number="40" hits="61"/>
               </lines>
             </method>
             <method name="supportsDownloadJob" signature="DownloadJobInterface $downloadJob" line-rate="0" branch-rate="0" complexity="3">
               <lines>
-                <line number="43" hits="0"/>
-                <line number="44" hits="0"/>
                 <line number="45" hits="0"/>
                 <line number="46" hits="0"/>
                 <line number="47" hits="0"/>
@@ -7231,10 +7547,10 @@
                 <line number="50" hits="0"/>
                 <line number="51" hits="0"/>
                 <line number="52" hits="0"/>
+                <line number="53" hits="0"/>
                 <line number="54" hits="0"/>
                 <line number="56" hits="0"/>
                 <line number="58" hits="0"/>
-                <line number="59" hits="0"/>
                 <line number="60" hits="0"/>
                 <line number="61" hits="0"/>
                 <line number="62" hits="0"/>
@@ -7243,8 +7559,8 @@
                 <line number="65" hits="0"/>
                 <line number="66" hits="0"/>
                 <line number="67" hits="0"/>
-                <line number="70" hits="0"/>
-                <line number="71" hits="0"/>
+                <line number="68" hits="0"/>
+                <line number="69" hits="0"/>
                 <line number="72" hits="0"/>
                 <line number="73" hits="0"/>
                 <line number="74" hits="0"/>
@@ -7254,31 +7570,31 @@
                 <line number="78" hits="0"/>
                 <line number="79" hits="0"/>
                 <line number="80" hits="0"/>
+                <line number="81" hits="0"/>
                 <line number="82" hits="0"/>
                 <line number="84" hits="0"/>
+                <line number="86" hits="0"/>
               </lines>
             </method>
             <method name="getSupportedDomains" signature="" line-rate="0" branch-rate="0" complexity="1">
               <lines>
-                <line number="90" hits="0"/>
                 <line number="92" hits="0"/>
-                <line number="93" hits="0"/>
                 <line number="94" hits="0"/>
                 <line number="95" hits="0"/>
                 <line number="96" hits="0"/>
                 <line number="97" hits="0"/>
+                <line number="98" hits="0"/>
                 <line number="99" hits="0"/>
-                <line number="100" hits="0"/>
+                <line number="101" hits="0"/>
+                <line number="102" hits="0"/>
               </lines>
             </method>
             <method name="fetchSupportedDomains" signature="" line-rate="0" branch-rate="0" complexity="5">
               <lines>
-                <line number="105" hits="0"/>
-                <line number="106" hits="0"/>
                 <line number="107" hits="0"/>
                 <line number="108" hits="0"/>
+                <line number="109" hits="0"/>
                 <line number="110" hits="0"/>
-                <line number="111" hits="0"/>
                 <line number="112" hits="0"/>
                 <line number="113" hits="0"/>
                 <line number="114" hits="0"/>
@@ -7286,64 +7602,63 @@
                 <line number="116" hits="0"/>
                 <line number="117" hits="0"/>
                 <line number="118" hits="0"/>
-                <line number="122" hits="0"/>
-                <line number="123" hits="0"/>
+                <line number="119" hits="0"/>
+                <line number="120" hits="0"/>
+                <line number="124" hits="0"/>
                 <line number="125" hits="0"/>
+                <line number="127" hits="0"/>
               </lines>
             </method>
-            <method name="addFilesToDownloadJobFromCommandOutput" signature="DownloadJob $downloadJob, string $commandOutput" line-rate="0" branch-rate="0" complexity="8">
+            <method name="addFilesToDownloadJobFromCommandOutput" signature="DownloadJob $downloadJob, string $commandOutput" line-rate="0" branch-rate="0" complexity="10">
               <lines>
-                <line number="131" hits="0"/>
-                <line number="137" hits="0"/>
-                <line number="138" hits="0"/>
+                <line number="133" hits="0"/>
                 <line number="139" hits="0"/>
                 <line number="140" hits="0"/>
-                <line number="143" hits="0"/>
-                <line number="144" hits="0"/>
-                <line number="147" hits="0"/>
-                <line number="148" hits="0"/>
+                <line number="141" hits="0"/>
+                <line number="142" hits="0"/>
+                <line number="145" hits="0"/>
+                <line number="146" hits="0"/>
+                <line number="149" hits="0"/>
                 <line number="150" hits="0"/>
-                <line number="151" hits="0"/>
                 <line number="152" hits="0"/>
                 <line number="153" hits="0"/>
                 <line number="154" hits="0"/>
                 <line number="155" hits="0"/>
                 <line number="156" hits="0"/>
+                <line number="158" hits="0"/>
                 <line number="159" hits="0"/>
-                <line number="160" hits="0"/>
-                <line number="162" hits="0"/>
+                <line number="161" hits="0"/>
                 <line number="163" hits="0"/>
                 <line number="164" hits="0"/>
                 <line number="165" hits="0"/>
-                <line number="167" hits="0"/>
+                <line number="166" hits="0"/>
+                <line number="169" hits="0"/>
+                <line number="170" hits="0"/>
+                <line number="172" hits="0"/>
+                <line number="173" hits="0"/>
+                <line number="174" hits="0"/>
+                <line number="175" hits="0"/>
+                <line number="177" hits="0"/>
               </lines>
             </method>
             <method name="getCommandOptions" signature="DownloadJobInterface $downloadJob" line-rate="0.875" branch-rate="0" complexity="4">
               <lines>
-                <line number="174" hits="2"/>
-                <line number="177" hits="2"/>
-                <line number="180" hits="0"/>
-                <line number="183" hits="2"/>
-                <line number="184" hits="1"/>
+                <line number="184" hits="2"/>
                 <line number="187" hits="2"/>
-                <line number="188" hits="1"/>
-                <line number="191" hits="2"/>
+                <line number="190" hits="0"/>
+                <line number="193" hits="2"/>
+                <line number="194" hits="1"/>
+                <line number="197" hits="2"/>
+                <line number="198" hits="1"/>
+                <line number="201" hits="2"/>
               </lines>
             </method>
             <method name="getConfigFileContents" signature="" line-rate="0" branch-rate="0" complexity="1">
               <lines>
-                <line number="198" hits="0"/>
+                <line number="208" hits="0"/>
               </lines>
             </method>
             <method name="getCurrentVersion" signature="" line-rate="0.75" branch-rate="0" complexity="2">
-              <lines>
-                <line number="203" hits="2"/>
-                <line number="204" hits="2"/>
-                <line number="205" hits="0"/>
-                <line number="208" hits="2"/>
-              </lines>
-            </method>
-            <method name="getLatestVersion" signature="" line-rate="0.75" branch-rate="0" complexity="2">
               <lines>
                 <line number="213" hits="2"/>
                 <line number="214" hits="2"/>
@@ -7351,25 +7666,31 @@
                 <line number="218" hits="2"/>
               </lines>
             </method>
+            <method name="getLatestVersion" signature="" line-rate="0.75" branch-rate="0" complexity="2">
+              <lines>
+                <line number="223" hits="2"/>
+                <line number="224" hits="2"/>
+                <line number="225" hits="0"/>
+                <line number="228" hits="2"/>
+              </lines>
+            </method>
             <method name="getUpdateCommandArgs" signature="" line-rate="1" branch-rate="0" complexity="1">
               <lines>
-                <line number="223" hits="1"/>
+                <line number="233" hits="1"/>
               </lines>
             </method>
             <method name="getVersionCommandArgs" signature="" line-rate="0" branch-rate="0" complexity="1">
               <lines>
-                <line number="228" hits="0"/>
-                <line number="229" hits="0"/>
-                <line number="230" hits="0"/>
-                <line number="231" hits="0"/>
+                <line number="238" hits="0"/>
+                <line number="239" hits="0"/>
+                <line number="240" hits="0"/>
+                <line number="241" hits="0"/>
               </lines>
             </method>
           </methods>
           <lines>
-            <line number="33" hits="65"/>
-            <line number="38" hits="61"/>
-            <line number="43" hits="0"/>
-            <line number="44" hits="0"/>
+            <line number="35" hits="65"/>
+            <line number="40" hits="61"/>
             <line number="45" hits="0"/>
             <line number="46" hits="0"/>
             <line number="47" hits="0"/>
@@ -7378,10 +7699,10 @@
             <line number="50" hits="0"/>
             <line number="51" hits="0"/>
             <line number="52" hits="0"/>
+            <line number="53" hits="0"/>
             <line number="54" hits="0"/>
             <line number="56" hits="0"/>
             <line number="58" hits="0"/>
-            <line number="59" hits="0"/>
             <line number="60" hits="0"/>
             <line number="61" hits="0"/>
             <line number="62" hits="0"/>
@@ -7390,8 +7711,8 @@
             <line number="65" hits="0"/>
             <line number="66" hits="0"/>
             <line number="67" hits="0"/>
-            <line number="70" hits="0"/>
-            <line number="71" hits="0"/>
+            <line number="68" hits="0"/>
+            <line number="69" hits="0"/>
             <line number="72" hits="0"/>
             <line number="73" hits="0"/>
             <line number="74" hits="0"/>
@@ -7401,23 +7722,23 @@
             <line number="78" hits="0"/>
             <line number="79" hits="0"/>
             <line number="80" hits="0"/>
+            <line number="81" hits="0"/>
             <line number="82" hits="0"/>
             <line number="84" hits="0"/>
-            <line number="90" hits="0"/>
+            <line number="86" hits="0"/>
             <line number="92" hits="0"/>
-            <line number="93" hits="0"/>
             <line number="94" hits="0"/>
             <line number="95" hits="0"/>
             <line number="96" hits="0"/>
             <line number="97" hits="0"/>
+            <line number="98" hits="0"/>
             <line number="99" hits="0"/>
-            <line number="100" hits="0"/>
-            <line number="105" hits="0"/>
-            <line number="106" hits="0"/>
+            <line number="101" hits="0"/>
+            <line number="102" hits="0"/>
             <line number="107" hits="0"/>
             <line number="108" hits="0"/>
+            <line number="109" hits="0"/>
             <line number="110" hits="0"/>
-            <line number="111" hits="0"/>
             <line number="112" hits="0"/>
             <line number="113" hits="0"/>
             <line number="114" hits="0"/>
@@ -7425,54 +7746,61 @@
             <line number="116" hits="0"/>
             <line number="117" hits="0"/>
             <line number="118" hits="0"/>
-            <line number="122" hits="0"/>
-            <line number="123" hits="0"/>
+            <line number="119" hits="0"/>
+            <line number="120" hits="0"/>
+            <line number="124" hits="0"/>
             <line number="125" hits="0"/>
-            <line number="131" hits="0"/>
-            <line number="137" hits="0"/>
-            <line number="138" hits="0"/>
+            <line number="127" hits="0"/>
+            <line number="133" hits="0"/>
             <line number="139" hits="0"/>
             <line number="140" hits="0"/>
-            <line number="143" hits="0"/>
-            <line number="144" hits="0"/>
-            <line number="147" hits="0"/>
-            <line number="148" hits="0"/>
+            <line number="141" hits="0"/>
+            <line number="142" hits="0"/>
+            <line number="145" hits="0"/>
+            <line number="146" hits="0"/>
+            <line number="149" hits="0"/>
             <line number="150" hits="0"/>
-            <line number="151" hits="0"/>
             <line number="152" hits="0"/>
             <line number="153" hits="0"/>
             <line number="154" hits="0"/>
             <line number="155" hits="0"/>
             <line number="156" hits="0"/>
+            <line number="158" hits="0"/>
             <line number="159" hits="0"/>
-            <line number="160" hits="0"/>
-            <line number="162" hits="0"/>
+            <line number="161" hits="0"/>
             <line number="163" hits="0"/>
             <line number="164" hits="0"/>
             <line number="165" hits="0"/>
-            <line number="167" hits="0"/>
-            <line number="174" hits="2"/>
-            <line number="177" hits="2"/>
-            <line number="180" hits="0"/>
-            <line number="183" hits="2"/>
-            <line number="184" hits="1"/>
+            <line number="166" hits="0"/>
+            <line number="169" hits="0"/>
+            <line number="170" hits="0"/>
+            <line number="172" hits="0"/>
+            <line number="173" hits="0"/>
+            <line number="174" hits="0"/>
+            <line number="175" hits="0"/>
+            <line number="177" hits="0"/>
+            <line number="184" hits="2"/>
             <line number="187" hits="2"/>
-            <line number="188" hits="1"/>
-            <line number="191" hits="2"/>
-            <line number="198" hits="0"/>
-            <line number="203" hits="2"/>
-            <line number="204" hits="2"/>
-            <line number="205" hits="0"/>
-            <line number="208" hits="2"/>
+            <line number="190" hits="0"/>
+            <line number="193" hits="2"/>
+            <line number="194" hits="1"/>
+            <line number="197" hits="2"/>
+            <line number="198" hits="1"/>
+            <line number="201" hits="2"/>
+            <line number="208" hits="0"/>
             <line number="213" hits="2"/>
             <line number="214" hits="2"/>
             <line number="215" hits="0"/>
             <line number="218" hits="2"/>
-            <line number="223" hits="1"/>
-            <line number="228" hits="0"/>
-            <line number="229" hits="0"/>
-            <line number="230" hits="0"/>
-            <line number="231" hits="0"/>
+            <line number="223" hits="2"/>
+            <line number="224" hits="2"/>
+            <line number="225" hits="0"/>
+            <line number="228" hits="2"/>
+            <line number="233" hits="1"/>
+            <line number="238" hits="0"/>
+            <line number="239" hits="0"/>
+            <line number="240" hits="0"/>
+            <line number="241" hits="0"/>
           </lines>
         </class>
       </classes>
@@ -8168,64 +8496,62 @@
         </class>
       </classes>
     </package>
-    <package name="Service/Downloader/YoutubeDlCliDownloader.php" line-rate="0.46808510638298" branch-rate="0" complexity="41">
+    <package name="Service/Downloader/YoutubeDlCliDownloader.php" line-rate="0.49324324324324" branch-rate="0" complexity="44">
       <classes>
-        <class name="App\Service\Downloader\YoutubeDlCliDownloader" filename="Service/Downloader/YoutubeDlCliDownloader.php" line-rate="0.46808510638298" branch-rate="0" complexity="41">
+        <class name="App\Service\Downloader\YoutubeDlCliDownloader" filename="Service/Downloader/YoutubeDlCliDownloader.php" line-rate="0.49324324324324" branch-rate="0" complexity="44">
           <methods>
-            <method name="__construct" signature="TagAwareCacheInterface $cache, string $configPath, string $binaryPath, string $downloadPath, LoggerInterface $logger, EventDispatcherInterface $eventDispatcher, DownloadedFileRepository $downloadedFileRepository, EntityManagerInterface $entityManager" line-rate="1" branch-rate="0" complexity="1">
+            <method name="__construct" signature="TagAwareCacheInterface $cache, string $configPath, string $binaryPath, string $downloadPath, LoggerInterface $logger, EventDispatcherInterface $eventDispatcher, DownloadedFileRepository $downloadedFileRepository, EntityManagerInterface $entityManager, DownloadLocationResolver $locationResolver" line-rate="1" branch-rate="0" complexity="1">
               <lines>
-                <line number="31" hits="74"/>
+                <line number="33" hits="76"/>
               </lines>
             </method>
             <method name="getIdentifier" signature="" line-rate="1" branch-rate="0" complexity="1">
               <lines>
-                <line number="36" hits="63"/>
+                <line number="38" hits="63"/>
               </lines>
             </method>
             <method name="getSupportedDomains" signature="" line-rate="1" branch-rate="0" complexity="1">
               <lines>
-                <line number="41" hits="1"/>
+                <line number="43" hits="1"/>
               </lines>
             </method>
             <method name="getMetadata" signature="DownloadJobInterface $downloadJob" line-rate="0" branch-rate="0" complexity="4">
               <lines>
-                <line number="52" hits="0"/>
                 <line number="54" hits="0"/>
-                <line number="55" hits="0"/>
                 <line number="56" hits="0"/>
                 <line number="57" hits="0"/>
                 <line number="58" hits="0"/>
-                <line number="61" hits="0"/>
+                <line number="59" hits="0"/>
+                <line number="60" hits="0"/>
                 <line number="63" hits="0"/>
-                <line number="64" hits="0"/>
                 <line number="65" hits="0"/>
                 <line number="66" hits="0"/>
                 <line number="67" hits="0"/>
-                <line number="70" hits="0"/>
-                <line number="71" hits="0"/>
+                <line number="68" hits="0"/>
+                <line number="69" hits="0"/>
                 <line number="72" hits="0"/>
                 <line number="73" hits="0"/>
                 <line number="74" hits="0"/>
+                <line number="75" hits="0"/>
                 <line number="76" hits="0"/>
-                <line number="77" hits="0"/>
                 <line number="78" hits="0"/>
                 <line number="79" hits="0"/>
                 <line number="80" hits="0"/>
                 <line number="81" hits="0"/>
+                <line number="82" hits="0"/>
                 <line number="83" hits="0"/>
-                <line number="84" hits="0"/>
                 <line number="85" hits="0"/>
                 <line number="86" hits="0"/>
                 <line number="87" hits="0"/>
                 <line number="88" hits="0"/>
                 <line number="89" hits="0"/>
-                <line number="92" hits="0"/>
+                <line number="90" hits="0"/>
+                <line number="91" hits="0"/>
+                <line number="94" hits="0"/>
               </lines>
             </method>
             <method name="supportsDownloadJob" signature="DownloadJobInterface $downloadJob" line-rate="0" branch-rate="0" complexity="3">
               <lines>
-                <line number="99" hits="0"/>
-                <line number="100" hits="0"/>
                 <line number="101" hits="0"/>
                 <line number="102" hits="0"/>
                 <line number="103" hits="0"/>
@@ -8235,10 +8561,10 @@
                 <line number="107" hits="0"/>
                 <line number="108" hits="0"/>
                 <line number="109" hits="0"/>
+                <line number="110" hits="0"/>
                 <line number="111" hits="0"/>
                 <line number="113" hits="0"/>
                 <line number="115" hits="0"/>
-                <line number="116" hits="0"/>
                 <line number="117" hits="0"/>
                 <line number="118" hits="0"/>
                 <line number="119" hits="0"/>
@@ -8247,8 +8573,8 @@
                 <line number="122" hits="0"/>
                 <line number="123" hits="0"/>
                 <line number="124" hits="0"/>
-                <line number="127" hits="0"/>
-                <line number="128" hits="0"/>
+                <line number="125" hits="0"/>
+                <line number="126" hits="0"/>
                 <line number="129" hits="0"/>
                 <line number="130" hits="0"/>
                 <line number="131" hits="0"/>
@@ -8258,167 +8584,174 @@
                 <line number="135" hits="0"/>
                 <line number="136" hits="0"/>
                 <line number="137" hits="0"/>
+                <line number="138" hits="0"/>
                 <line number="139" hits="0"/>
                 <line number="141" hits="0"/>
+                <line number="143" hits="0"/>
               </lines>
             </method>
             <method name="runDownload" signature="DownloadJobInterface $downloadJob" line-rate="1" branch-rate="0" complexity="2">
               <lines>
-                <line number="178" hits="2"/>
                 <line number="180" hits="2"/>
-                <line number="181" hits="1"/>
-                <line number="182" hits="1"/>
+                <line number="182" hits="2"/>
                 <line number="183" hits="1"/>
                 <line number="184" hits="1"/>
+                <line number="185" hits="1"/>
+                <line number="186" hits="1"/>
               </lines>
             </method>
             <method name="wasSkippedByDownloadArchive" signature="string $commandOutput" line-rate="1" branch-rate="0" complexity="4">
               <lines>
-                <line number="190" hits="2"/>
-                <line number="191" hits="2"/>
                 <line number="192" hits="2"/>
-                <line number="193" hits="1"/>
-                <line number="197" hits="1"/>
+                <line number="193" hits="2"/>
+                <line number="194" hits="2"/>
+                <line number="195" hits="1"/>
+                <line number="199" hits="1"/>
               </lines>
             </method>
             <method name="addFilesToDownloadJobFromCommandOutput" signature="DownloadJobInterface $downloadJob, string $commandOutput" line-rate="1" branch-rate="0" complexity="5">
               <lines>
-                <line number="202" hits="6"/>
-                <line number="204" hits="6"/>
-                <line number="205" hits="6"/>
-                <line number="207" hits="6"/>
-                <line number="208" hits="3"/>
-                <line number="209" hits="6"/>
-                <line number="212" hits="4"/>
-                <line number="213" hits="4"/>
-                <line number="214" hits="4"/>
-                <line number="215" hits="2"/>
-                <line number="217" hits="4"/>
-                <line number="221" hits="6"/>
-                <line number="222" hits="6"/>
-                <line number="223" hits="6"/>
+                <line number="204" hits="8"/>
+                <line number="206" hits="8"/>
+                <line number="207" hits="8"/>
+                <line number="209" hits="8"/>
+                <line number="210" hits="3"/>
+                <line number="211" hits="8"/>
+                <line number="214" hits="6"/>
+                <line number="215" hits="6"/>
+                <line number="216" hits="6"/>
+                <line number="217" hits="2"/>
+                <line number="219" hits="6"/>
+                <line number="223" hits="8"/>
+                <line number="224" hits="8"/>
+                <line number="225" hits="8"/>
               </lines>
             </method>
             <method name="addShortcutAndMediaFiles" signature="DownloadJobInterface $downloadJob, string $shortcutPath" line-rate="1" branch-rate="0" complexity="3">
               <lines>
-                <line number="232" hits="4"/>
-                <line number="233" hits="4"/>
+                <line number="234" hits="4"/>
                 <line number="235" hits="4"/>
-                <line number="236" hits="4"/>
                 <line number="237" hits="4"/>
+                <line number="238" hits="4"/>
+                <line number="239" hits="4"/>
               </lines>
             </method>
-            <method name="linkFile" signature="DownloadJobInterface $downloadJob, string $path, ?array $metadata" line-rate="1" branch-rate="0" complexity="3">
+            <method name="linkFile" signature="DownloadJobInterface $downloadJob, string $path, ?array $metadata" line-rate="1" branch-rate="0" complexity="6">
               <lines>
-                <line number="247" hits="6"/>
-                <line number="248" hits="1"/>
-                <line number="251" hits="5"/>
-                <line number="252" hits="5"/>
-                <line number="253" hits="5"/>
-                <line number="254" hits="5"/>
-                <line number="255" hits="5"/>
-                <line number="256" hits="5"/>
-                <line number="259" hits="5"/>
-                <line number="260" hits="5"/>
-                <line number="261" hits="5"/>
+                <line number="249" hits="8"/>
+                <line number="250" hits="1"/>
+                <line number="253" hits="7"/>
+                <line number="254" hits="7"/>
+                <line number="255" hits="7"/>
+                <line number="256" hits="7"/>
+                <line number="257" hits="1"/>
+                <line number="260" hits="6"/>
+                <line number="261" hits="6"/>
+                <line number="262" hits="5"/>
+                <line number="263" hits="5"/>
+                <line number="264" hits="5"/>
+                <line number="265" hits="5"/>
+                <line number="266" hits="2"/>
+                <line number="268" hits="1"/>
+                <line number="272" hits="6"/>
+                <line number="273" hits="6"/>
+                <line number="274" hits="6"/>
               </lines>
             </method>
             <method name="readMetadataFile" signature="string $path" line-rate="0.75" branch-rate="0" complexity="3">
               <lines>
-                <line number="266" hits="5"/>
-                <line number="267" hits="0"/>
-                <line number="270" hits="5"/>
-                <line number="272" hits="5"/>
+                <line number="279" hits="5"/>
+                <line number="280" hits="0"/>
+                <line number="283" hits="5"/>
+                <line number="285" hits="5"/>
               </lines>
             </method>
             <method name="getCurrentVersion" signature="" line-rate="0.75" branch-rate="0" complexity="2">
               <lines>
-                <line number="277" hits="2"/>
-                <line number="278" hits="2"/>
-                <line number="279" hits="0"/>
-                <line number="282" hits="2"/>
+                <line number="290" hits="2"/>
+                <line number="291" hits="2"/>
+                <line number="292" hits="0"/>
+                <line number="295" hits="2"/>
               </lines>
             </method>
             <method name="getLatestVersion" signature="" line-rate="0.75" branch-rate="0" complexity="2">
               <lines>
-                <line number="287" hits="2"/>
-                <line number="288" hits="2"/>
-                <line number="289" hits="0"/>
-                <line number="292" hits="2"/>
+                <line number="300" hits="2"/>
+                <line number="301" hits="2"/>
+                <line number="302" hits="0"/>
+                <line number="305" hits="2"/>
               </lines>
             </method>
             <method name="getCommandOptions" signature="DownloadJobInterface $downloadJob" line-rate="0.875" branch-rate="0" complexity="4">
               <lines>
-                <line number="297" hits="4"/>
-                <line number="299" hits="4"/>
-                <line number="302" hits="0"/>
-                <line number="305" hits="4"/>
-                <line number="306" hits="1"/>
-                <line number="309" hits="4"/>
-                <line number="310" hits="1"/>
-                <line number="313" hits="4"/>
+                <line number="310" hits="4"/>
+                <line number="312" hits="4"/>
+                <line number="315" hits="0"/>
+                <line number="318" hits="4"/>
+                <line number="319" hits="1"/>
+                <line number="322" hits="4"/>
+                <line number="323" hits="1"/>
+                <line number="326" hits="4"/>
               </lines>
             </method>
             <method name="getConfigFileContents" signature="" line-rate="1" branch-rate="0" complexity="1">
               <lines>
-                <line number="318" hits="2"/>
-                <line number="319" hits="2"/>
-                <line number="320" hits="2"/>
-                <line number="322" hits="2"/>
-                <line number="344" hits="2"/>
+                <line number="331" hits="2"/>
+                <line number="332" hits="2"/>
+                <line number="333" hits="2"/>
+                <line number="335" hits="2"/>
+                <line number="357" hits="2"/>
               </lines>
             </method>
             <method name="getUpdateCommandArgs" signature="" line-rate="1" branch-rate="0" complexity="1">
               <lines>
-                <line number="349" hits="1"/>
+                <line number="362" hits="1"/>
               </lines>
             </method>
             <method name="getVersionCommandArgs" signature="" line-rate="0" branch-rate="0" complexity="1">
               <lines>
-                <line number="354" hits="0"/>
-                <line number="355" hits="0"/>
-                <line number="356" hits="0"/>
-                <line number="357" hits="0"/>
+                <line number="367" hits="0"/>
+                <line number="368" hits="0"/>
+                <line number="369" hits="0"/>
+                <line number="370" hits="0"/>
               </lines>
             </method>
           </methods>
           <lines>
-            <line number="31" hits="74"/>
-            <line number="36" hits="63"/>
-            <line number="41" hits="1"/>
-            <line number="52" hits="0"/>
+            <line number="33" hits="76"/>
+            <line number="38" hits="63"/>
+            <line number="43" hits="1"/>
             <line number="54" hits="0"/>
-            <line number="55" hits="0"/>
             <line number="56" hits="0"/>
             <line number="57" hits="0"/>
             <line number="58" hits="0"/>
-            <line number="61" hits="0"/>
+            <line number="59" hits="0"/>
+            <line number="60" hits="0"/>
             <line number="63" hits="0"/>
-            <line number="64" hits="0"/>
             <line number="65" hits="0"/>
             <line number="66" hits="0"/>
             <line number="67" hits="0"/>
-            <line number="70" hits="0"/>
-            <line number="71" hits="0"/>
+            <line number="68" hits="0"/>
+            <line number="69" hits="0"/>
             <line number="72" hits="0"/>
             <line number="73" hits="0"/>
             <line number="74" hits="0"/>
+            <line number="75" hits="0"/>
             <line number="76" hits="0"/>
-            <line number="77" hits="0"/>
             <line number="78" hits="0"/>
             <line number="79" hits="0"/>
             <line number="80" hits="0"/>
             <line number="81" hits="0"/>
+            <line number="82" hits="0"/>
             <line number="83" hits="0"/>
-            <line number="84" hits="0"/>
             <line number="85" hits="0"/>
             <line number="86" hits="0"/>
             <line number="87" hits="0"/>
             <line number="88" hits="0"/>
             <line number="89" hits="0"/>
-            <line number="92" hits="0"/>
-            <line number="99" hits="0"/>
-            <line number="100" hits="0"/>
+            <line number="90" hits="0"/>
+            <line number="91" hits="0"/>
+            <line number="94" hits="0"/>
             <line number="101" hits="0"/>
             <line number="102" hits="0"/>
             <line number="103" hits="0"/>
@@ -8428,10 +8761,10 @@
             <line number="107" hits="0"/>
             <line number="108" hits="0"/>
             <line number="109" hits="0"/>
+            <line number="110" hits="0"/>
             <line number="111" hits="0"/>
             <line number="113" hits="0"/>
             <line number="115" hits="0"/>
-            <line number="116" hits="0"/>
             <line number="117" hits="0"/>
             <line number="118" hits="0"/>
             <line number="119" hits="0"/>
@@ -8440,8 +8773,8 @@
             <line number="122" hits="0"/>
             <line number="123" hits="0"/>
             <line number="124" hits="0"/>
-            <line number="127" hits="0"/>
-            <line number="128" hits="0"/>
+            <line number="125" hits="0"/>
+            <line number="126" hits="0"/>
             <line number="129" hits="0"/>
             <line number="130" hits="0"/>
             <line number="131" hits="0"/>
@@ -8451,79 +8784,88 @@
             <line number="135" hits="0"/>
             <line number="136" hits="0"/>
             <line number="137" hits="0"/>
+            <line number="138" hits="0"/>
             <line number="139" hits="0"/>
             <line number="141" hits="0"/>
-            <line number="178" hits="2"/>
+            <line number="143" hits="0"/>
             <line number="180" hits="2"/>
-            <line number="181" hits="1"/>
-            <line number="182" hits="1"/>
+            <line number="182" hits="2"/>
             <line number="183" hits="1"/>
             <line number="184" hits="1"/>
-            <line number="190" hits="2"/>
-            <line number="191" hits="2"/>
+            <line number="185" hits="1"/>
+            <line number="186" hits="1"/>
             <line number="192" hits="2"/>
-            <line number="193" hits="1"/>
-            <line number="197" hits="1"/>
-            <line number="202" hits="6"/>
-            <line number="204" hits="6"/>
-            <line number="205" hits="6"/>
-            <line number="207" hits="6"/>
-            <line number="208" hits="3"/>
-            <line number="209" hits="6"/>
-            <line number="212" hits="4"/>
-            <line number="213" hits="4"/>
-            <line number="214" hits="4"/>
-            <line number="215" hits="2"/>
-            <line number="217" hits="4"/>
-            <line number="221" hits="6"/>
-            <line number="222" hits="6"/>
-            <line number="223" hits="6"/>
-            <line number="232" hits="4"/>
-            <line number="233" hits="4"/>
+            <line number="193" hits="2"/>
+            <line number="194" hits="2"/>
+            <line number="195" hits="1"/>
+            <line number="199" hits="1"/>
+            <line number="204" hits="8"/>
+            <line number="206" hits="8"/>
+            <line number="207" hits="8"/>
+            <line number="209" hits="8"/>
+            <line number="210" hits="3"/>
+            <line number="211" hits="8"/>
+            <line number="214" hits="6"/>
+            <line number="215" hits="6"/>
+            <line number="216" hits="6"/>
+            <line number="217" hits="2"/>
+            <line number="219" hits="6"/>
+            <line number="223" hits="8"/>
+            <line number="224" hits="8"/>
+            <line number="225" hits="8"/>
+            <line number="234" hits="4"/>
             <line number="235" hits="4"/>
-            <line number="236" hits="4"/>
             <line number="237" hits="4"/>
-            <line number="247" hits="6"/>
-            <line number="248" hits="1"/>
-            <line number="251" hits="5"/>
-            <line number="252" hits="5"/>
-            <line number="253" hits="5"/>
-            <line number="254" hits="5"/>
-            <line number="255" hits="5"/>
-            <line number="256" hits="5"/>
-            <line number="259" hits="5"/>
-            <line number="260" hits="5"/>
-            <line number="261" hits="5"/>
-            <line number="266" hits="5"/>
-            <line number="267" hits="0"/>
-            <line number="270" hits="5"/>
-            <line number="272" hits="5"/>
-            <line number="277" hits="2"/>
-            <line number="278" hits="2"/>
-            <line number="279" hits="0"/>
-            <line number="282" hits="2"/>
-            <line number="287" hits="2"/>
-            <line number="288" hits="2"/>
-            <line number="289" hits="0"/>
-            <line number="292" hits="2"/>
-            <line number="297" hits="4"/>
-            <line number="299" hits="4"/>
+            <line number="238" hits="4"/>
+            <line number="239" hits="4"/>
+            <line number="249" hits="8"/>
+            <line number="250" hits="1"/>
+            <line number="253" hits="7"/>
+            <line number="254" hits="7"/>
+            <line number="255" hits="7"/>
+            <line number="256" hits="7"/>
+            <line number="257" hits="1"/>
+            <line number="260" hits="6"/>
+            <line number="261" hits="6"/>
+            <line number="262" hits="5"/>
+            <line number="263" hits="5"/>
+            <line number="264" hits="5"/>
+            <line number="265" hits="5"/>
+            <line number="266" hits="2"/>
+            <line number="268" hits="1"/>
+            <line number="272" hits="6"/>
+            <line number="273" hits="6"/>
+            <line number="274" hits="6"/>
+            <line number="279" hits="5"/>
+            <line number="280" hits="0"/>
+            <line number="283" hits="5"/>
+            <line number="285" hits="5"/>
+            <line number="290" hits="2"/>
+            <line number="291" hits="2"/>
+            <line number="292" hits="0"/>
+            <line number="295" hits="2"/>
+            <line number="300" hits="2"/>
+            <line number="301" hits="2"/>
             <line number="302" hits="0"/>
-            <line number="305" hits="4"/>
-            <line number="306" hits="1"/>
-            <line number="309" hits="4"/>
-            <line number="310" hits="1"/>
-            <line number="313" hits="4"/>
-            <line number="318" hits="2"/>
-            <line number="319" hits="2"/>
-            <line number="320" hits="2"/>
-            <line number="322" hits="2"/>
-            <line number="344" hits="2"/>
-            <line number="349" hits="1"/>
-            <line number="354" hits="0"/>
-            <line number="355" hits="0"/>
-            <line number="356" hits="0"/>
-            <line number="357" hits="0"/>
+            <line number="305" hits="2"/>
+            <line number="310" hits="4"/>
+            <line number="312" hits="4"/>
+            <line number="315" hits="0"/>
+            <line number="318" hits="4"/>
+            <line number="319" hits="1"/>
+            <line number="322" hits="4"/>
+            <line number="323" hits="1"/>
+            <line number="326" hits="4"/>
+            <line number="331" hits="2"/>
+            <line number="332" hits="2"/>
+            <line number="333" hits="2"/>
+            <line number="335" hits="2"/>
+            <line number="357" hits="2"/>
+            <line number="362" hits="1"/>
+            <line number="367" hits="0"/>
+            <line number="368" hits="0"/>
+            <line number="369" hits="0"/>
+            <line number="370" hits="0"/>
           </lines>
         </class>
       </classes>
@@ -8534,7 +8876,7 @@
           <methods>
             <method name="__construct" signature="RequestStack $requestStack, CurrentOwner $currentOwner, ClientRepository $clientRepository, ClockInterface $clock, LoggerInterface $logger" line-rate="1" branch-rate="0" complexity="1">
               <lines>
-                <line number="35" hits="176"/>
+                <line number="35" hits="178"/>
               </lines>
             </method>
             <method name="get" signature="" line-rate="1" branch-rate="0" complexity="2">
@@ -8547,8 +8889,8 @@
             </method>
             <method name="reset" signature="" line-rate="1" branch-rate="0" complexity="1">
               <lines>
-                <line number="49" hits="176"/>
-                <line number="50" hits="176"/>
+                <line number="49" hits="178"/>
+                <line number="50" hits="178"/>
               </lines>
             </method>
             <method name="resolve" signature="" line-rate="0.91666666666667" branch-rate="0" complexity="4">
@@ -8586,13 +8928,13 @@
             </method>
           </methods>
           <lines>
-            <line number="35" hits="176"/>
+            <line number="35" hits="178"/>
             <line number="39" hits="55"/>
             <line number="40" hits="55"/>
             <line number="41" hits="55"/>
             <line number="44" hits="55"/>
-            <line number="49" hits="176"/>
-            <line number="50" hits="176"/>
+            <line number="49" hits="178"/>
+            <line number="50" hits="178"/>
             <line number="55" hits="55"/>
             <line number="56" hits="55"/>
             <line number="57" hits="54"/>
@@ -9389,6 +9731,200 @@
             <line number="186" hits="89"/>
             <line number="187" hits="89"/>
             <line number="190" hits="89"/>
+          </lines>
+        </class>
+      </classes>
+    </package>
+    <package name="Service/Storage/DownloadLocation.php" line-rate="0.5" branch-rate="0" complexity="2">
+      <classes>
+        <class name="App\Service\Storage\DownloadLocation" filename="Service/Storage/DownloadLocation.php" line-rate="0.5" branch-rate="0" complexity="2">
+          <methods>
+            <method name="__construct" signature="DownloadDirectory $directory, string $relativePath" line-rate="1" branch-rate="0" complexity="1">
+              <lines>
+                <line number="16" hits="10"/>
+              </lines>
+            </method>
+            <method name="absolutePath" signature="" line-rate="0" branch-rate="0" complexity="1">
+              <lines>
+                <line number="20" hits="0"/>
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="16" hits="10"/>
+            <line number="20" hits="0"/>
+          </lines>
+        </class>
+      </classes>
+    </package>
+    <package name="Service/Storage/DownloadLocationResolver.php" line-rate="1" branch-rate="0" complexity="13">
+      <classes>
+        <class name="App\Service\Storage\DownloadLocationResolver" filename="Service/Storage/DownloadLocationResolver.php" line-rate="1" branch-rate="0" complexity="13">
+          <methods>
+            <method name="__construct" signature="DownloadDirectoryRepository $directoryRepository, EntityManagerInterface $entityManager, LoggerInterface $logger" line-rate="1" branch-rate="0" complexity="1">
+              <lines>
+                <line number="24" hits="67"/>
+              </lines>
+            </method>
+            <method name="fromAbsolute" signature="string $path" line-rate="1" branch-rate="0" complexity="8">
+              <lines>
+                <line number="32" hits="6"/>
+                <line number="34" hits="6"/>
+                <line number="35" hits="6"/>
+                <line number="36" hits="5"/>
+                <line number="37" hits="5"/>
+                <line number="38" hits="5"/>
+                <line number="39" hits="5"/>
+                <line number="40" hits="4"/>
+                <line number="46" hits="6"/>
+                <line number="47" hits="4"/>
+                <line number="49" hits="4"/>
+                <line number="52" hits="4"/>
+              </lines>
+            </method>
+            <method name="reset" signature="" line-rate="1" branch-rate="0" complexity="1">
+              <lines>
+                <line number="57" hits="63"/>
+              </lines>
+            </method>
+            <method name="directories" signature="" line-rate="1" branch-rate="0" complexity="3">
+              <lines>
+                <line number="65" hits="6"/>
+                <line number="66" hits="6"/>
+                <line number="67" hits="6"/>
+                <line number="68" hits="5"/>
+                <line number="69" hits="5"/>
+                <line number="70" hits="5"/>
+                <line number="71" hits="5"/>
+                <line number="75" hits="6"/>
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="24" hits="67"/>
+            <line number="32" hits="6"/>
+            <line number="34" hits="6"/>
+            <line number="35" hits="6"/>
+            <line number="36" hits="5"/>
+            <line number="37" hits="5"/>
+            <line number="38" hits="5"/>
+            <line number="39" hits="5"/>
+            <line number="40" hits="4"/>
+            <line number="46" hits="6"/>
+            <line number="47" hits="4"/>
+            <line number="49" hits="4"/>
+            <line number="52" hits="4"/>
+            <line number="57" hits="63"/>
+            <line number="65" hits="6"/>
+            <line number="66" hits="6"/>
+            <line number="67" hits="6"/>
+            <line number="68" hits="5"/>
+            <line number="69" hits="5"/>
+            <line number="70" hits="5"/>
+            <line number="71" hits="5"/>
+            <line number="75" hits="6"/>
+          </lines>
+        </class>
+      </classes>
+    </package>
+    <package name="Service/Storage/DownloadRoots.php" line-rate="1" branch-rate="0" complexity="5">
+      <classes>
+        <class name="App\Service\Storage\DownloadRoots" filename="Service/Storage/DownloadRoots.php" line-rate="1" branch-rate="0" complexity="5">
+          <methods>
+            <method name="__construct" signature="array $roots" line-rate="1" branch-rate="0" complexity="1">
+              <lines>
+                <line number="20" hits="4"/>
+                <line number="21" hits="4"/>
+              </lines>
+            </method>
+            <method name="all" signature="" line-rate="1" branch-rate="0" complexity="1">
+              <lines>
+                <line number="27" hits="3"/>
+              </lines>
+            </method>
+            <method name="contains" signature="string $path" line-rate="1" branch-rate="0" complexity="3">
+              <lines>
+                <line number="35" hits="4"/>
+                <line number="36" hits="4"/>
+                <line number="37" hits="4"/>
+                <line number="38" hits="3"/>
+                <line number="42" hits="4"/>
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="20" hits="4"/>
+            <line number="21" hits="4"/>
+            <line number="27" hits="3"/>
+            <line number="35" hits="4"/>
+            <line number="36" hits="4"/>
+            <line number="37" hits="4"/>
+            <line number="38" hits="3"/>
+            <line number="42" hits="4"/>
+          </lines>
+        </class>
+      </classes>
+    </package>
+    <package name="Service/Storage/Paths.php" line-rate="1" branch-rate="0" complexity="15">
+      <classes>
+        <class name="App\Service\Storage\Paths" filename="Service/Storage/Paths.php" line-rate="1" branch-rate="0" complexity="15">
+          <methods>
+            <method name="normalize" signature="string $path" line-rate="1" branch-rate="0" complexity="5">
+              <lines>
+                <line number="15" hits="16"/>
+                <line number="16" hits="16"/>
+                <line number="17" hits="16"/>
+                <line number="18" hits="16"/>
+                <line number="20" hits="16"/>
+                <line number="21" hits="2"/>
+                <line number="22" hits="2"/>
+                <line number="24" hits="16"/>
+                <line number="27" hits="16"/>
+              </lines>
+            </method>
+            <method name="canonicalize" signature="string $path" line-rate="1" branch-rate="0" complexity="3">
+              <lines>
+                <line number="35" hits="9"/>
+                <line number="36" hits="9"/>
+                <line number="37" hits="9"/>
+                <line number="38" hits="8"/>
+                <line number="41" hits="7"/>
+                <line number="43" hits="7"/>
+              </lines>
+            </method>
+            <method name="isWithin" signature="string $path, string $directory" line-rate="1" branch-rate="0" complexity="3">
+              <lines>
+                <line number="48" hits="15"/>
+              </lines>
+            </method>
+            <method name="relativeTo" signature="string $path, string $directory" line-rate="1" branch-rate="0" complexity="4">
+              <lines>
+                <line number="56" hits="12"/>
+                <line number="57" hits="6"/>
+                <line number="60" hits="10"/>
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="15" hits="16"/>
+            <line number="16" hits="16"/>
+            <line number="17" hits="16"/>
+            <line number="18" hits="16"/>
+            <line number="20" hits="16"/>
+            <line number="21" hits="2"/>
+            <line number="22" hits="2"/>
+            <line number="24" hits="16"/>
+            <line number="27" hits="16"/>
+            <line number="35" hits="9"/>
+            <line number="36" hits="9"/>
+            <line number="37" hits="9"/>
+            <line number="38" hits="8"/>
+            <line number="41" hits="7"/>
+            <line number="43" hits="7"/>
+            <line number="48" hits="15"/>
+            <line number="56" hits="12"/>
+            <line number="57" hits="6"/>
+            <line number="60" hits="10"/>
           </lines>
         </class>
       </classes>
