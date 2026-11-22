@@ -37,9 +37,6 @@ services:
       OIDC_AUTHORIZATION_URL: ${OIDC_AUTHORIZATION_URL:?}
       OIDC_DISCOVERY_BASE_URI: ${OIDC_DISCOVERY_BASE_URI:?}
       OIDC_ISSUER: ${OIDC_ISSUER:?}
-      NEXT_PUBLIC_OIDC_ISSUER: ${NEXT_PUBLIC_OIDC_ISSUER:?}
-      NEXT_PUBLIC_OIDC_CLIENT_ID: ${NEXT_PUBLIC_OIDC_CLIENT_ID:?}
-      NEXT_PUBLIC_OIDC_REDIRECT_URI: ${NEXT_PUBLIC_OIDC_REDIRECT_URI:?}
     volumes:
       - caddy_data:/data
       - caddy_config:/config
@@ -81,6 +78,10 @@ services:
     restart: unless-stopped
     environment:
       NEXT_PUBLIC_ENTRYPOINT: http://php
+      # Read by the admin pages at request time (the image is built without them)
+      NEXT_PUBLIC_OIDC_ISSUER: ${NEXT_PUBLIC_OIDC_ISSUER:?}
+      NEXT_PUBLIC_OIDC_CLIENT_ID: ${NEXT_PUBLIC_OIDC_CLIENT_ID:?}
+      NEXT_PUBLIC_OIDC_REDIRECT_URI: ${NEXT_PUBLIC_OIDC_REDIRECT_URI:?}
     healthcheck:
       test: curl -f http://localhost:3000 || exit 1
       timeout: 5s

@@ -4,10 +4,7 @@ import { UserManager } from 'oidc-client-ts';
 import getProfileFromToken from '../common/getProfileFromToken';
 import { fetchRoles } from './permissions';
 import {OAuthProvider} from "../../types";
-
-const issuer = process.env.NEXT_PUBLIC_OIDC_ISSUER;
-const clientId = process.env.NEXT_PUBLIC_OIDC_CLIENT_ID;
-const redirectUri = process.env.NEXT_PUBLIC_OIDC_REDIRECT_URI;
+import { currentOidcConfig, type OidcConfig } from "./oidcConfig";
 // The API serves the admin, so it defaults to the admin's origin (like the data provider's entrypoint).
 // NEXT_PUBLIC_VITE_API_URL is the variable's former name, still read for existing setups.
 const apiUri =
@@ -15,13 +12,36 @@ const apiUri =
   process.env.NEXT_PUBLIC_VITE_API_URL ||
   (typeof window !== "undefined" ? window.origin : "");
 
-const userManager = new UserManager({
-  authority: issuer as string,
-  client_id: clientId as string,
-  redirect_uri: redirectUri as string,
-  response_type: "code",
-  scope: "openid email profile offline_access", // Allow to retrieve the email and user name later api side
-});
+let manager: UserManager | null = null;
+let managerConfig: OidcConfig | null = null;
+
+const requireOidcConfig = (): { issuer: string; clientId: string; redirectUri: string } => {
+  const { issuer, clientId, redirectUri } = currentOidcConfig() ?? { issuer: null, clientId: null, redirectUri: null };
+  if (!issuer || !clientId || !redirectUri) {
+    throw new Error(
+      "OIDC isn't configured: set NEXT_PUBLIC_OIDC_ISSUER, NEXT_PUBLIC_OIDC_CLIENT_ID and NEXT_PUBLIC_OIDC_REDIRECT_URI on the pwa service"
+    );
+  }
+
+  return { issuer, clientId, redirectUri };
+};
+
+const userManager = (): UserManager => {
+  // Re-created if the settings change (they're set by each page)
+  if (!manager || managerConfig !== currentOidcConfig()) {
+    managerConfig = currentOidcConfig();
+    const { issuer, clientId, redirectUri } = requireOidcConfig();
+    manager = new UserManager({
+      authority: issuer,
+      client_id: clientId,
+      redirect_uri: redirectUri,
+      response_type: "code",
+      scope: "openid email profile offline_access", // Allow to retrieve the email and user name later api side
+    });
+  }
+
+  return manager;
+};
 
 const getAccessToken = () => localStorage.getItem("token");
 
@@ -36,7 +56,7 @@ const cleanup = () => {
 
 const authProvider: OAuthProvider = {
   login: async () => {
-    await userManager.signinRedirect();
+    await userManager().signinRedirect();
     return;
   },
   logout: () => {
@@ -138,7 +158,7 @@ const authProvider: OAuthProvider = {
         const token = await response.json();
 
         localStorage.setItem("token", JSON.stringify(token));
-        userManager.clearStaleState();
+        userManager().clearStaleState();
         cleanup();
         return Promise.resolve();
       }
@@ -185,7 +205,7 @@ const authProvider: OAuthProvider = {
     const response = await fetch(`${apiUri}/auth/code-to-token`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ code: code, code_verifier, redirect_uri: redirectUri }),
+      body: JSON.stringify({ code: code, code_verifier, redirect_uri: requireOidcConfig().redirectUri }),
     });
 
     if (!response.ok) {
@@ -197,7 +217,7 @@ const authProvider: OAuthProvider = {
     const token = await response.json();
 
     localStorage.setItem("token", JSON.stringify(token));
-    userManager.clearStaleState();
+    userManager().clearStaleState();
     cleanup();
     return Promise.resolve();
   },
