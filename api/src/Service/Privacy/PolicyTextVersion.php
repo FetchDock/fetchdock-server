@@ -45,19 +45,48 @@ final class PolicyTextVersion
     public function versions(): array
     {
         if (null === $this->versions) {
-            $data = Yaml::parseFile($this->projectDir.'/'.self::VERSION_FILE);
-            $versions = $data['versions'] ?? null;
-            if (!\is_array($versions) || [] === $versions || !array_is_list($versions)) {
-                throw new \UnexpectedValueException(self::VERSION_FILE.' needs a non-empty "versions" list');
+            $content = file_get_contents($this->projectDir.'/'.self::VERSION_FILE);
+            if (false === $content) {
+                throw new \RuntimeException(\sprintf('Cannot read %s', self::VERSION_FILE));
             }
-            $this->versions = array_map(static fn (array $entry): array => [
-                'version' => (string) ($entry['version'] ?? ''),
-                'digest' => (string) ($entry['digest'] ?? ''),
-                'changes' => (string) ($entry['changes'] ?? ''),
-            ], $versions);
+            $this->versions = self::parse($content);
         }
 
         return $this->versions;
+    }
+
+    /**
+     * Parses the versions listed in a privacy/policy-version.yaml document, oldest first. Also used to read the file
+     * from an older release (app:privacy:release-notes).
+     *
+     * @return list<array{version: string, digest: string, changes: string}>
+     */
+    public static function parse(string $content): array
+    {
+        $data = Yaml::parse($content);
+        $versions = \is_array($data) ? ($data['versions'] ?? null) : null;
+        if (!\is_array($versions) || [] === $versions || !array_is_list($versions)) {
+            throw new \UnexpectedValueException(self::VERSION_FILE.' needs a non-empty "versions" list');
+        }
+
+        $parsed = [];
+        foreach ($versions as $index => $entry) {
+            if (!\is_array($entry)) {
+                throw new \UnexpectedValueException(\sprintf('%s entry %d must be a mapping', self::VERSION_FILE, $index));
+            }
+            $version = (string) ($entry['version'] ?? '');
+            $digest = (string) ($entry['digest'] ?? '');
+            if ('' === $version || '' === $digest) {
+                throw new \UnexpectedValueException(\sprintf('%s entry %d needs "version" and "digest"', self::VERSION_FILE, $index));
+            }
+            $parsed[] = [
+                'version' => $version,
+                'digest' => $digest,
+                'changes' => (string) ($entry['changes'] ?? ''),
+            ];
+        }
+
+        return $parsed;
     }
 
     /**
