@@ -7,6 +7,7 @@ use App\Entity\DownloadedFile;
 use App\Entity\DownloadJob;
 use App\Entity\OidcSubjectIdentifier;
 use App\Enum\DownloadStateEnum;
+use App\Tests\Double\DownloadLocations;
 use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -126,7 +127,7 @@ class DownloadedFileTest extends ApiTestCase
     {
         $entityManager = $this->entityManager();
         $job = $this->newJob($entityManager, $ownerSubject, DownloadStateEnum::COMPLETED);
-        $file = new DownloadedFile()->setPath($path)->setVisible(true)->setMetadata($metadata);
+        $file = DownloadLocations::persistedDirectoryFile($entityManager, $path)->setVisible(true)->setMetadata($metadata);
         $job->addFile($file);
 
         $entityManager->persist($job);
