@@ -41,12 +41,12 @@ jobs:
           short=$(git rev-parse --short=7 HEAD)
           # Docker tags allow [A-Za-z0-9_.-]: feature/109-download-directories → feature-109-download-directories
           branch_tag=$(printf '%s' "$BRANCH" | tr -c 'A-Za-z0-9_.-' '-' | cut -c1-120)
-          # Next minor after the latest stable release, as a semver pre-release: 0.7.2 → 0.8.0-dev.<sha>
+          # Next patch after the latest stable release, as a semver pre-release: 0.7.3 → 0.7.4-dev.<sha> (minor bumps are only for client-breaking changes)
           last=$(git tag --list --sort=-v:refname | grep -E '^v?[0-9]+\.[0-9]+\.[0-9]+$' | head -n1 | sed 's/^v//')
           IFS=. read -r major minor patch <<<"${last:-0.0.0}"
           {
             echo "tags=sha-$short,$branch_tag"
-            echo "version=$major.$((minor + 1)).0-dev.$short"
+            echo "version=$major.$minor.$((patch + 1))-dev.$short"
           } >> "$GITHUB_OUTPUT"
       - name: Set registry name
         run: echo "IMAGE_PREFIX=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_ENV"
