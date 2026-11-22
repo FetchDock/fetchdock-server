@@ -5,7 +5,6 @@ namespace App\Tests\Integration\Integrity;
 use App\Entity\InstanceIntegrityCheck;
 use App\Enum\IntegrityRole;
 use App\Enum\IntegrityStatus;
-use App\Repository\InstanceIntegrityCheckRepository;
 use App\Service\Integrity\IntegrityStatusResolver;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
@@ -22,8 +21,7 @@ final class IntegrityStatusResolverTest extends KernelTestCase
         self::bootKernel();
         $this->entityManager = self::getContainer()->get(EntityManagerInterface::class);
         $this->entityManager->beginTransaction();
-        // Not used by a service yet (the privacy policy endpoints will), so the container inlined it away
-        $this->resolver = new IntegrityStatusResolver(self::getContainer()->get(InstanceIntegrityCheckRepository::class));
+        $this->resolver = self::getContainer()->get(IntegrityStatusResolver::class);
         $this->now = new \DateTimeImmutable('2100-01-10 12:00:00');
     }
 

@@ -3,6 +3,9 @@
 namespace App\Tests\Unit\Controller;
 
 use App\Controller\WellKnownController;
+use App\Enum\IntegrityStatus;
+use App\Service\Integrity\IntegrityStatusResolver;
+use App\Service\Privacy\PrivacyPolicyPublisher;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -16,9 +19,19 @@ class WellKnownControllerTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->controller = new WellKnownController(self::CLIENT_ID, self::VERSION);
+        $this->controller = $this->controller();
         $this->urlGenerator = $this->createStub(UrlGeneratorInterface::class);
         $this->controller->setContainer($this->container());
+    }
+
+    private function controller(?string $privacyPolicyUrl = null, IntegrityStatus $integrity = IntegrityStatus::UNKNOWN, bool $failureReports = true): WellKnownController
+    {
+        $publisher = $this->createStub(PrivacyPolicyPublisher::class);
+        $publisher->method('url')->willReturn($privacyPolicyUrl);
+        $resolver = $this->createStub(IntegrityStatusResolver::class);
+        $resolver->method('effectiveStatus')->willReturn($integrity);
+
+        return new WellKnownController(self::CLIENT_ID, self::VERSION, $publisher, $resolver, $failureReports);
     }
 
     private function container(): \Symfony\Component\DependencyInjection\ContainerInterface
@@ -63,11 +76,12 @@ class WellKnownControllerTest extends TestCase
 
         $this->assertSame(['failureReports' => ['enabled' => true, 'upstreamForwarding' => null]], $data['features']);
         $this->assertNull($data['privacyPolicyUrl']);
+        $this->assertSame(['status' => 'unknown', 'appVersion' => 'dev'], $data['integrity']);
     }
 
     public function testFailureReportsAndPrivacyPolicyAreConfigurable(): void
     {
-        $controller = new WellKnownController(self::CLIENT_ID, self::VERSION, false, 'https://example.org/privacy');
+        $controller = $this->controller('https://example.org/privacy', IntegrityStatus::VERIFIED, failureReports: false);
         $controller->setContainer($this->container());
         $this->urlGenerator->method('generate')->willReturn('https://localhost/');
 
@@ -75,6 +89,7 @@ class WellKnownControllerTest extends TestCase
 
         $this->assertFalse($data['features']['failureReports']['enabled']);
         $this->assertSame('https://example.org/privacy', $data['privacyPolicyUrl']);
+        $this->assertSame('verified', $data['integrity']['status']);
     }
 
     public function testScopesConstantContainsRequiredScopes(): void

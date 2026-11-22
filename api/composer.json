@@ -27,6 +27,7 @@
         "symfony/expression-language": "^8.1",
         "symfony/flex": "^2.11",
         "symfony/framework-bundle": "^8.1",
+        "symfony/intl": "^8.1",
         "symfony/mercure-bundle": "^0.4.2",
         "symfony/messenger": "^8.1",
         "symfony/mime": "^8.1",

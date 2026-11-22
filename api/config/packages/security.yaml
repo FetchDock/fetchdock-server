@@ -57,6 +57,7 @@ security:
         - { path: ^/contexts, roles: PUBLIC_ACCESS } # Allows accessing the Swagger UI contexts
         - { path: ^/versions, roles: PUBLIC_ACCESS } # Allows accessing the versions endpoint
         - { path: ^/download/, roles: PUBLIC_ACCESS } # Allows accessing the download endpoint
+        - { path: '^/privacy(_policy(\.[a-z]+)?)?$', roles: PUBLIC_ACCESS } # The instance's privacy policy page and its status (ADR 0013)
         - { path: ^/, roles: IS_AUTHENTICATED_FULLY }
         # - { path: ^/admin, roles: ROLE_ADMIN }
         # - { path: ^/profile, roles: ROLE_USER }

@@ -41,4 +41,19 @@ class InstanceIntegrityCheckRepository extends ServiceEntityRepository
             ->getQuery()
             ->execute();
     }
+
+    /**
+     * The latest check of each container (host and role) since the given time, newest first.
+     *
+     * @return list<InstanceIntegrityCheck>
+     */
+    public function findLatestPerContainerSince(\DateTimeImmutable $since): array
+    {
+        $latest = [];
+        foreach ($this->findSince($since) as $check) {
+            $latest[$check->getHost()."\0".$check->getRole()->value] ??= $check;
+        }
+
+        return array_values($latest);
+    }
 }
