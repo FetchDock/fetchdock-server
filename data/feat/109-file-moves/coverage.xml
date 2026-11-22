@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage line-rate="0.86579599189372" branch-rate="0" lines-covered="3845" lines-valid="4441" branches-covered="0" branches-valid="0" complexity="1817" version="0.4" timestamp="1795352323">
+<coverage line-rate="0.86579599189372" branch-rate="0" lines-covered="3845" lines-valid="4441" branches-covered="0" branches-valid="0" complexity="1819" version="0.4" timestamp="1795353970">
   <sources>
     <source>/app/src</source>
   </sources>
@@ -5557,154 +5557,154 @@
         </class>
       </classes>
     </package>
-    <package name="Handler/MoveFileHandler.php" line-rate="0.73015873015873" branch-rate="0" complexity="23">
+    <package name="Handler/MoveFileHandler.php" line-rate="0.73015873015873" branch-rate="0" complexity="25">
       <classes>
-        <class name="App\Handler\MoveFileHandler" filename="Handler/MoveFileHandler.php" line-rate="0.73015873015873" branch-rate="0" complexity="23">
+        <class name="App\Handler\MoveFileHandler" filename="Handler/MoveFileHandler.php" line-rate="0.73015873015873" branch-rate="0" complexity="25">
           <methods>
             <method name="__construct" signature="EntityManagerInterface $entityManager, FileMoveItemRepository $itemRepository, FileMoveBatchRepository $batchRepository, DownloadedFileRepository $fileRepository, FileMover $mover, FileMoveProgressPublisher $publisher, LoggerInterface $logger" line-rate="1" branch-rate="0" complexity="1">
               <lines>
-                <line number="46" hits="4"/>
+                <line number="43" hits="4"/>
               </lines>
             </method>
             <method name="__invoke" signature="MoveFileMessage $message" line-rate="0.64705882352941" branch-rate="0" complexity="12">
               <lines>
-                <line number="50" hits="4"/>
-                <line number="51" hits="1"/>
+                <line number="47" hits="4"/>
+                <line number="48" hits="1"/>
+                <line number="51" hits="4"/>
+                <line number="52" hits="4"/>
+                <line number="53" hits="4"/>
                 <line number="54" hits="4"/>
                 <line number="55" hits="4"/>
                 <line number="56" hits="4"/>
                 <line number="57" hits="4"/>
-                <line number="58" hits="4"/>
-                <line number="59" hits="4"/>
                 <line number="60" hits="4"/>
-                <line number="63" hits="4"/>
-                <line number="64" hits="0"/>
-                <line number="67" hits="4"/>
-                <line number="69" hits="3"/>
-                <line number="70" hits="0"/>
-                <line number="71" hits="0"/>
-                <line number="72" hits="0"/>
-                <line number="74" hits="3"/>
-                <line number="75" hits="3"/>
-                <line number="76" hits="3"/>
+                <line number="61" hits="0"/>
+                <line number="64" hits="4"/>
+                <line number="66" hits="3"/>
+                <line number="67" hits="0"/>
+                <line number="68" hits="0"/>
+                <line number="69" hits="0"/>
+                <line number="71" hits="3"/>
+                <line number="72" hits="3"/>
+                <line number="73" hits="3"/>
+                <line number="74" hits="1"/>
+                <line number="75" hits="1"/>
+                <line number="76" hits="1"/>
                 <line number="77" hits="1"/>
                 <line number="78" hits="1"/>
-                <line number="79" hits="1"/>
-                <line number="80" hits="1"/>
-                <line number="81" hits="1"/>
+                <line number="80" hits="0"/>
+                <line number="81" hits="0"/>
                 <line number="83" hits="0"/>
                 <line number="84" hits="0"/>
                 <line number="86" hits="0"/>
                 <line number="87" hits="0"/>
+                <line number="88" hits="0"/>
                 <line number="89" hits="0"/>
-                <line number="90" hits="0"/>
-                <line number="91" hits="0"/>
-                <line number="92" hits="0"/>
-                <line number="94" hits="4"/>
-                <line number="95" hits="4"/>
+                <line number="91" hits="4"/>
+                <line number="92" hits="4"/>
               </lines>
             </method>
             <method name="commit" signature="FileMoveItem $item, int $targetId" line-rate="0.8125" branch-rate="0" complexity="3">
               <lines>
+                <line number="102" hits="3"/>
+                <line number="104" hits="3"/>
                 <line number="105" hits="3"/>
+                <line number="106" hits="3"/>
                 <line number="107" hits="3"/>
                 <line number="108" hits="3"/>
                 <line number="109" hits="3"/>
-                <line number="110" hits="3"/>
-                <line number="111" hits="3"/>
+                <line number="110" hits="0"/>
                 <line number="112" hits="3"/>
-                <line number="113" hits="0"/>
+                <line number="113" hits="3"/>
+                <line number="114" hits="3"/>
                 <line number="115" hits="3"/>
                 <line number="116" hits="3"/>
                 <line number="117" hits="3"/>
-                <line number="118" hits="3"/>
-                <line number="119" hits="3"/>
-                <line number="120" hits="3"/>
-                <line number="121" hits="0"/>
-                <line number="122" hits="0"/>
+                <line number="118" hits="0"/>
+                <line number="119" hits="0"/>
               </lines>
             </method>
-            <method name="moveSidecars" signature="FileMoveItem $item, string $source, string $target, int $batchId, int $fileId" line-rate="0.83333333333333" branch-rate="0" complexity="7">
+            <method name="moveSidecars" signature="FileMoveItem $item, string $source, string $target, int $batchId, int $fileId" line-rate="0.83333333333333" branch-rate="0" complexity="9">
               <lines>
+                <line number="130" hits="3"/>
+                <line number="131" hits="3"/>
                 <line number="132" hits="3"/>
-                <line number="133" hits="3"/>
                 <line number="134" hits="3"/>
-                <line number="136" hits="3"/>
-                <line number="137" hits="3"/>
-                <line number="138" hits="3"/>
-                <line number="139" hits="3"/>
-                <line number="140" hits="3"/>
-                <line number="143" hits="1"/>
-                <line number="144" hits="1"/>
-                <line number="145" hits="0"/>
-                <line number="146" hits="0"/>
+                <line number="135" hits="1"/>
+                <line number="136" hits="1"/>
+                <line number="137" hits="1"/>
+                <line number="138" hits="1"/>
+                <line number="141" hits="1"/>
+                <line number="142" hits="1"/>
+                <line number="143" hits="0"/>
+                <line number="144" hits="0"/>
               </lines>
             </method>
           </methods>
           <lines>
-            <line number="46" hits="4"/>
-            <line number="50" hits="4"/>
-            <line number="51" hits="1"/>
+            <line number="43" hits="4"/>
+            <line number="47" hits="4"/>
+            <line number="48" hits="1"/>
+            <line number="51" hits="4"/>
+            <line number="52" hits="4"/>
+            <line number="53" hits="4"/>
             <line number="54" hits="4"/>
             <line number="55" hits="4"/>
             <line number="56" hits="4"/>
             <line number="57" hits="4"/>
-            <line number="58" hits="4"/>
-            <line number="59" hits="4"/>
             <line number="60" hits="4"/>
-            <line number="63" hits="4"/>
-            <line number="64" hits="0"/>
-            <line number="67" hits="4"/>
-            <line number="69" hits="3"/>
-            <line number="70" hits="0"/>
-            <line number="71" hits="0"/>
-            <line number="72" hits="0"/>
-            <line number="74" hits="3"/>
-            <line number="75" hits="3"/>
-            <line number="76" hits="3"/>
+            <line number="61" hits="0"/>
+            <line number="64" hits="4"/>
+            <line number="66" hits="3"/>
+            <line number="67" hits="0"/>
+            <line number="68" hits="0"/>
+            <line number="69" hits="0"/>
+            <line number="71" hits="3"/>
+            <line number="72" hits="3"/>
+            <line number="73" hits="3"/>
+            <line number="74" hits="1"/>
+            <line number="75" hits="1"/>
+            <line number="76" hits="1"/>
             <line number="77" hits="1"/>
             <line number="78" hits="1"/>
-            <line number="79" hits="1"/>
-            <line number="80" hits="1"/>
-            <line number="81" hits="1"/>
+            <line number="80" hits="0"/>
+            <line number="81" hits="0"/>
             <line number="83" hits="0"/>
             <line number="84" hits="0"/>
             <line number="86" hits="0"/>
             <line number="87" hits="0"/>
+            <line number="88" hits="0"/>
             <line number="89" hits="0"/>
-            <line number="90" hits="0"/>
-            <line number="91" hits="0"/>
-            <line number="92" hits="0"/>
-            <line number="94" hits="4"/>
-            <line number="95" hits="4"/>
+            <line number="91" hits="4"/>
+            <line number="92" hits="4"/>
+            <line number="102" hits="3"/>
+            <line number="104" hits="3"/>
             <line number="105" hits="3"/>
+            <line number="106" hits="3"/>
             <line number="107" hits="3"/>
             <line number="108" hits="3"/>
             <line number="109" hits="3"/>
-            <line number="110" hits="3"/>
-            <line number="111" hits="3"/>
+            <line number="110" hits="0"/>
             <line number="112" hits="3"/>
-            <line number="113" hits="0"/>
+            <line number="113" hits="3"/>
+            <line number="114" hits="3"/>
             <line number="115" hits="3"/>
             <line number="116" hits="3"/>
             <line number="117" hits="3"/>
-            <line number="118" hits="3"/>
-            <line number="119" hits="3"/>
-            <line number="120" hits="3"/>
-            <line number="121" hits="0"/>
-            <line number="122" hits="0"/>
+            <line number="118" hits="0"/>
+            <line number="119" hits="0"/>
+            <line number="130" hits="3"/>
+            <line number="131" hits="3"/>
             <line number="132" hits="3"/>
-            <line number="133" hits="3"/>
             <line number="134" hits="3"/>
-            <line number="136" hits="3"/>
-            <line number="137" hits="3"/>
-            <line number="138" hits="3"/>
-            <line number="139" hits="3"/>
-            <line number="140" hits="3"/>
-            <line number="143" hits="1"/>
-            <line number="144" hits="1"/>
-            <line number="145" hits="0"/>
-            <line number="146" hits="0"/>
+            <line number="135" hits="1"/>
+            <line number="136" hits="1"/>
+            <line number="137" hits="1"/>
+            <line number="138" hits="1"/>
+            <line number="141" hits="1"/>
+            <line number="142" hits="1"/>
+            <line number="143" hits="0"/>
+            <line number="144" hits="0"/>
           </lines>
         </class>
       </classes>
@@ -6718,11 +6718,11 @@
             </method>
             <method name="claimProgressPublish" signature="int $batchId" line-rate="1" branch-rate="0" complexity="1">
               <lines>
-                <line number="153" hits="1"/>
-                <line number="154" hits="1"/>
-                <line number="155" hits="1"/>
-                <line number="156" hits="1"/>
-                <line number="157" hits="1"/>
+                <line number="153" hits="2"/>
+                <line number="154" hits="2"/>
+                <line number="155" hits="2"/>
+                <line number="156" hits="2"/>
+                <line number="157" hits="2"/>
               </lines>
             </method>
             <method name="findRunningIds" signature="" line-rate="1" branch-rate="0" complexity="1">
@@ -6810,11 +6810,11 @@
             <line number="142" hits="1"/>
             <line number="144" hits="1"/>
             <line number="145" hits="1"/>
-            <line number="153" hits="1"/>
-            <line number="154" hits="1"/>
-            <line number="155" hits="1"/>
-            <line number="156" hits="1"/>
-            <line number="157" hits="1"/>
+            <line number="153" hits="2"/>
+            <line number="154" hits="2"/>
+            <line number="155" hits="2"/>
+            <line number="156" hits="2"/>
+            <line number="157" hits="2"/>
             <line number="163" hits="1"/>
             <line number="164" hits="1"/>
             <line number="165" hits="1"/>
