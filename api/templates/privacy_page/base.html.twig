@@ -1,4 +1,9 @@
-{# Pages around the generated privacy policy (PrivacyPolicyController). Not part of the policy text. #}
+{#
+    Pages around the generated privacy policy (PrivacyPolicyController). Not part of the policy text.
+    The page forbids JavaScript (CSP default-src 'none' and sandboxed preview iframe), so <!--email_off--> opts out
+    of Cloudflare Email Address Obfuscation, whose injected decoder script would be blocked and leave contact/DPO
+    addresses stuck as [email protected].
+#}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -23,7 +28,9 @@
 </head>
 <body>
 <main>
+<!--email_off-->
 {% block body %}{% endblock %}
+<!--/email_off-->
 </main>
 </body>
 </html>
