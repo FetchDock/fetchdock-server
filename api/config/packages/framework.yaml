@@ -13,6 +13,13 @@ framework:
     #esi: true
     #fragments: true
 
+when@dev:
+    framework:
+        http_client:
+            default_options:
+                verify_host: false
+                verify_peer: false
+
 when@test:
     framework:
         test: true
