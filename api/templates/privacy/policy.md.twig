@@ -98,7 +98,7 @@ You sign in through the instance's identity provider. The instance stores the fo
 
 ## How long data is kept
 
-- **Your account:** kept while your account exists. There is no self-service account deletion yet; to have your account and data deleted, contact the operator.
+- **Your account:** kept until you delete your account, which you can do yourself. Deleting your account permanently deletes your download jobs (including deleted ones), settings, registered apps, interface preferences and problem reports. Downloaded files that no other user's download uses are deleted from disk; files that other users downloaded too stay for them. Deleting your account here does not delete your account at the identity provider: if you sign in again, a new, empty account is created.
 - **Download jobs, cookies and files:** you can delete your downloads, settings and registered apps yourself. Cookies sent with a download are cleared from the job once the download completes successfully; if a download does not complete, they stay with the job until it is deleted. Deleting a download job hides it rather than erasing it immediately, and downloaded files stay on disk while other users or the operator keep them. {% if a.retention.softDeletedJobsDays is not null %}The operator permanently erases soft-deleted download jobs after {{ a.retention.softDeletedJobsDays }} days.{% else %}Soft-deleted download jobs remain stored until an administrator permanently deletes them.{% endif %}
 
 - **Problem reports:** {% if a.retention.reportsDays is not null %}kept until you withdraw them, or deleted by the operator after {{ a.retention.reportsDays }} days.{% else %}kept until you withdraw them or an administrator deletes them.{% endif %}
@@ -168,7 +168,7 @@ This is a signal, not proof: it catches accidental changes, but a deliberately m
 
 ## Your rights
 
-You have the right to access your data, to have it corrected or deleted, to restrict its processing, to receive it in a portable format and to object to its processing. Where processing is based on your consent, you can withdraw it at any time without affecting the lawfulness of processing before withdrawal. Contact the operator to exercise these rights.
+You have the right to access your data, to have it corrected or deleted, to restrict its processing, to receive it in a portable format and to object to its processing. Where processing is based on your consent, you can withdraw it at any time without affecting the lawfulness of processing before withdrawal. You can delete your downloads, settings, problem reports and your whole account yourself; contact the operator to exercise your other rights.
 
 You also have the right to complain to a data protection supervisory authority{% if a.supervisoryAuthority is not null %}, such as {{ a.supervisoryAuthority }}{% endif %}.
 

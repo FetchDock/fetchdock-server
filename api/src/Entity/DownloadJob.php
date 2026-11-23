@@ -128,7 +128,9 @@ class DownloadJob implements DownloadJobInterface, OwnerFilterableInterface
     #[ORM\ManyToMany(targetEntity: DownloadedFile::class, mappedBy: 'downloadJob')]
     private Collection $files;
 
+    // Deleting the account deletes its jobs, with their events and file links (server#129)
     #[ORM\ManyToOne(cascade: ['persist'], inversedBy: 'downloadJobs')]
+    #[ORM\JoinColumn(onDelete: 'CASCADE')]
     private ?OidcSubjectIdentifier $owner = null;
 
     /** The site of the URI, resolved at submission (null if unknown). Selects the download directory and the files of a site move. */

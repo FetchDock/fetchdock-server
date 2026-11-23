@@ -16,7 +16,6 @@ use App\Repository\DownloadJobRepository;
 use App\Service\Downloader\DownloaderInterface;
 use App\Tests\Double\DownloadLocations;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\EntityNotFoundException;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcher;
@@ -145,7 +144,7 @@ class DownloadJobHandlerTest extends TestCase
         $this->assertInstanceOf(JobCompletedEvent::class, $this->dispatchedEvents[2]);
     }
 
-    public function testJobNotFoundInDatabase(): void
+    public function testJobDeletedBeforePickupIsSkipped(): void
     {
         $downloadJob = new DownloadJob();
 
@@ -153,10 +152,10 @@ class DownloadJobHandlerTest extends TestCase
             ->method('find')
             ->willReturn(null);
 
-        $this->expectException(EntityNotFoundException::class);
-        $this->expectExceptionMessage('DownloadJob not found with ID:');
-
+        // Deleted with its owner's account before it was picked up (server#129): skipped, nothing recorded
         $this->handler->__invoke($downloadJob);
+
+        $this->assertSame([], $this->dispatchedEvents);
     }
 
     public function testInvalidDownloaderSpecified(): void

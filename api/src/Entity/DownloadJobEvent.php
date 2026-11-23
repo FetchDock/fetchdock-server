@@ -39,7 +39,7 @@ class DownloadJobEvent implements OwnerFilterableInterface
     private ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'downloadJobEvents')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?DownloadJob $downloadJob = null;
 
     #[ORM\Column(length: 255, nullable: true)]

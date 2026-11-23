@@ -19,7 +19,7 @@ class UserSetting implements SettingsLayerInterface
     private ?int $id = null;
 
     #[ORM\OneToOne(inversedBy: 'userSetting')]
-    #[ORM\JoinColumn(name: 'owner_id', referencedColumnName: 'id', nullable: false)]
+    #[ORM\JoinColumn(name: 'owner_id', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
     private ?OidcSubjectIdentifier $owner = null;
 
     #[ORM\Column(length: 64, nullable: true)]

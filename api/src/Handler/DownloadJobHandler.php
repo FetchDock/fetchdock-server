@@ -8,12 +8,12 @@ use App\Event\JobCompletedEvent;
 use App\Event\JobFailedEvent;
 use App\Event\JobPickedUpEvent;
 use App\Event\JobUpdateEvent;
+use App\Exception\DownloadJobDeletedException;
 use App\Factory\DownloaderFactory;
 use App\Model\DownloadJobInterface;
 use App\Service\Downloader\DownloaderInterface;
 use App\Service\Storage\DownloadTargets;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\EntityNotFoundException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
@@ -39,7 +39,10 @@ class DownloadJobHandler
             // Load the DownloadJob from the database to ensure we have the latest state
             $downloadJobEntity = $this->entityManager->getRepository(DownloadJob::class)->find($downloadJob->getId());
             if (!$downloadJobEntity) {
-                throw new EntityNotFoundException('DownloadJob not found with ID: '.$downloadJob->getId());
+                // Deleted with its owner's account before the worker picked it up (server#129)
+                $this->logger->info('Download job no longer exists, skipping it', ['job_id' => $downloadJob->getId()]);
+
+                return;
             }
 
             // Dispatch job picked up event
@@ -97,6 +100,10 @@ class DownloadJobHandler
 
             // Dispatch job completed event
             $this->eventDispatcher->dispatch(new JobCompletedEvent($downloadJobEntity));
+        } catch (DownloadJobDeletedException $exception) {
+            // Deleted with its owner's account while it ran: nothing to record (see ProcessStoppedListener)
+            $this->logger->info('Download job was deleted while it ran, stopped it', ['job_id' => $exception->jobId]);
+            $this->entityManager->clear();
         } catch (\Throwable $exception) {
             $this->recordFailure($downloadJob, $downloadJobEntity, $exception);
 

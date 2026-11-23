@@ -424,6 +424,11 @@ class AbstractCliDownloaderTest extends TestCase
             {
             }
 
+            public function filePathsFromCommandOutput(DownloadJobInterface $downloadJob, string $commandOutput): array
+            {
+                return [];
+            }
+
             protected function getCommandOptions(DownloadJobInterface $downloadJob): array
             {
                 $this->lastCookieFile = $this->createCookieFile($downloadJob);
@@ -469,6 +474,11 @@ class AbstractCliDownloaderTest extends TestCase
             public function addFilesToDownloadJobFromCommandOutput(DownloadJob $downloadJob, string $commandOutput): void
             {
                 // TODO: Implement addFilesToDownloadJobFromCommandOutput() method.
+            }
+
+            public function filePathsFromCommandOutput(DownloadJobInterface $downloadJob, string $commandOutput): array
+            {
+                return [];
             }
 
             protected function getCommandOptions(DownloadJobInterface $downloadJob): array

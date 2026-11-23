@@ -240,6 +240,21 @@ class YoutubeDlCliDownloader extends AbstractCliDownloader implements CliDownloa
         $this->entityManager->flush();
     }
 
+    public function filePathsFromCommandOutput(DownloadJobInterface $downloadJob, string $commandOutput): array
+    {
+        $paths = [];
+        foreach (explode("\n", $commandOutput) as $line) {
+            $line = trim($line);
+            if (str_starts_with($line, self::FILE_LINE_PREFIX)) {
+                $paths[] = substr($line, \strlen(self::FILE_LINE_PREFIX));
+            } elseif (1 === preg_match(self::ALREADY_DOWNLOADED_LINE_PATTERN, $line, $matches)) {
+                $paths[] = $matches[1];
+            }
+        }
+
+        return array_values(array_unique($paths));
+    }
+
     /**
      * Link the media file a legacy .desktop shortcut belongs to; its extension is the "ext" of the .info.json next to it.
      */
