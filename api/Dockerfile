@@ -1,114 +1,42 @@
 #syntax=docker/dockerfile:1
 
 # Adapted from https://github.com/dunglas/symfony-docker
-
-# Versions
-FROM dunglas/frankenphp:1.12-php8.5 AS frankenphp_upstream
-ARG APP_VERSION=undefined
-ENV APP_VERSION=${APP_VERSION}
-
+# Base images are built daily in https://github.com/FetchDock/fetchdock-base-images
 
 # The different stages of this Dockerfile are meant to be built into separate images
 # https://docs.docker.com/develop/develop-images/multistage-build/#stop-at-a-specific-build-stage
 # https://docs.docker.com/compose/compose-file/#target
 
-## Download the latest gallery-dl & yt-dlp binary from GitHub
-# The "deno" extra installs the Deno JavaScript runtime, which yt-dlp needs for YouTube extraction
-# hadolint ignore=DL3008,DL3013
-RUN apt-get update && apt-get install --no-install-recommends -y \
-    ca-certificates \
-	curl \
-    jq \
-    wget \
-    python3-pip \
-    mkvtoolnix \
-    ffmpeg \
-    cron \
-    procps \
-	&& rm -rf /var/lib/apt/lists/* \
-    && pip3 install --no-cache-dir gallery-dl brotli psycopg[binary] "yt-dlp[default,deno]" --break-system-packages \
-    && wget --progress=dot:giga https://raw.githubusercontent.com/vishnubob/wait-for-it/81b1373f17855a4dc21156cfe1694c31d7d1792e/wait-for-it.sh -O /usr/local/bin/wait-for-it \
-    && chmod +x /usr/local/bin/wait-for-it
-
-# Note: The cron package is installed, but this container does not use systemd or a traditional init system.
-# Cron must be started manually (e.g., via entrypoint scripts) for scheduled jobs to run.
-
-COPY frankenphp/cron/cron.hourly/* /etc/cron.hourly
-RUN chmod +x /etc/cron.hourly/*
-
 # Base FrankenPHP image
-FROM frankenphp_upstream AS frankenphp_base
+FROM ghcr.io/fetchdock/fetchdock-base-images/frankenphp-server:1.12-php8.5 AS frankenphp_base
 ARG APP_VERSION=undefined
 ENV APP_VERSION=${APP_VERSION}
 
 WORKDIR /app
 
-# persistent / runtime deps
-# hadolint ignore=DL3008
-RUN apt-get update && apt-get install --no-install-recommends -y \
-	acl \
-	file \
-	gettext \
-	git \
-	zlib1g-dev \
-	libcurl4-openssl-dev \
-	libbrotli-dev \
-	libicu-dev \
-	libgcrypt20-dev \
-	&& rm -rf /var/lib/apt/lists/*
-
-# https://getcomposer.org/doc/03-cli.md#composer-allow-superuser
-ENV COMPOSER_ALLOW_SUPERUSER=1
-
-ENV PHP_INI_SCAN_DIR=":$PHP_INI_DIR/app.conf.d"
-
-RUN set -eux; \
-	install-php-extensions \
-		@composer \
-		apcu \
-		intl \
-		opcache \
-		redis \
-		yaml \
-		zip
-
-###> recipes ###
-###> doctrine/doctrine-bundle ###
-RUN set -eux; \
-	install-php-extensions pdo_pgsql
-###< doctrine/doctrine-bundle ###
-###< recipes ###
-
+COPY --link --chmod=755 frankenphp/cron/cron.hourly/ /etc/cron.hourly/
 COPY --link frankenphp/conf.d/10-app.ini $PHP_INI_DIR/app.conf.d/
 COPY --link --chmod=755 frankenphp/docker-entrypoint.sh /usr/local/bin/docker-entrypoint
 COPY --link --chmod=755 frankenphp/worker-entrypoint.sh /usr/local/bin/worker-entrypoint
 COPY --link frankenphp/Caddyfile /etc/frankenphp/Caddyfile
 
 ENTRYPOINT ["docker-entrypoint"]
-
-HEALTHCHECK --start-period=60s CMD ["sh", "-c", "curl -f http://localhost:2019/metrics || exit 1"]
-CMD [ "frankenphp", "run", "--config", "/etc/frankenphp/Caddyfile" ]
+CMD ["frankenphp", "run", "--config", "/etc/frankenphp/Caddyfile"]
 
 # Dev FrankenPHP image
-FROM frankenphp_base AS frankenphp_dev
+FROM ghcr.io/fetchdock/fetchdock-base-images/frankenphp-server-dev:1.12-php8.5 AS frankenphp_dev
 ARG APP_VERSION=undefined
 ENV APP_VERSION=${APP_VERSION}
 
-ENV APP_ENV=dev
-ENV XDEBUG_MODE=off
-ENV FRANKENPHP_WORKER_CONFIG=watch
-VOLUME /app/var/
-
-RUN mv "$PHP_INI_DIR/php.ini-development" "$PHP_INI_DIR/php.ini"
-
-RUN set -eux; \
-	install-php-extensions \
-		xdebug \
-	;
-
+COPY --link --chmod=755 frankenphp/cron/cron.hourly/ /etc/cron.hourly/
+COPY --link frankenphp/conf.d/10-app.ini $PHP_INI_DIR/app.conf.d/
 COPY --link frankenphp/conf.d/20-app.dev.ini $PHP_INI_DIR/app.conf.d/
+COPY --link --chmod=755 frankenphp/docker-entrypoint.sh /usr/local/bin/docker-entrypoint
+COPY --link --chmod=755 frankenphp/worker-entrypoint.sh /usr/local/bin/worker-entrypoint
+COPY --link frankenphp/Caddyfile /etc/frankenphp/Caddyfile
 
-CMD [ "frankenphp", "run", "--config", "/etc/frankenphp/Caddyfile", "--watch" ]
+ENTRYPOINT ["docker-entrypoint"]
+CMD ["frankenphp", "run", "--config", "/etc/frankenphp/Caddyfile", "--watch"]
 
 # Prod FrankenPHP image
 FROM frankenphp_base AS frankenphp_prod
