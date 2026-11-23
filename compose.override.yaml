@@ -33,7 +33,9 @@ services:
       - ./api:/app
       - ./api/var/log/worker:/app/var/log:rw
 #      - /app/var
-      - vendor_worker:/app/vendor
+      # Shares the api's vendor volume so dependency changes reach the worker too
+      # (depends_on api:service_healthy keeps their entrypoint composer installs from racing)
+      - vendor_php:/app/vendor
 #      - cache_worker:/app/cache
       - ./api/frankenphp/Caddyfile:/etc/frankenphp/Caddyfile:ro
       - ./api/frankenphp/conf.d/20-app.dev.ini:/usr/local/etc/php/app.conf.d/20-app.dev.ini:ro
@@ -76,5 +78,4 @@ services:
 volumes:
   vendor_php:
   cache_php:
-  vendor_worker:
   cache_worker:
