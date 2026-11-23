@@ -64,7 +64,7 @@ const ReviewAndPublishPanel = ({
 }) => {
   const isDark = useIsDarkTheme();
 
-  if ("custom" === policy.status || !policy.pendingPublish) {
+  if ("custom" === policy.status || "disabled" === policy.status || !policy.pendingPublish) {
     return null;
   }
 
@@ -164,6 +164,13 @@ const StatusPanel = ({ policy }: { policy: AdminPrivacyPolicy }) => {
         <p>
           PRIVACY_POLICY_URL is set, so clients link the operator&apos;s own policy. The answers below are only used if it
           is removed.
+        </p>
+      )}
+      {"disabled" === policy.status && (
+        <p>
+          Privacy policy is disabled (<code>PRIVACY_POLICY_ENABLED=0</code>). No privacy policy is published and no admin
+          reminders are shown. Remove <code>PRIVACY_POLICY_ENABLED=0</code> to enable the generated policy or{" "}
+          <code>PRIVACY_POLICY_URL</code>.
         </p>
       )}
       {"unavailable" === policy.status && (

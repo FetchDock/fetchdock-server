@@ -11,6 +11,8 @@ enum PrivacyPolicyStatus: string
     case GENERATED = 'generated';
     /** The operator's own policy (PRIVACY_POLICY_URL) */
     case CUSTOM = 'custom';
+    /** Disabled by the operator (PRIVACY_POLICY_ENABLED=0), e.g. for personal/household instances */
+    case DISABLED = 'disabled';
     /** None: see PrivacyPolicyUnavailableReason */
     case UNAVAILABLE = 'unavailable';
 }

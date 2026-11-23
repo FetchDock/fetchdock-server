@@ -359,6 +359,58 @@ final class PrivacyPolicyTest extends ApiTestCase
         $this->assertResponseStatusCodeSame(403);
     }
 
+    public function testDisabledPrivacyPolicy(): void
+    {
+        $this->recordCheck(IntegrityStatus::VERIFIED, 'api-1');
+        $this->saveAnswers(PrivacyPolicyAnswersTest::complete());
+        $this->publish();
+
+        $_ENV['PRIVACY_POLICY_ENABLED'] = '0';
+        $_SERVER['PRIVACY_POLICY_ENABLED'] = '0';
+        try {
+            static::ensureKernelShutdown();
+            $disabledClient = static::createClient();
+
+            $public = $disabledClient->request('GET', '/privacy_policy')->toArray();
+            $this->assertResponseIsSuccessful();
+            $this->assertSame('disabled', $public['status']);
+            $this->assertNull($public['reason']);
+            $this->assertNull($public['url']);
+            $this->assertNull($public['revision']);
+            $this->assertFalse($public['outdated']);
+
+            $wellKnown = $disabledClient->request('GET', '/.well-known/browser-extension')->toArray();
+            $this->assertNull($wellKnown['privacyPolicyUrl']);
+
+            $page = $disabledClient->request('GET', '/privacy', ['headers' => ['Accept' => 'text/html']]);
+            $this->assertResponseStatusCodeSame(404);
+            $this->assertStringContainsString('privacy policy is disabled', $page->getContent(false));
+
+            // Previously published revisions remain readable for auditability
+            $historical = $disabledClient->request('GET', '/privacy?revision=1', ['headers' => ['Accept' => 'text/html']]);
+            $this->assertResponseIsSuccessful();
+            $this->assertStringContainsString('<h1>Privacy policy of Family downloads</h1>', $historical->getContent());
+            $this->assertStringContainsString('The instance publishes no current policy.', $historical->getContent());
+
+            $admin = $disabledClient->request('GET', '/admin/privacy_policy', ['headers' => $this->auth('admin')])->toArray();
+            $this->assertSame('disabled', $admin['status']);
+            $this->assertNull($admin['reason']);
+            $this->assertNull($admin['revision']);
+            $this->assertFalse($admin['outdated']);
+            $this->assertFalse($admin['pendingPublish']);
+            $this->assertSame([], $admin['pendingReasons']);
+
+            $disabledClient->request('POST', '/admin/privacy_policy/publish', [
+                'headers' => $this->auth('admin') + ['Content-Type' => 'application/ld+json'],
+                'json' => [],
+            ]);
+            $this->assertResponseStatusCodeSame(409);
+        } finally {
+            unset($_ENV['PRIVACY_POLICY_ENABLED'], $_SERVER['PRIVACY_POLICY_ENABLED']);
+            static::ensureKernelShutdown();
+        }
+    }
+
     /**
      * @param array<string, mixed> $answers
      *

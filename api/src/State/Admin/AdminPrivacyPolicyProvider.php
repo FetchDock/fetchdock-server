@@ -40,7 +40,7 @@ final readonly class AdminPrivacyPolicyProvider implements ProviderInterface
         $pending = $this->publisher->pendingUpdate();
         $resource->publishedTextVersion = $pending->publishedTextVersion;
         $resource->currentTextVersion = $pending->currentTextVersion;
-        if (PrivacyPolicyStatus::CUSTOM !== $resource->status) {
+        if (!\in_array($resource->status, [PrivacyPolicyStatus::CUSTOM, PrivacyPolicyStatus::DISABLED], true)) {
             $resource->outdated = PrivacyPolicyStatus::GENERATED === $resource->status && $pending->isOutdated();
             $resource->pendingPublish = $pending->hasChanges();
             $resource->pendingReasons = $pending->reasons();

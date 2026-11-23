@@ -14,8 +14,8 @@ const POLL_MS = 5 * 60_000;
 
 /**
  * Shown on every admin page when the generated privacy policy is unavailable, outdated after an application or
- * configuration update, or has unpublished draft changes (ADR 0013). Never shown for custom (PRIVACY_POLICY_URL)
- * instances; nothing is blocked.
+ * configuration update, or has unpublished draft changes (ADR 0013). Never shown for custom (PRIVACY_POLICY_URL) or
+ * disabled (PRIVACY_POLICY_ENABLED=0) instances; nothing is blocked.
  */
 export const PrivacyPolicyBanner = ({ enabled }: { enabled: boolean }) => {
   const isDark = useIsDarkTheme();
@@ -42,7 +42,7 @@ export const PrivacyPolicyBanner = ({ enabled }: { enabled: boolean }) => {
     };
   }, [enabled]);
 
-  if (!policy || "custom" === policy.status) {
+  if (!policy || "custom" === policy.status || "disabled" === policy.status) {
     return null;
   }
 

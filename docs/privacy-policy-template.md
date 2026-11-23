@@ -39,3 +39,12 @@ You need your own hosted privacy policy if:
 Set `PRIVACY_POLICY_URL` to your policy's public URL (see [`deploy/README.md`](../deploy/README.md)). Clients will link to that URL instead of `/privacy`.
 
 If you need a starting point for a custom policy, use the static starter template in [`docs/privacy-policy-custom-template.md`](privacy-policy-custom-template.md). You can also open the preview under **Admin → Privacy policy** to see what your current configuration stores and sends.
+
+## Disabling the privacy policy (`PRIVACY_POLICY_ENABLED=0`)
+
+If you self-host FetchDock purely for personal or household use where no privacy policy is required, set `PRIVACY_POLICY_ENABLED=0` (see [`deploy/README.md`](../deploy/README.md)). When disabled:
+- no privacy policy is published (`/privacy` returns `404` and `privacyPolicyUrl` is omitted from well-known),
+- the admin app hides the privacy policy reminder banner, and
+- container logs omit privacy policy update warnings.
+
+Any previously published revisions remain readable at `/privacy?revision=N`.

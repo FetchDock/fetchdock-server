@@ -28,7 +28,7 @@ export const notifyPrivacyPolicyChanged = () => {
 };
 
 export type IntegrityStatus = "verified" | "modified" | "unknown";
-export type PolicyStatus = "generated" | "custom" | "unavailable";
+export type PolicyStatus = "generated" | "custom" | "disabled" | "unavailable";
 export type UnavailableReason = "incomplete" | "not_published" | "integrity_modified" | "integrity_unknown";
 export type PendingReason = "initial" | "policy_text" | "configuration" | "answers";
 
