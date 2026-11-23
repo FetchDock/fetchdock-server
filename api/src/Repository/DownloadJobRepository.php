@@ -31,6 +31,15 @@ class DownloadJobRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    /**
+     * Whether the job's row still exists, bypassing the entity manager (whose identity map keeps deleted jobs) and the
+     * soft-delete filter. A job is gone once its owner deleted their account (server#129).
+     */
+    public function existsInDatabase(int $id): bool
+    {
+        return false !== $this->getEntityManager()->getConnection()->fetchOne('SELECT 1 FROM download_job WHERE id = ?', [$id]);
+    }
+
     public function findOneByUuidAndToken(string $uuid, string $token): ?DownloadJob
     {
         return $this->createQueryBuilder('d')

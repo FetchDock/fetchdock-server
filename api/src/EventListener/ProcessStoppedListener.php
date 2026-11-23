@@ -6,12 +6,16 @@ use App\Entity\DownloadJob;
 use App\Entity\DownloadJobEvent;
 use App\Enum\DownloadStateEnum;
 use App\Event\CliProcessStopEvent;
+use App\Exception\DownloadJobDeletedException;
 use App\Factory\DownloaderFactory;
+use App\Message\PurgeFilesMessage;
 use App\Repository\DownloadJobRepository;
 use App\Service\Downloader\AbstractCliDownloader;
+use App\Service\Downloader\DownloaderInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 class ProcessStoppedListener
 {
@@ -20,7 +24,35 @@ class ProcessStoppedListener
         private EntityManagerInterface $entityManager,
         private DownloadJobRepository $downloadJobRepository,
         private DownloaderFactory $downloaderFactory,
+        private MessageBusInterface $messageBus,
     ) {
+    }
+
+    /**
+     * Runs first: when the owner deleted their account while the job ran (server#129), there is nothing to record. The
+     * files the tool reported are purged, and the exception stops the job (DownloadJobHandler).
+     */
+    #[AsEventListener(event: CliProcessStopEvent::class, priority: 100)]
+    public function abortWhenJobWasDeleted(CliProcessStopEvent $event): void
+    {
+        $downloadJob = $event->downloadJob;
+        $jobId = $downloadJob->getId();
+        if (null === $jobId || $this->downloadJobRepository->existsInDatabase($jobId)) {
+            return;
+        }
+
+        $downloader = $this->downloaderFor($downloadJob);
+        $paths = $downloader instanceof AbstractCliDownloader
+            ? $downloader->filePathsFromCommandOutput($downloadJob, $event->process->getOutput())
+            : [];
+        if ([] !== $paths) {
+            $this->messageBus->dispatch(new PurgeFilesMessage(
+                paths: $paths,
+                writtenSince: $downloadJob->getCreatedAt()?->getTimestamp(),
+            ));
+        }
+
+        throw new DownloadJobDeletedException($jobId);
     }
 
     #[AsEventListener(event: CliProcessStopEvent::class)]
@@ -84,21 +116,25 @@ class ProcessStoppedListener
             return;
         }
 
-        if (null === $downloadJob->getDownloader()) {
-            $downloader = $this->downloaderFactory->getDownloadersByDownloadJob($downloadJob);
-        } else {
-            $downloader = $this->downloaderFactory->getDownloaderByIdentifier($downloadJob->getDownloader());
-        }
-
-        if (null === $downloader) {
-            return;
-        }
-
+        $downloader = $this->downloaderFor($downloadJob);
         if ($downloader instanceof AbstractCliDownloader) {
             $downloader->addFilesToDownloadJobFromCommandOutput(
                 $downloadJob,
                 $event->process->getOutput()
             );
         }
+    }
+
+    private function downloaderFor(DownloadJob $downloadJob): ?DownloaderInterface
+    {
+        if (null !== $downloadJob->getDownloader()) {
+            return $this->downloaderFactory->getDownloaderByIdentifier($downloadJob->getDownloader());
+        }
+
+        foreach ($this->downloaderFactory->getDownloadersByDownloadJob($downloadJob) as $downloader) {
+            return $downloader;
+        }
+
+        return null;
     }
 }

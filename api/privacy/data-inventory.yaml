@@ -7,7 +7,8 @@
 #   personal:  true when the value relates to an identifiable user. Personal entries need the four keys below.
 #   category:  account | settings | request | content | device | report | technical
 #   purpose:   why it is stored, one sentence the policy can quote
-#   retention: with_account     kept while the user's account exists; there is no self-service account deletion
+#   retention: with_account     kept while the user's account exists; users delete their account themselves
+#                               (DELETE /users/me, server#129), which deletes all of it
 #              with_job         kept with the download job; deleting a job only hides it (soft delete), nothing
 #                               purges jobs automatically
 #              until_completed  removed when the job completes successfully; kept with the job otherwise (server#122)

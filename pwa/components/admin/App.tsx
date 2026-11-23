@@ -32,6 +32,7 @@ import {
   FailureReportShow,
   FailureReportSummaryList,
 } from "./reports/FailureReports";
+import { ACCOUNT_RESOURCE, AccountPage } from "./account/AccountPage";
 import { INSTANCE_INTEGRITY_RESOURCE, PRIVACY_POLICY_RESOURCE } from "./privacy/api";
 import { InstanceIntegrityPage } from "./privacy/InstanceIntegrityPage";
 import { PrivacyPolicyBanner } from "./privacy/PrivacyPolicyBanner";
@@ -152,6 +153,7 @@ const resources = (roles: Permissions) => [
   <ResourceGuesser key="users/clients" name="users/clients" />,
   <ResourceGuesser key="users/settings/downloaders" name="users/settings/downloaders" />,
   <ResourceGuesser key="users/settings/sites" name="users/settings/sites" />,
+  <Resource key={ACCOUNT_RESOURCE} name={ACCOUNT_RESOURCE} options={{ label: "My account" }} list={AccountPage} />,
   ...(canViewAllDownloads(roles)
     ? [
         <Resource

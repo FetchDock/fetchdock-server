@@ -22,6 +22,7 @@ framework:
             'App\Entity\DownloadJob': async
             'App\Message\StartFileMoveBatchMessage': file-moves
             'App\Message\MoveFileMessage': file-moves
+            'App\Message\PurgeFilesMessage': async
             # Route your messages to the transports
             # 'App\Message\YourMessage': async
 

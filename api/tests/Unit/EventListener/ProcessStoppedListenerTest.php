@@ -6,12 +6,17 @@ use App\Entity\DownloadJob;
 use App\Enum\DownloadStateEnum;
 use App\Event\CliProcessStopEvent;
 use App\EventListener\ProcessStoppedListener;
+use App\Exception\DownloadJobDeletedException;
 use App\Factory\DownloaderFactory;
+use App\Message\PurgeFilesMessage;
 use App\Repository\DownloadJobRepository;
+use App\Service\Downloader\YoutubeDlCliDownloader;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\Messenger\Envelope;
+use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Process\Process;
 
 class ProcessStoppedListenerTest extends TestCase
@@ -23,6 +28,7 @@ class ProcessStoppedListenerTest extends TestCase
     private DownloaderFactory|MockObject $downloaderFactory;
     private DownloadJob $downloadJob;
     private Process|MockObject $process;
+    private MessageBusInterface|MockObject $messageBus;
 
     protected function setUp(): void
     {
@@ -30,11 +36,13 @@ class ProcessStoppedListenerTest extends TestCase
         $this->logger = $this->createMock(LoggerInterface::class);
         $this->repository = $this->createMock(DownloadJobRepository::class);
         $this->downloaderFactory = $this->createMock(DownloaderFactory::class);
+        $this->messageBus = $this->createMock(MessageBusInterface::class);
         $this->listener = new ProcessStoppedListener(
             $this->logger,
             $this->entityManager,
             $this->repository,
-            $this->downloaderFactory
+            $this->downloaderFactory,
+            $this->messageBus,
         );
         $this->downloadJob = new DownloadJob();
         $this->downloadJob->setUri('https://example.com/test.mp4');
@@ -219,5 +227,30 @@ class ProcessStoppedListenerTest extends TestCase
             ->willReturn($downloader);
 
         $this->listener->addFilesToDownloadJobFromCommandOutput($event);
+    }
+
+    public function testJobThatStillExistsIsNotAborted(): void
+    {
+        $this->repository->method('existsInDatabase')->with(1)->willReturn(true);
+        $this->messageBus->expects($this->never())->method('dispatch');
+
+        $this->listener->abortWhenJobWasDeleted(new CliProcessStopEvent($this->downloadJob, true, $this->process, 0, 'OK'));
+    }
+
+    public function testJobDeletedWhileRunningPurgesItsFilesAndStops(): void
+    {
+        $this->downloadJob->setDownloader('yt-dlp');
+        $this->downloadJob->setCreatedAt(new \DateTime('@1700000000'));
+        $downloader = $this->createMock(YoutubeDlCliDownloader::class);
+        $downloader->method('filePathsFromCommandOutput')->willReturn(['/downloads/a.mp4']);
+        $this->downloaderFactory->method('getDownloaderByIdentifier')->with('yt-dlp')->willReturn($downloader);
+        $this->repository->method('existsInDatabase')->with(1)->willReturn(false);
+
+        $this->messageBus->expects($this->once())->method('dispatch')
+            ->with($this->callback(static fn (PurgeFilesMessage $message): bool => ['/downloads/a.mp4'] === $message->paths && 1700000000 === $message->writtenSince))
+            ->willReturnCallback(static fn (object $message): Envelope => new Envelope($message));
+
+        $this->expectException(DownloadJobDeletedException::class);
+        $this->listener->abortWhenJobWasDeleted(new CliProcessStopEvent($this->downloadJob, true, $this->process, 0, 'OK'));
     }
 }

@@ -53,6 +53,14 @@ abstract class AbstractCliDownloader implements DownloaderInterface
 
     abstract public function addFilesToDownloadJobFromCommandOutput(DownloadJob $downloadJob, string $commandOutput): void;
 
+    /**
+     * The absolute paths of the files the command output reports, without linking them: the files of a job that was
+     * deleted while it ran, to purge them (server#129).
+     *
+     * @return list<string>
+     */
+    abstract public function filePathsFromCommandOutput(DownloadJobInterface $downloadJob, string $commandOutput): array;
+
     public function download(DownloadJobInterface $downloadJob): true
     {
         $this->logger->debug(

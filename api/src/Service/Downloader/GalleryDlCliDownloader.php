@@ -127,16 +127,13 @@ class GalleryDlCliDownloader extends AbstractCliDownloader implements CliDownloa
         return $domains;
     }
 
-    public function addFilesToDownloadJobFromCommandOutput(DownloadJob $downloadJob, string $commandOutput): void
+    public function filePathsFromCommandOutput(DownloadJobInterface $downloadJob, string $commandOutput): array
     {
-        // Convert \n to actual new lines
-        $lines = explode("\n", $commandOutput);
-
         // Example output:
         // ./gallery-dl/kemono/patreon/123/123_filename.pdf
         // ./gallery-dl/kemono/patreon/123/123_filename.zip
-
-        foreach ($lines as $line) {
+        $paths = [];
+        foreach (explode("\n", $commandOutput) as $line) {
             $line = trim($line);
             if (empty($line)) {
                 continue;
@@ -154,7 +151,15 @@ class GalleryDlCliDownloader extends AbstractCliDownloader implements CliDownloa
                 $line = substr($line, 2);
             }
             // Relative paths are relative to the working directory, which is the job's directory
-            $filePath = str_starts_with($line, '/') ? $line : $this->getTargetPath($downloadJob).'/'.$line;
+            $paths[] = str_starts_with($line, '/') ? $line : $this->getTargetPath($downloadJob).'/'.$line;
+        }
+
+        return $paths;
+    }
+
+    public function addFilesToDownloadJobFromCommandOutput(DownloadJob $downloadJob, string $commandOutput): void
+    {
+        foreach ($this->filePathsFromCommandOutput($downloadJob, $commandOutput) as $filePath) {
             if (file_exists($filePath) && is_file($filePath)) {
                 $location = $this->locationResolver->fromAbsolute($filePath);
                 if (null === $location) {

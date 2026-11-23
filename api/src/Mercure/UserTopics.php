@@ -39,6 +39,14 @@ final class UserTopics
     }
 
     /**
+     * Topic of the user's account events, e.g. {"type":"account_deleted"} (see AccountDeleter).
+     */
+    public static function account(OidcSubjectIdentifier|Uuid $user): string
+    {
+        return self::prefix($user).'/account';
+    }
+
+    /**
      * Topic of a download job's own updates, or null if the job has no owner (no topic can be built).
      */
     public static function downloadJob(DownloadJobInterface $downloadJob): ?string
