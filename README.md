@@ -43,21 +43,21 @@ If you're having issues with setting up authentication with your provider, feel 
 - (Partial) multi user support
 
 ### Future Plans (in no particular order)
-- [ ] Add more backends for different platforms
+- [ ] Add more backends for different platforms (#143)
 - [x] Implement authentication and authorization (OAuth2)
-- [ ] Add support for scheduling downloads
-- [ ] Add support for monitoring URLS (periodic checks for new content)
-- [ ] Implement retry mechanism for failed downloads
-- [ ] Add support for different file formats and quality options
-- [ ] Implement user management and quotas
-- [ ] Add support for proxy servers
-- [ ] Implement notifications (email, SMS, webhooks, etc.) for completed downloads
-- [ ] Implement caching for frequently downloaded files
+- [ ] Add support for scheduling downloads (#137)
+- [ ] Add support for monitoring URLS (periodic checks for new content) (#138)
+- [ ] Implement retry mechanism for failed downloads (#136)
+- [x] Add support for different file formats and quality options (per-user/site downloader options)
+- [ ] Implement user management and quotas (#140)
+- [ ] Add support for proxy servers (#139)
+- [ ] Implement notifications (email, SMS, webhooks, etc.) for completed downloads (#142; live client notifications via Mercure are done)
+- [x] Implement caching for frequently downloaded files (duplicate detection and shared files across users)
 - [ ] Add monitoring and logging features (partially done)
-- [ ] Implement rate limiting to prevent abuse
+- [ ] Implement rate limiting to prevent abuse (partially done, #141)
 - [ ] Implement a frontend for easier interaction with the API
   - [x] [FetchDock Browser Extension](https://github.com/FetchDock/fetchdock-extension) - (in active development)
-  - [ ] Web UI dashboard - (in active development)
+  - [ ] Web UI dashboard - (admin PWA done, user dashboard #144)
   - [ ] Desktop app
   - [ ] Mobile app
 
