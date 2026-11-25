@@ -9,11 +9,15 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Post;
 use App\Dto\FailureReportDiagnostics;
+use App\Enum\FailureReportForwarding;
 use App\Enum\FailureReportKind;
 use App\Enum\FailureReportStatus;
 use App\Interface\OwnerFilterableInterface;
 use App\Repository\FailureReportRepository;
 use App\State\FailureReportProcessor;
+use App\State\FailureReportWithdrawProcessor;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\EntityNotFoundException;
 use Doctrine\ORM\Mapping as ORM;
@@ -35,6 +39,7 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
 #[ORM\Entity(repositoryClass: FailureReportRepository::class)]
 #[ORM\Index(name: 'idx_failure_report_owner_canonical_key', columns: ['owner_id', 'canonical_key'])]
 #[ORM\Index(name: 'idx_failure_report_created_at', columns: ['created_at'])]
+#[ORM\Index(name: 'idx_failure_report_forwarding', columns: ['forwarding'])]
 #[ApiResource(
     operations: [
         new GetCollection(uriTemplate: '/users/failure_reports', description: "The user's failure reports, newest first."),
@@ -42,11 +47,16 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
             uriTemplate: '/users/failure_reports',
             description: 'Reports a failed download job or an unsupported URL. Stored as sent, plus the derived host and site. '
                 .'409 if the user reported the same media (canonical key) with the same kind within 24 hours, '
-                .'422 for invalid reports, 429 above 20 reports per hour, 403 when the server disabled failure reports.',
+                .'422 for invalid reports (also shareUpstream while forwarding is off, or a collector policy version the collector no longer accepts), '
+                .'429 above 20 reports per hour, 403 when the server disabled failure reports.',
             processor: FailureReportProcessor::class,
         ),
         new Get(uriTemplate: '/users/failure_reports/{id}'),
-        new Delete(uriTemplate: '/users/failure_reports/{id}', description: 'Withdraws a report: it is deleted for good.'),
+        new Delete(
+            uriTemplate: '/users/failure_reports/{id}',
+            description: 'Withdraws a report: it is deleted for good. A report that was forwarded to the FetchDock collector is deleted there too, asynchronously.',
+            processor: FailureReportWithdrawProcessor::class,
+        ),
     ],
     normalizationContext: ['groups' => ['failure_report:read'], 'skip_null_values' => false],
     denormalizationContext: ['groups' => ['failure_report:write'], 'allow_extra_attributes' => false],
@@ -54,6 +64,7 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
     order: ['createdAt' => 'DESC'],
 )]
 #[Assert\Callback('validateKind')]
+#[Assert\Callback('validateShareUpstream')]
 class FailureReport implements OwnerFilterableInterface
 {
     public const int URL_MAX_LENGTH = 2048;
@@ -146,11 +157,61 @@ class FailureReport implements OwnerFilterableInterface
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     private \DateTimeImmutable $updatedAt;
 
+    /** The reporter agreed to share this report with the FetchDock developers (phase 2 of ADR 0012) */
+    #[ApiProperty(description: 'Also share the report with the FetchDock developers, through the collector. Needs upstreamPolicyVersion and forwarding enabled on the server (features.failureReports.upstreamForwarding).')]
+    #[Groups(['failure_report:read', 'failure_report:write'])]
+    #[ORM\Column(options: ['default' => false])]
+    private bool $shareUpstream = false;
+
+    /** The collector policy version shown to the reporter when they agreed */
+    #[ApiProperty(description: 'The collector privacy policy version the user agreed to (features.failureReports.upstreamForwarding.privacyPolicyVersion). Required with shareUpstream.')]
+    #[Assert\Length(max: 64)]
+    #[Groups(['failure_report:read', 'failure_report:write'])]
+    #[ORM\Column(length: 64, nullable: true)]
+    private ?string $upstreamPolicyVersion = null;
+
+    #[Groups(['failure_report:read'])]
+    #[ORM\Column(length: 16, enumType: FailureReportForwarding::class, options: ['default' => 'not_requested'])]
+    private FailureReportForwarding $forwarding = FailureReportForwarding::NOT_REQUESTED;
+
+    /** The report's id at the collector once forwarded, so the reporter can refer to it there */
+    #[ApiProperty(schema: ['type' => ['string', 'null'], 'format' => 'uuid'])]
+    #[Groups(['failure_report:read'])]
+    #[ORM\Column(type: UuidType::NAME, nullable: true)]
+    private ?Uuid $upstreamId = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $forwardedAt = null;
+
+    /** The admin's comment for the developers, sent with the report */
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $upstreamComment = null;
+
+    /** Why forwarding is held or failed, for the admins */
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $forwardingError = null;
+
+    /** @var Collection<int, FailureReportUpstreamComment> */
+    #[ORM\OneToMany(targetEntity: FailureReportUpstreamComment::class, mappedBy: 'report', cascade: ['persist'])]
+    #[ORM\OrderBy(['createdAt' => 'ASC'])]
+    private Collection $upstreamComments;
+
     public function __construct()
     {
         $this->id = Uuid::v7();
         $this->createdAt = new \DateTimeImmutable();
         $this->updatedAt = $this->createdAt;
+        $this->upstreamComments = new ArrayCollection();
+    }
+
+    public function validateShareUpstream(ExecutionContextInterface $context): void
+    {
+        if ($this->shareUpstream && null === $this->upstreamPolicyVersion) {
+            $context->buildViolation('Sharing a report with the FetchDock developers needs the collector policy version the user agreed to.')->atPath('upstreamPolicyVersion')->addViolation();
+        }
+        if (!$this->shareUpstream && null !== $this->upstreamPolicyVersion) {
+            $context->buildViolation('Only reports shared with the FetchDock developers carry a collector policy version.')->atPath('upstreamPolicyVersion')->addViolation();
+        }
     }
 
     public function validateKind(ExecutionContextInterface $context): void
@@ -386,6 +447,95 @@ class FailureReport implements OwnerFilterableInterface
     public function setUpdatedAt(\DateTimeImmutable $updatedAt): static
     {
         $this->updatedAt = $updatedAt;
+
+        return $this;
+    }
+
+    public function isShareUpstream(): bool
+    {
+        return $this->shareUpstream;
+    }
+
+    public function setShareUpstream(bool $shareUpstream): static
+    {
+        $this->shareUpstream = $shareUpstream;
+
+        return $this;
+    }
+
+    public function getUpstreamPolicyVersion(): ?string
+    {
+        return $this->upstreamPolicyVersion;
+    }
+
+    public function setUpstreamPolicyVersion(?string $upstreamPolicyVersion): static
+    {
+        $this->upstreamPolicyVersion = $upstreamPolicyVersion;
+
+        return $this;
+    }
+
+    public function getForwarding(): FailureReportForwarding
+    {
+        return $this->forwarding;
+    }
+
+    public function setForwarding(FailureReportForwarding $forwarding, ?string $error = null): static
+    {
+        $this->forwarding = $forwarding;
+        $this->forwardingError = $error;
+
+        return $this;
+    }
+
+    public function getUpstreamId(): ?Uuid
+    {
+        return $this->upstreamId;
+    }
+
+    public function getForwardedAt(): ?\DateTimeImmutable
+    {
+        return $this->forwardedAt;
+    }
+
+    public function markForwarded(Uuid $upstreamId, \DateTimeImmutable $now = new \DateTimeImmutable()): static
+    {
+        $this->upstreamId = $upstreamId;
+        $this->forwardedAt = $now;
+
+        return $this->setForwarding(FailureReportForwarding::FORWARDED);
+    }
+
+    public function getUpstreamComment(): ?string
+    {
+        return $this->upstreamComment;
+    }
+
+    public function setUpstreamComment(?string $upstreamComment): static
+    {
+        $this->upstreamComment = $upstreamComment;
+
+        return $this;
+    }
+
+    public function getForwardingError(): ?string
+    {
+        return $this->forwardingError;
+    }
+
+    /**
+     * @return Collection<int, FailureReportUpstreamComment>
+     */
+    public function getUpstreamComments(): Collection
+    {
+        return $this->upstreamComments;
+    }
+
+    public function addUpstreamComment(FailureReportUpstreamComment $comment): static
+    {
+        if (!$this->upstreamComments->contains($comment)) {
+            $this->upstreamComments->add($comment);
+        }
 
         return $this;
     }

@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Service\FailureReport\FailureReportForwarder;
 use App\Service\Integrity\IntegrityStatusResolver;
 use App\Service\Privacy\PrivacyPolicyPublisher;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -26,6 +27,7 @@ final class WellKnownController extends AbstractController
         private string $appVersion,
         private PrivacyPolicyPublisher $privacyPolicyPublisher,
         private IntegrityStatusResolver $integrityStatusResolver,
+        private FailureReportForwarder $failureReportForwarder,
         #[Autowire('%app.failure_reports.enabled%')]
         private bool $failureReportsEnabled = true,
     ) {
@@ -77,8 +79,9 @@ final class WellKnownController extends AbstractController
                 'features' => [
                     'failureReports' => [
                         'enabled' => $this->failureReportsEnabled,
-                        // Forwarding reports to the FetchDock developers (phase 2 of ADR 0012)
-                        'upstreamForwarding' => null,
+                        // Forwarding reports to the FetchDock developers (phase 2 of ADR 0012): the collector policy the
+                        // reporter agrees to, or null when this server doesn't forward reports
+                        'upstreamForwarding' => $this->failureReportForwarder->offer(),
                     ],
                 ],
                 // The instance's privacy policy (ADR 0013): the operator's own (PRIVACY_POLICY_URL), else the generated

@@ -95,6 +95,7 @@ Check: `curl -sI https://<host>/ | grep -i '^link'` must show `https://<host>/do
 | `PRIVACY_POLICY_ENABLED` | Optional, default `1`. Set to `0` to disable the privacy policy completely (for personal or household instances that do not need one): hides admin reminders, omits `privacyPolicyUrl` from well-known, and returns 404 on `/privacy` (existing historical revisions stay readable at `/privacy?revision=N`) |
 | `PRIVACY_POLICY_URL` | Optional. URL of your own privacy policy (`custom` mode), overriding the built-in generator (`/privacy`). Leave unset to publish the generated policy configured under *Admin → Privacy policy* (requires official images and `INTEGRITY_CHECK_ONLINE=1`). Required for forks, modified builds or offline instances; see [`docs/privacy-policy-template.md`](../docs/privacy-policy-template.md) (starter template: [`docs/privacy-policy-custom-template.md`](../docs/privacy-policy-custom-template.md)) |
 | `FAILURE_REPORTS_ENABLED` | Optional, default `1`. `0` refuses new failure reports (403) and hides reporting in clients; existing reports stay visible to admins and withdrawable by their reporters |
+| `FAILURE_REPORTS_COLLECTOR_URL` | Optional, default `https://reports.fetchdock.dev`. The FetchDock collector that reports are forwarded to once an admin enables forwarding (admin: *Report forwarding*) and only for reports whose reporter agreed. Empty turns forwarding off. The instance secret the collector issues is stored encrypted with a key derived from `APP_SECRET`; set `APP_SECRET` to a random value in production; changing it makes the instance register again |
 | `INTEGRITY_CHECK_ONLINE` | Optional, default `1`. The api and worker containers compare their files with the image's integrity manifest on start and daily, and the manifest with the digest CI published for the version (fetched once from the `integrity-digests` release on GitHub). `0` skips the fetch, so the instance reads "unknown" at best |
 | `WORKER_REPLICAS` | Default `10`; e.g. `2` on staging |
 | `SOURCE_POSTGRES_HOST`, `SOURCE_POSTGRES_PORT` | Staging only; default to the staging server |
@@ -108,8 +109,9 @@ and `worker` services need **the same mounts**: the api checks a directory when 
 writes into it. A job fails with "not mounted or not writable" when the worker can't reach its directory.
 `db-refresh` resets staging to its single default directory, `/downloads`.
 
-Workers consume `async file-moves scheduler_default`. Downloads come first. File moves (admin: *File moves*)
-follow, one message per file, and the scheduler runs `app:file-moves:recover` hourly. The recovery command resumes
+Workers consume `failure-reports async file-moves scheduler_default`. Reports for the FetchDock collector come
+first (short HTTP calls, retried for about two days while the collector is unreachable, then kept in the `failed`
+transport: `bin/console messenger:failed:show`). Downloads come next. File moves (admin: *File moves*) follow, one message per file, and the scheduler runs `app:file-moves:recover` hourly. The recovery command resumes
 moves that a stopped worker left behind. Workers restart after an hour (`--time-limit`) or 100 messages. Moves to
 slow storage can take hours: follow them in the admin, and cancel them there if needed.
 

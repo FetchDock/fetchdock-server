@@ -14,6 +14,7 @@ use App\Enum\DownloadStateEnum;
 use App\Repository\FailureReportRepository;
 use App\Security\CurrentOwner;
 use App\Service\Canonical\CanonicalKeyGenerator;
+use App\Service\FailureReport\FailureReportForwarder;
 use App\Service\Site\SiteResolver;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -44,6 +45,7 @@ final readonly class FailureReportProcessor implements ProcessorInterface
         private CanonicalKeyGenerator $canonicalKeyGenerator,
         private FailureReportRepository $failureReportRepository,
         private RateLimiterFactoryInterface $failureReportLimiter,
+        private FailureReportForwarder $forwarder,
         private LoggerInterface $logger,
         #[Autowire('%app.failure_reports.enabled%')]
         private bool $enabled,
@@ -81,14 +83,20 @@ final readonly class FailureReportProcessor implements ProcessorInterface
             throw new ConflictHttpException(sprintf('You already reported this within the last 24 hours: /users/failure_reports/%s', $duplicate->getId()->toRfc4122()));
         }
 
+        // Phase 2 of ADR 0012: checks the reporter's consent; 422 when the report can't be shared
+        $this->forwarder->requestForwarding($data);
+
         $limit = $this->failureReportLimiter->create((string) $owner->getSubject())->consume();
         if (!$limit->isAccepted()) {
             throw new TooManyRequestsHttpException(max(1, $limit->getRetryAfter()->getTimestamp() - time()), 'Too many failure reports, try again later.');
         }
 
-        $this->logger->info('Failure report received', ['kind' => $data->getKind()?->value, 'host' => $data->getHost(), 'site' => $site?->getSlug()]);
+        $this->logger->info('Failure report received', ['kind' => $data->getKind()?->value, 'host' => $data->getHost(), 'site' => $site?->getSlug(), 'forwarding' => $data->getForwarding()->value]);
 
-        return $this->persistProcessor->process($data, $operation, $uriVariables, $context);
+        $report = $this->persistProcessor->process($data, $operation, $uriVariables, $context);
+        $this->forwarder->dispatchPending($report);
+
+        return $report;
     }
 
     /**

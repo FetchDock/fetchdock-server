@@ -16,6 +16,16 @@ framework:
                     max_retries: 2 # MoveFileHandler::MAX_ATTEMPTS in all
                     delay: 30000
                     multiplier: 4
+            # Failure reports for the FetchDock collector (phase 2 of ADR 0012): consumed first, the calls are short.
+            # Retries for about two days while the collector is unreachable, then the message stays in "failed".
+            failure-reports:
+                dsn: 'doctrine://default?auto_setup=false&queue_name=failure-reports'
+                failure_transport: failed
+                retry_strategy:
+                    max_retries: 8
+                    delay: 60000
+                    multiplier: 3
+                    max_delay: 86400000
             # sync: 'sync://'
 
         routing:
@@ -23,6 +33,9 @@ framework:
             'App\Message\StartFileMoveBatchMessage': file-moves
             'App\Message\MoveFileMessage': file-moves
             'App\Message\PurgeFilesMessage': async
+            'App\Message\ForwardFailureReportMessage': failure-reports
+            'App\Message\ForwardUpstreamCommentMessage': failure-reports
+            'App\Message\DeleteUpstreamReportMessage': failure-reports
             # Route your messages to the transports
             # 'App\Message\YourMessage': async
 
@@ -34,3 +47,4 @@ when@test:
                 # For more Messenger testing tools, see https://github.com/zenstruck/messenger-test
                 async: 'in-memory://'
                 file-moves: 'in-memory://'
+                failure-reports: 'in-memory://'

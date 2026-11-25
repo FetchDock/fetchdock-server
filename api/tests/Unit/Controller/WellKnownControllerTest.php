@@ -4,6 +4,7 @@ namespace App\Tests\Unit\Controller;
 
 use App\Controller\WellKnownController;
 use App\Enum\IntegrityStatus;
+use App\Service\FailureReport\FailureReportForwarder;
 use App\Service\Integrity\IntegrityStatusResolver;
 use App\Service\Privacy\PrivacyPolicyPublisher;
 use PHPUnit\Framework\TestCase;
@@ -31,7 +32,7 @@ class WellKnownControllerTest extends TestCase
         $resolver = $this->createStub(IntegrityStatusResolver::class);
         $resolver->method('effectiveStatus')->willReturn($integrity);
 
-        return new WellKnownController(self::CLIENT_ID, self::VERSION, $publisher, $resolver, $failureReports);
+        return new WellKnownController(self::CLIENT_ID, self::VERSION, $publisher, $resolver, $this->createStub(FailureReportForwarder::class), $failureReports);
     }
 
     private function container(): \Symfony\Component\DependencyInjection\ContainerInterface

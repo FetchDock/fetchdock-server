@@ -6,6 +6,7 @@ use ApiPlatform\Metadata\CollectionOperationInterface;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
 use App\Entity\FailureReport;
+use App\Enum\FailureReportForwarding;
 use App\Enum\FailureReportKind;
 use App\Enum\FailureReportStatus;
 use App\Repository\FailureReportRepository;
@@ -50,6 +51,10 @@ final readonly class AdminFailureReportProvider implements ProviderInterface
         }
         if (null !== $host = AdminPaginator::stringFilter($context, 'host')) {
             $queryBuilder->andWhere('r.host = :host')->setParameter('host', strtolower($host));
+        }
+
+        if (null !== $forwarding = AdminPaginator::stringFilter($context, 'forwarding')) {
+            $queryBuilder->andWhere('r.forwarding = :forwarding')->setParameter('forwarding', FailureReportForwarding::from($forwarding));
         }
 
         return $this->paginator->paginate(

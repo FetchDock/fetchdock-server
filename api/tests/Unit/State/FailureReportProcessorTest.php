@@ -10,6 +10,7 @@ use App\Entity\OidcSubjectIdentifier;
 use App\Enum\FailureReportKind;
 use App\Repository\FailureReportRepository;
 use App\Security\CurrentOwner;
+use App\Service\FailureReport\FailureReportForwarder;
 use App\Service\Site\SiteResolver;
 use App\State\FailureReportProcessor;
 use App\Tests\Double\CanonicalKeyGenerators;
@@ -72,6 +73,7 @@ class FailureReportProcessorTest extends TestCase
             CanonicalKeyGenerators::create(),
             $this->createStub(FailureReportRepository::class),
             new RateLimiterFactory(['id' => 'failure_report', 'policy' => 'sliding_window', 'limit' => $limit, 'interval' => '1 hour'], new InMemoryStorage()),
+            $this->createStub(FailureReportForwarder::class),
             new NullLogger(),
             $enabled,
         );

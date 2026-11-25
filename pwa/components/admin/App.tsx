@@ -32,6 +32,8 @@ import {
   FailureReportShow,
   FailureReportSummaryList,
 } from "./reports/FailureReports";
+import { FAILURE_REPORT_FORWARDING_RESOURCE } from "./reports/forwarding";
+import { ForwardingSettingsPage } from "./reports/ForwardingSettingsPage";
 import { ACCOUNT_RESOURCE, AccountPage } from "./account/AccountPage";
 import { INSTANCE_INTEGRITY_RESOURCE, PRIVACY_POLICY_RESOURCE } from "./privacy/api";
 import { InstanceIntegrityPage } from "./privacy/InstanceIntegrityPage";
@@ -204,6 +206,12 @@ const resources = (roles: Permissions) => [
           list={FailureReportSummaryList}
         />,
         // Singletons (ADR 0013): only their list page is used, as a custom page
+        <Resource
+          key={FAILURE_REPORT_FORWARDING_RESOURCE}
+          name={FAILURE_REPORT_FORWARDING_RESOURCE}
+          options={{ label: "Report forwarding" }}
+          list={ForwardingSettingsPage}
+        />,
         <Resource
           key={PRIVACY_POLICY_RESOURCE}
           name={PRIVACY_POLICY_RESOURCE}

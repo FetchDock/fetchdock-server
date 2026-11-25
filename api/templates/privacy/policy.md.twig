@@ -154,9 +154,17 @@ The operator also uses these service providers:
 
 If problem reports are enabled on this instance, your app can offer to send a report when a download fails or a page is not supported. Nothing is sent unless you choose to send one, and the app shows you the exact contents first. A report includes the page address, your optional comment, and only the extra details you choose to include (such as user agent, referring page or downloader error details). It never includes cookies.
 
-Administrators see the report contents — not which account sent it — and use them to fix failing downloads. Administrators may also share a report (without your account identifier) with the FetchDock project maintainers if their support is needed to resolve the reported issue.
+Administrators see the report contents — not which account sent it — and use them to fix failing downloads.
+{% if config.failureReports.forwarding is not null %}
+
+Your app can also offer to share a report with the FetchDock project maintainers. A report is only shared if you choose that option for that report, after being shown the privacy policy of the FetchDock report collector{% if config.failureReports.forwarding.collectorPolicyUrl is not null %} ([version {{ config.failureReports.forwarding.collectorPolicyVersion }}](<{{ config.failureReports.forwarding.collectorPolicyUrl|e('markdown_url')|raw }}>)){% endif %}, and the app shows you the exact contents that will be shared. Depending on the instance's settings, an administrator reviews a shared report before it is forwarded. The shared copy contains the report as you sent it, its site, the instance's FetchDock version and the policy version you agreed to — never your account identifier or anything that links it to your downloads. Administrators may add comments for the maintainers to a shared report; their internal notes are never shared. The FetchDock project processes shared reports under its own privacy policy.
+
+You can view and withdraw your reports at any time. Withdrawing a report permanently and irrevocably deletes it from this server; if it was shared, the instance also asks the FetchDock report collector to delete its copy.
+{% else %}
+Administrators may also share a report (without your account identifier) with the FetchDock project maintainers if their support is needed to resolve the reported issue.
 
 You can view and withdraw your reports at any time. Withdrawing a report permanently and irrevocably deletes it from this server, unless it was already shared with the FetchDock project before withdrawal.
+{% endif %}
 
 You can check whether problem reports are enabled on this instance at `/.well-known/browser-extension` (`features.failureReports`).
 
