@@ -23,6 +23,10 @@ parameters:
     # installs); PRIVACY_POLICY_URL is the operator's own privacy policy, linked by clients and the admin
     env(FAILURE_REPORTS_ENABLED): 'true'
     app.failure_reports.enabled: '%env(bool:FAILURE_REPORTS_ENABLED)%'
+    # The FetchDock collector that reports are forwarded to, with consent (phase 2 of ADR 0012, ADR 0014). Empty
+    # turns forwarding off for good; admins enable it in the PWA otherwise.
+    env(FAILURE_REPORTS_COLLECTOR_URL): 'https://reports.fetchdock.dev'
+    app.failure_reports.collector_url: '%env(FAILURE_REPORTS_COLLECTOR_URL)%'
     env(PRIVACY_POLICY_ENABLED): 'true'
     app.privacy_policy.enabled: '%env(bool:PRIVACY_POLICY_ENABLED)%'
     env(PRIVACY_POLICY_URL): ''
@@ -139,6 +143,8 @@ when@test:
     parameters:
         # Tests create download directories under their own root (tests/Api/AdminDownloadDirectoriesTest)
         app.download_roots: ['/downloads', '%kernel.project_dir%/var/test-download-roots']
+        # Served by App\Tests\Double\FakeCollector
+        env(FAILURE_REPORTS_COLLECTOR_URL): 'https://collector.test'
 
     services:
         # Don't run bin/resolve_url.py in functional tests
@@ -147,3 +153,9 @@ when@test:
         # Don't run bin/dump_options.py in functional tests
         App\Service\Downloader\Options\OptionsDumperInterface:
             class: App\Tests\Double\FakeOptionsDumper
+        # The FetchDock collector, in memory (tests/Api/FailureReportForwardingTest)
+        App\Tests\Double\FakeCollector: ~
+        App\Service\FailureReport\CollectorClient:
+            autowire: true
+            arguments:
+                $httpClient: '@App\Tests\Double\FakeCollector'

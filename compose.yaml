@@ -65,8 +65,9 @@ services:
       NODE_MODE: worker
     volumes:
       - /tmp/downloader-downloads:/downloads
-    # Downloads first, then file moves (#109) and the scheduled tasks (app:file-moves:recover); restart regularly
-    command: bin/console messenger:consume async file-moves scheduler_default --limit=100 --time-limit=3600 --memory-limit=512M -vv
+    # Failure reports for the collector first (short calls), then downloads, file moves (#109) and the scheduled tasks
+    # (app:file-moves:recover); restart regularly
+    command: bin/console messenger:consume failure-reports async file-moves scheduler_default --limit=100 --time-limit=3600 --memory-limit=512M -vv
     healthcheck:
       test: ["CMD", "true"]
       timeout: 5s

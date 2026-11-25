@@ -2,9 +2,11 @@
 
 namespace App\Service\Privacy;
 
+use App\Entity\FailureReportForwardingSettings;
 use App\Entity\PrivacyPolicySettings;
 use App\Entity\SiteSetting;
 use App\Model\PrivacyPolicyAnswers;
+use App\Repository\FailureReportForwardingSettingsRepository;
 use App\Service\Settings\EffectiveSettingsResolver;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -36,6 +38,8 @@ class PolicyInputsBuilder
         private readonly bool $failureReportsEnabled,
         #[Autowire('%app.integrity.check_online%')]
         private readonly bool $integrityCheckOnline,
+        #[Autowire('%app.failure_reports.collector_url%')]
+        private readonly string $collectorUrl = '',
     ) {
     }
 
@@ -69,9 +73,8 @@ class PolicyInputsBuilder
         return [
             'failureReports' => [
                 'enabled' => $this->failureReportsEnabled,
-                // Forwarding to the FetchDock collector (phase 2 of ADR 0012) doesn't exist yet. When it does:
-                // ['collectorPolicyVersion' => string] while forwarding is on, null otherwise.
-                'forwarding' => null,
+                // Forwarding to the FetchDock collector (phase 2 of ADR 0012) while the admin enabled it
+                'forwarding' => $this->forwarding(),
             ],
             'siteDefaults' => [
                 'sendCookies' => EffectiveSettingsResolver::DEFAULT_SEND_COOKIES,
@@ -122,6 +125,27 @@ class PolicyInputsBuilder
         }
 
         return $exceptions;
+    }
+
+    /**
+     * The collector policy the admin accepted while forwarding is on, null otherwise.
+     *
+     * @return array{collectorPolicyVersion: string, collectorPolicyUrl: string|null}|null
+     */
+    private function forwarding(): ?array
+    {
+        if (!$this->failureReportsEnabled || '' === trim($this->collectorUrl)) {
+            return null;
+        }
+        /** @var FailureReportForwardingSettingsRepository $repository */
+        $repository = $this->entityManager->getRepository(FailureReportForwardingSettings::class);
+        $settings = $repository->get();
+        $version = $settings->getAcceptedPolicyVersion();
+        if (!$settings->isEnabled() || null === $version) {
+            return null;
+        }
+
+        return ['collectorPolicyVersion' => $version, 'collectorPolicyUrl' => $settings->getAcceptedPolicyUrl()];
     }
 
     /**

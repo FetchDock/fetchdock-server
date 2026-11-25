@@ -42,6 +42,7 @@ services:
       OIDC_ISSUER: ${OIDC_ISSUER:?}
       # Failure reports (ADR 0012) and the instance's privacy policy, see deploy/README.md
       FAILURE_REPORTS_ENABLED: ${FAILURE_REPORTS_ENABLED:-1}
+      FAILURE_REPORTS_COLLECTOR_URL: ${FAILURE_REPORTS_COLLECTOR_URL-https://reports.fetchdock.dev}
       PRIVACY_POLICY_URL: ${PRIVACY_POLICY_URL:-}
     volumes:
       - caddy_data:/data
@@ -72,8 +73,9 @@ services:
     volumes:
       - ${GALLERY_DL_CONFIG:?}:/app/config/gallery-dl/config.json:ro
       - ${DOWNLOADS_PATH:?}:/downloads
-    # Downloads first, then file moves (#109) and the scheduled tasks (app:file-moves:recover); restart regularly
-    command: bin/console messenger:consume async file-moves scheduler_default --limit=100 --time-limit=3600 --memory-limit=512M -vv
+    # Failure reports for the collector first (short calls), then downloads, file moves (#109) and the scheduled tasks
+    # (app:file-moves:recover); restart regularly
+    command: bin/console messenger:consume failure-reports async file-moves scheduler_default --limit=100 --time-limit=3600 --memory-limit=512M -vv
     healthcheck:
       test: ["CMD", "true"]
       timeout: 5s

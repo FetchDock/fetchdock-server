@@ -1,5 +1,6 @@
 import { useState } from "react";
 import {
+  Button,
   Datagrid,
   DateField,
   DateTimeInput,
@@ -22,8 +23,10 @@ import {
   useNotify,
   useRecordContext,
   useRedirect,
+  useRefresh,
 } from "react-admin";
 import { apiFetch } from "../../common/api";
+import { FORWARDING_CHOICES, ForwardingState, UPSTREAM_COMMENT_WARNING, addUpstreamComment, forwardReport } from "./forwarding";
 
 /** react-admin resource names of the failure reports admin (ADR 0012) */
 export const FAILURE_REPORT_RESOURCE = "admin/failure_reports";
@@ -57,6 +60,14 @@ export type FailureReport = {
   adminNote: string | null;
   createdAt: string;
   updatedAt: string;
+  /** Phase 2 (forwarding to the FetchDock collector) */
+  forwarding: ForwardingState;
+  upstreamPolicyVersion: string | null;
+  forwardingError: string | null;
+  upstreamId: string | null;
+  forwardedAt: string | null;
+  upstreamComment: string | null;
+  upstreamComments: { comment: string; createdAt: string; state: "pending" | "forwarded" | "failed"; error: string | null }[];
 };
 
 const reportFilters = [
@@ -64,6 +75,7 @@ const reportFilters = [
   <SelectInput key="kind" source="kind" choices={KIND_CHOICES} />,
   <TextInput key="site" source="site" label="Site (slug)" />,
   <TextInput key="host" source="host" label="Host" />,
+  <SelectInput key="forwarding" source="forwarding" label="Shared with developers" choices={FORWARDING_CHOICES} />,
 ];
 
 export const FailureReportList = () => (
@@ -75,9 +87,110 @@ export const FailureReportList = () => (
       <TextField source="site" sortable={false} emptyText="-" />
       <TextField source="url" sortable={false} />
       <SelectField source="status" choices={STATUS_CHOICES} sortable={false} />
+      <SelectField source="forwarding" label="Shared" choices={FORWARDING_CHOICES} sortable={false} />
     </Datagrid>
   </List>
 );
+
+/**
+ * Forwarding to the FetchDock developers (phase 2 of ADR 0012): only for reports the reporter agreed to share. Admins
+ * forward them (review mode or after a failure), and add comments to forwarded ones.
+ */
+const UpstreamPanel = () => {
+  const record = useRecordContext<FailureReport>();
+  const notify = useNotify();
+  const refresh = useRefresh();
+  const [text, setText] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  if (!record || "not_requested" === record.forwarding) {
+    return <p>The reporter did not agree to share this report with the FetchDock developers.</p>;
+  }
+
+  const canForward = "awaiting_review" === record.forwarding || "failed" === record.forwarding;
+  const canComment = "forwarded" === record.forwarding;
+  const run = async () => {
+    setBusy(true);
+    try {
+      if (canForward) {
+        await forwardReport(record.id, text.trim() || null);
+        notify("Report queued for the developers", { type: "success" });
+      } else {
+        await addUpstreamComment(record.id, text);
+        notify("Comment queued for the developers", { type: "success" });
+      }
+      setText("");
+      refresh();
+    } catch (error) {
+      notify((error as Error).message || "The request failed", { type: "error" });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div>
+      <dl className="grid grid-cols-[max-content_1fr] gap-x-4 gap-y-1 text-sm">
+        <dt className="font-medium">State</dt>
+        <dd>{FORWARDING_CHOICES.find((choice) => choice.id === record.forwarding)?.name ?? record.forwarding}</dd>
+        {record.forwardingError && (
+          <>
+            <dt className="font-medium">Reason</dt>
+            <dd style={{ whiteSpace: "pre-wrap" }}>{record.forwardingError}</dd>
+          </>
+        )}
+        <dt className="font-medium">Reporter agreed to policy</dt>
+        <dd>{record.upstreamPolicyVersion ?? "-"}</dd>
+        {record.upstreamId && (
+          <>
+            <dt className="font-medium">Collector id</dt>
+            <dd className="font-mono">{record.upstreamId}</dd>
+            <dt className="font-medium">Forwarded</dt>
+            <dd>{record.forwardedAt ? new Date(record.forwardedAt).toLocaleString() : "-"}</dd>
+          </>
+        )}
+        {record.upstreamComment && (
+          <>
+            <dt className="font-medium">Comment sent with it</dt>
+            <dd style={{ whiteSpace: "pre-wrap" }}>{record.upstreamComment}</dd>
+          </>
+        )}
+      </dl>
+      {record.upstreamComments.length > 0 && (
+        <ul className="mt-2 text-sm">
+          {record.upstreamComments.map((comment) => (
+            <li key={comment.createdAt + comment.comment} className="mt-1">
+              <span className="opacity-75">
+                {new Date(comment.createdAt).toLocaleString()} · {comment.state}
+                {comment.error ? ` (${comment.error})` : ""}
+              </span>
+              <div style={{ whiteSpace: "pre-wrap" }}>{comment.comment}</div>
+            </li>
+          ))}
+        </ul>
+      )}
+      {(canForward || canComment) && (
+        <div className="mt-3">
+          <textarea
+            className="w-full rounded border p-2 text-sm"
+            rows={3}
+            maxLength={4000}
+            value={text}
+            onChange={(event) => setText(event.target.value)}
+            placeholder={canForward ? "Optional comment for the developers" : "Comment for the developers"}
+          />
+          <p className="text-xs opacity-75">{UPSTREAM_COMMENT_WARNING}</p>
+          <Button
+            label={canForward ? "Forward to developers" : "Send comment"}
+            variant="contained"
+            disabled={busy || (canComment && "" === text.trim())}
+            onClick={run}
+          />
+        </div>
+      )}
+    </div>
+  );
+};
 
 const Diagnostics = () => (
   <FunctionField
@@ -123,6 +236,7 @@ export const FailureReportShow = () => (
       <TextField source="adminNote" label="Internal note" emptyText="-" sx={{ whiteSpace: "pre-wrap" }} />
       <DateField source="createdAt" showTime />
       <DateField source="updatedAt" showTime />
+      <FunctionField label="Shared with the FetchDock developers" render={() => <UpstreamPanel />} />
     </SimpleShowLayout>
   </Show>
 );

@@ -26,4 +26,4 @@ NODE_MODE=${NODE_MODE:-worker}
 # Call the main entrypoint script with the bin/console command and the appropriate arguments
 # to run the Symfony Messenger worker
 # You can customize the arguments as needed
-exec /usr/local/bin/docker-entrypoint php bin/console messenger:consume async --timeout=3600 --memory-limit=128M --sleep=5 --limit=100
+exec /usr/local/bin/docker-entrypoint php bin/console messenger:consume failure-reports async --timeout=3600 --memory-limit=128M --sleep=5 --limit=100

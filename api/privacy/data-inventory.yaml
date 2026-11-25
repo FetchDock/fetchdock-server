@@ -171,6 +171,40 @@ entities:
             updatedAt: ~
             downloadJob: { visibleTo: [owner] }
             site: { visibleTo: [admins] }
+            shareUpstream: { purpose: 'Records that you agreed to share the report with the FetchDock maintainers' }
+            upstreamPolicyVersion: { purpose: 'Records which version of the collector privacy policy you agreed to' }
+            forwarding: { purpose: 'Shows whether a shared report reached the FetchDock collector' }
+            upstreamId: { purpose: 'Identifies the shared copy at the FetchDock collector, so it can be deleted when you withdraw the report' }
+            forwardedAt: { purpose: 'Shows when the report was shared' }
+            upstreamComment: { purpose: 'Comment of the administrators for the FetchDock maintainers, shared with the report', visibleTo: [admins] }
+            forwardingError: { purpose: 'Tells administrators why a report could not be shared', visibleTo: [admins] }
+
+    App\Entity\FailureReportUpstreamComment:
+        summary: Comments administrators sent to the FetchDock maintainers about a report you shared
+        defaults: { personal: true, category: report, purpose: 'Gives the FetchDock maintainers more context about a shared report', retention: until_withdrawn, visibleTo: [admins] }
+        fields:
+            id: ~
+            report: ~
+            comment: ~
+            createdAt: ~
+            state: ~
+            upstreamId: ~
+            error: ~
+
+    App\Entity\FailureReportForwardingSettings:
+        summary: The instance's settings for sharing reports with the FetchDock collector and its registration there
+        defaults: { personal: false }
+        fields:
+            id: ~
+            enabled: ~
+            mode: ~
+            acceptedPolicyVersion: ~
+            acceptedPolicyUrl: ~
+            acceptedAt: ~
+            collectorUrl: ~
+            instanceId: ~
+            encryptedInstanceSecret: ~
+            registeredAt: ~
 
     App\Entity\FileMoveBatch:
         summary: Administrator file-move records (which administrator started moving files between download directories)
@@ -407,6 +441,11 @@ outgoingConnections:
       when: Hourly, to check for downloader updates
       sends: The instance's IP address; no user data
       personal: false
+    - id: failure_report_collector
+      to: The FetchDock report collector (run by the FetchDock project, reports.fetchdock.dev by default)
+      when: Only while the operator enabled sharing reports, and only for reports you chose to share — when the report is shared, when an administrator adds a comment for the maintainers, and when you withdraw the report or delete your account
+      sends: The instance's IP address, the shared report as you sent it with its site and the instance's FetchDock version, administrators' comments for the maintainers, and the collector's id of the report; never your account identifier
+      personal: true
     - id: integrity_digest
       to: GitHub (the FetchDock server releases)
       when: When the server starts and daily, until it has the digest of the running version
